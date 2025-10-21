@@ -45,4 +45,90 @@
       <a class="btn" href="#">Criar nova página</a>
     </footer>
   </article>
+  
+  <section class="svg-assets">
+    <h2>SVG Assets</h2>
+    <p>Lista de assets disponíveis (teste de copiar/colar):</p>
+    <ul>
+      {% for asset in svgfiles %}
+        <li>
+          <strong>{{ asset.filename }}</strong>
+          <button type="button" onclick="copySvg({{ asset.pk }})">Copiar SVG</button>
+        </li>
+      {% empty %}
+        <li>Sem assets</li>
+      {% endfor %}
+    </ul>
+
+    <div style="margin-top:1rem;">
+      <button type="button" onclick="pasteFromClipboard()">Colar do clipboard (criar novo asset)</button>
+    </div>
+  </section>
+
+  <script>
+    // URLs nomeadas do Django (resolvidas no template)
+    const copyUrl = "{% url 'core:copy_svg' %}"; // ex: /api/copy_svg/
+    const pasteUrl = "{% url 'core:paste_svg' %}"; // ex: /api/paste_svg/
+
+    // Helper para obter csrf token do cookie (caso necessário)
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    }
+
+    async function copySvg(id) {
+      try {
+        const res = await fetch(`${copyUrl}?id=${id}`);
+        if (!res.ok) throw new Error('Falha ao buscar SVG');
+        const data = await res.json();
+        await navigator.clipboard.writeText(data.svg_text || "");
+        alert('SVG copiado para o clipboard');
+      } catch (err) {
+        console.error(err);
+        alert('Erro ao copiar SVG: ' + (err.message || err));
+      }
+    }
+
+    async function pasteSvg(name, svgText) {
+      try {
+        const csrftoken = getCookie('csrftoken');
+        const res = await fetch(pasteUrl, {
+          method: 'POST',
+          headers: Object.assign({ 'Content-Type': 'application/json' }, csrftoken ? { 'X-CSRFToken': csrftoken } : {}),
+          body: JSON.stringify({ filename: name, svg_text: svgText }),
+        });
+
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(`Status ${res.status}: ${txt}`);
+        }
+
+        const data = await res.json();
+        return data;
+      } catch (err) {
+        console.error(err);
+        throw err;
+      }
+    }
+
+    async function pasteFromClipboard() {
+      try {
+        const svgText = await navigator.clipboard.readText();
+        if (!svgText) {
+          alert('Clipboard vazio');
+          return;
+        }
+  const filename = prompt('Nome para o novo SVG asset (ex: icon.svg):', 'from-clipboard.svg');
+  if (filename === null) return; // cancelado
+  const data = await pasteSvg(filename || 'unnamed.svg', svgText);
+        alert('Criado: ' + JSON.stringify(data));
+        // opcional: recarregar a página para mostrar novo asset
+        location.reload();
+      } catch (err) {
+        alert('Erro ao colar SVG: ' + (err.message || err));
+      }
+    }
+  </script>
 {% endblock %}

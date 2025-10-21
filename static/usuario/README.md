@@ -1,0 +1,1 @@
+Coloque aqui os arquivos estáticos do app `usuario` (css/, js/, img/). Ex: static/usuario/css/style.css

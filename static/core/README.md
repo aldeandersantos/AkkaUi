@@ -1,0 +1,1 @@
+Coloque aqui os arquivos estáticos do app `core` (css/, js/, img/). Ex: static/core/css/style.css

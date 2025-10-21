@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotAll
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.core.exceptions import RequestDataTooBig
 
 from .models import SvgFile
 
@@ -53,19 +54,95 @@ def copy_svg(request):
 def paste_svg(request):
     """
     POST JSON: {"filename": "nome.svg", "svg_text": "<svg...>"}
+    - Conteúdo esperado em application/json (UTF-8). Também aceitamos fallback
+      em text/plain (corpo inteiro vira svg_text) e form-urlencoded/multipart
+      com campos filename e svg_text.
+
     Cria um novo SvgFile. A sanitização é aplicada quando o conteúdo é servido
     para cópia (via get_sanitized_content), preservando o original no banco.
     """
-    try:
-        payload = json.loads(request.body.decode("utf-8"))
-    except Exception:
-        return HttpResponseBadRequest(json.dumps({"error": "invalid json"}), content_type="application/json")
+    ctype = request.META.get("CONTENT_TYPE", "").lower()
+    body = b""
 
-    svg_text = payload.get("svg_text")
-    if not svg_text:
-        return HttpResponseBadRequest(json.dumps({"error": "svg_text is required"}), content_type="application/json")
+    payload = None
+    decode_errors = None
 
-    filename = payload.get("filename") or "unnamed.svg"
-    # Ao criar, o save() sanitizará o conteúdo (conforme models.save override acima)
-    asset = SvgFile.objects.create(filename=filename, content=svg_text)
-    return JsonResponse({"id": asset.pk, "filename": asset.filename})
+    # 1) Tenta JSON padrão (UTF-8). Se falhar, tenta utf-8-sig (remove BOM)
+    if ctype.startswith("application/json"):
+        # Só acessa request.body quando for realmente JSON para evitar
+        # RequestDataTooBig em uploads multipart ou outros content-types.
+        try:
+            body = request.body or b""
+        except RequestDataTooBig:
+            return HttpResponseBadRequest(
+                json.dumps({
+                    "error": "payload too large",
+                    "detail": "JSON body exceeded DATA_UPLOAD_MAX_MEMORY_SIZE",
+                }),
+                content_type="application/json",
+            )
+        try:
+            payload = json.loads(body.decode("utf-8"))
+        except UnicodeDecodeError as ue:
+            decode_errors = f"unicode-decode-error: {ue}"
+            try:
+                payload = json.loads(body.decode("utf-8-sig"))
+            except Exception as je:
+                decode_errors += f"; utf-8-sig-fallback: {je}"
+        except json.JSONDecodeError as je:
+            decode_errors = f"json-decode-error: {je}"
+
+    # 2) Se não for JSON, tenta form-data/urlencoded
+    if payload is None and (ctype.startswith("application/x-www-form-urlencoded") or ctype.startswith("multipart/form-data")):
+        svg_text = request.POST.get("svg_text")
+        filename = request.POST.get("filename") or "unnamed.svg"
+        if svg_text:
+            asset = SvgFile.objects.create(filename=filename, content=svg_text)
+            return JsonResponse({"id": asset.pk, "filename": asset.filename})
+
+    # 3) Se for text/plain, trata o corpo como SVG direto
+    if payload is None and ctype.startswith("text/plain"):
+        try:
+            # Apenas lê o corpo cru se ainda não tivermos lido
+            if body:
+                raw = body
+            else:
+                try:
+                    raw = request.body or b""
+                except RequestDataTooBig:
+                    return HttpResponseBadRequest(
+                        json.dumps({
+                            "error": "payload too large",
+                            "detail": "text/plain body exceeded DATA_UPLOAD_MAX_MEMORY_SIZE",
+                        }),
+                        content_type="application/json",
+                    )
+            svg_text = raw.decode("utf-8", errors="replace")
+        except Exception:
+            svg_text = ""
+        if svg_text.strip():
+            filename = (request.GET.get("filename") or request.POST.get("filename") or "unnamed.svg")
+            asset = SvgFile.objects.create(filename=filename, content=svg_text)
+            return JsonResponse({"id": asset.pk, "filename": asset.filename})
+
+    # 4) Se conseguimos JSON, valida campos
+    if payload is not None:
+        svg_text = payload.get("svg_text")
+        if not svg_text:
+            return HttpResponseBadRequest(
+                json.dumps({"error": "svg_text is required"}),
+                content_type="application/json",
+            )
+        filename = payload.get("filename") or "unnamed.svg"
+        asset = SvgFile.objects.create(filename=filename, content=svg_text)
+        return JsonResponse({"id": asset.pk, "filename": asset.filename})
+
+    # 5) Falha: retorna detalhes para facilitar o debug no frontend
+    return HttpResponseBadRequest(
+        json.dumps({
+            "error": "invalid json",
+            "detail": decode_errors or f"unsupported content-type: {ctype or 'unknown'}",
+            "length": len(body),
+        }),
+        content_type="application/json",
+    )

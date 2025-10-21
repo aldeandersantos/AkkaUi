@@ -97,13 +97,19 @@
               const filename = ($name.value || 'unnamed.svg').trim();
               setStatus('Salvando...');
               try {
+                // Envia como multipart/form-data para permitir stream mais eficiente no backend
+                const fd = new FormData();
+                fd.append('filename', filename);
+                fd.append('svg_text', svg);
                 const res = await fetch(pasteUrl, {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ filename, svg_text: svg })
+                  body: fd
                 });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data && data.error || res.statusText);
+                if (!res.ok) {
+                  const msg = data && (data.error + (data.detail ? ' — ' + data.detail : '')) || res.statusText;
+                  throw new Error(msg);
+                }
                 setStatus('Salvo!');
                 // Atualiza lista localmente sem recarregar
                 if ($list && $tpl) {

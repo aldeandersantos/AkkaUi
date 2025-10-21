@@ -53,7 +53,8 @@ def copy_svg(request):
 def paste_svg(request):
     """
     POST JSON: {"filename": "nome.svg", "svg_text": "<svg...>"}
-    Cria um novo SvgFile (conteúdo será sanitizado no save()).
+    Cria um novo SvgFile. A sanitização é aplicada quando o conteúdo é servido
+    para cópia (via get_sanitized_content), preservando o original no banco.
     """
     try:
         payload = json.loads(request.body.decode("utf-8"))

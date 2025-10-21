@@ -90,9 +90,12 @@ def signin(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'Bem-vindo de volta, {username}!')
-            # Redirect to next parameter or home
-            next_url = request.GET.get('next', 'core:home')
-            return redirect(next_url)
+            # Redirect to next parameter or home (with validation)
+            next_url = request.GET.get('next', '')
+            # Only allow relative URLs to prevent open redirect vulnerability
+            if next_url and next_url.startswith('/') and not next_url.startswith('//'):
+                return redirect(next_url)
+            return redirect('core:home')
         else:
             messages.error(request, 'Nome de usuário ou senha incorretos.')
             return render(request, 'usuario/signin.html', {'username': username})

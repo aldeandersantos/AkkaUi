@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'core',
+    'usuario',
 ]
 
 MIDDLEWARE = [
@@ -131,6 +133,10 @@ STATICFILES_DIRS = [
 # Directory where `collectstatic` will collect static files for production.
 # You can change this when deploying.
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Media files (user uploaded files)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -8,10 +8,28 @@ from .models import SvgFile
 
 def home(request):
     """
-    Lista simples de SVGs. Template esperado: core/home.html (variável 'svgfiles').
+    Home page with introduction to AkkaUi.
     """
     svgfiles = SvgFile.objects.order_by("-uploaded_at")
     return render(request, "core/home.html", {"svgfiles": svgfiles})
+
+def explore(request):
+    """
+    Explore page showing UI components catalog.
+    """
+    return render(request, "core/explore.html")
+
+def pricing(request):
+    """
+    Pricing page showing subscription plans.
+    """
+    return render(request, "core/pricing.html")
+
+def faq(request):
+    """
+    FAQ page with frequently asked questions.
+    """
+    return render(request, "core/faq.html")
 
 def copy_svg(request):
     """

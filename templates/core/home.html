@@ -1,134 +1,39 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Início — AkkaUi Wiki{% endblock %}
-
-{% block sidebar %}
-  <div class="toc">
-    <h4>Seções</h4>
-    <ul>
-      <li><a href="#getting-started">Começando</a></li>
-      <li><a href="#features">Recursos</a></li>
-      <li><a href="#about">Sobre</a></li>
-    </ul>
-  </div>
-{% endblock %}
+{% block title %}Início — AkkaUi{% endblock %}
 
 {% block content %}
   <article class="page">
     <header class="page-header">
-      <h1>Bem-vindo ao AkkaUi Wiki</h1>
-      <p class="lead">Um lugar rápido para documentar conceitos, componentes e guias do projeto.</p>
+      <h1>Bem-vindo ao AkkaUi</h1>
+      <p class="lead">Seu catálogo completo de recursos de design UI modernos e responsivos com tema escuro.</p>
     </header>
 
     <div class="page-body">
       <section id="getting-started">
         <h2>Começando</h2>
-        <p>Use este wiki para organizar notas, tutoriais e guias de uso. Você pode editar páginas, criar novas e navegar pelas categorias.</p>
+        <p>Explore nossa coleção de componentes, patterns e recursos de design. Navegue pelas categorias, veja exemplos e encontre inspiração para seus projetos.</p>
       </section>
 
       <section id="features">
         <h2>Recursos</h2>
         <ul>
-          <li>Pesquisa rápida</li>
-          <li>Índice lateral</li>
-          <li>Visual limpo e responsivo</li>
+          <li>🎨 Tema escuro moderno com paleta de cores personalizável</li>
+          <li>📱 Design totalmente responsivo</li>
+          <li>⚡ Performance otimizada</li>
+          <li>🔍 Pesquisa rápida e intuitiva</li>
+          <li>🎯 Interface limpa e profissional</li>
         </ul>
       </section>
 
       <section id="about">
-        <h2>Sobre</h2>
-        <p>Modelo simples inspirado em uiwiki.com — focado em apresentação de conteúdo e leitura.</p>
+        <h2>Sobre o AkkaUi</h2>
+        <p>AkkaUi é uma plataforma moderna inspirada em uiwiki.co, focada em apresentação de conteúdo e leitura com tema escuro elegante. Utilizamos as cores #7460F3 (primary), #e7e7e7 (text), #7b7b7b (muted) e #0c0c0c (background) para criar uma experiência visual única.</p>
       </section>
     </div>
 
     <footer class="page-footer">
-      <a class="btn" href="#">Criar nova página</a>
+      <a class="btn" href="{% url 'core:explore' %}">Explorar Componentes</a>
     </footer>
   </article>
-  
-  <section class="svg-assets">
-    <h2>SVG Assets</h2>
-    <p>Lista de assets disponíveis (teste de copiar/colar):</p>
-    <ul>
-      {% for asset in svgfiles %}
-        <li>
-          <strong>{{ asset.filename }}</strong>
-          <button type="button" onclick="copySvg({{ asset.pk }})">Copiar SVG</button>
-        </li>
-      {% empty %}
-        <li>Sem assets</li>
-      {% endfor %}
-    </ul>
-
-    <div style="margin-top:1rem;">
-      <button type="button" onclick="pasteFromClipboard()">Colar do clipboard (criar novo asset)</button>
-    </div>
-  </section>
-
-  <script>
-    // URLs nomeadas do Django (resolvidas no template)
-    const copyUrl = "{% url 'core:copy_svg' %}"; // ex: /api/copy_svg/
-    const pasteUrl = "{% url 'core:paste_svg' %}"; // ex: /api/paste_svg/
-
-    // Helper para obter csrf token do cookie (caso necessário)
-    function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-      return null;
-    }
-
-    async function copySvg(id) {
-      try {
-        const res = await fetch(`${copyUrl}?id=${id}`);
-        if (!res.ok) throw new Error('Falha ao buscar SVG');
-        const data = await res.json();
-        await navigator.clipboard.writeText(data.svg_text || "");
-        alert('SVG copiado para o clipboard');
-      } catch (err) {
-        console.error(err);
-        alert('Erro ao copiar SVG: ' + (err.message || err));
-      }
-    }
-
-    async function pasteSvg(name, svgText) {
-      try {
-        const csrftoken = getCookie('csrftoken');
-        const res = await fetch(pasteUrl, {
-          method: 'POST',
-          headers: Object.assign({ 'Content-Type': 'application/json' }, csrftoken ? { 'X-CSRFToken': csrftoken } : {}),
-          body: JSON.stringify({ filename: name, svg_text: svgText }),
-        });
-
-        if (!res.ok) {
-          const txt = await res.text();
-          throw new Error(`Status ${res.status}: ${txt}`);
-        }
-
-        const data = await res.json();
-        return data;
-      } catch (err) {
-        console.error(err);
-        throw err;
-      }
-    }
-
-    async function pasteFromClipboard() {
-      try {
-        const svgText = await navigator.clipboard.readText();
-        if (!svgText) {
-          alert('Clipboard vazio');
-          return;
-        }
-  const filename = prompt('Nome para o novo SVG asset (ex: icon.svg):', 'from-clipboard.svg');
-  if (filename === null) return; // cancelado
-  const data = await pasteSvg(filename || 'unnamed.svg', svgText);
-        alert('Criado: ' + JSON.stringify(data));
-        // opcional: recarregar a página para mostrar novo asset
-        location.reload();
-      } catch (err) {
-        alert('Erro ao colar SVG: ' + (err.message || err));
-      }
-    }
-  </script>
 {% endblock %}

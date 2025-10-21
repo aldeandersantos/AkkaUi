@@ -1,0 +1,374 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Pricing — AkkaUi{% endblock %}
+
+{% block content %}
+<style>
+.pricing-hero {
+  text-align: center;
+  padding: 40px 0;
+  margin-bottom: 48px;
+}
+
+.pricing-hero h1 {
+  font-size: 48px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--primary), #9b8af5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.pricing-hero p {
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.pricing-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 48px;
+}
+
+.toggle-btn {
+  padding: 10px 24px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.toggle-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.pricing-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+  margin-bottom: 48px;
+}
+
+.pricing-card {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  transition: var(--transition);
+  position: relative;
+}
+
+.pricing-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(116, 96, 243, 0.2);
+}
+
+.pricing-card.featured {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, rgba(116, 96, 243, 0.05), rgba(155, 138, 245, 0.05));
+}
+
+.popular-badge {
+  position: absolute;
+  top: -12px;
+  right: 24px;
+  background: var(--primary);
+  color: #fff;
+  padding: 4px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.plan-name {
+  color: var(--text-light);
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.plan-description {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.plan-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.price-amount {
+  color: var(--text-light);
+  font-size: 48px;
+  font-weight: 700;
+}
+
+.price-currency {
+  color: var(--text-muted);
+  font-size: 24px;
+}
+
+.price-period {
+  color: var(--text-muted);
+  font-size: 16px;
+}
+
+.plan-cta {
+  width: 100%;
+  padding: 14px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: 24px;
+}
+
+.plan-cta:hover {
+  background: #5d4ed1;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(116, 96, 243, 0.3);
+}
+
+.plan-cta.outline {
+  background: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+}
+
+.plan-cta.outline:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+}
+
+.plan-features li {
+  color: var(--text-muted);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.plan-features li:last-child {
+  border-bottom: none;
+}
+
+.feature-icon {
+  color: var(--primary);
+  font-size: 18px;
+}
+
+.feature-icon.disabled {
+  color: var(--text-muted);
+  opacity: 0.3;
+}
+
+.pricing-faq {
+  margin-top: 64px;
+  text-align: center;
+}
+
+.pricing-faq h2 {
+  color: var(--text-light);
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.pricing-faq p {
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+.pricing-faq .btn {
+  display: inline-block;
+}
+
+@media (max-width: 900px) {
+  .pricing-hero h1 {
+    font-size: 32px;
+  }
+  
+  .pricing-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .price-amount {
+    font-size: 36px;
+  }
+}
+</style>
+
+<article class="page">
+  <div class="pricing-hero">
+    <h1>Planos e Preços</h1>
+    <p>Escolha o plano perfeito para suas necessidades</p>
+  </div>
+
+  <div class="pricing-toggle">
+    <button class="toggle-btn active">Mensal</button>
+    <button class="toggle-btn">Anual (20% off)</button>
+  </div>
+
+  <div class="pricing-cards">
+    <!-- Free Plan -->
+    <div class="pricing-card">
+      <h3 class="plan-name">Free</h3>
+      <p class="plan-description">Perfeito para começar e explorar</p>
+      
+      <div class="plan-price">
+        <span class="price-currency">R$</span>
+        <span class="price-amount">0</span>
+        <span class="price-period">/mês</span>
+      </div>
+
+      <button class="plan-cta outline">Começar Grátis</button>
+
+      <ul class="plan-features">
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Acesso a componentes básicos</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Até 5 projetos</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Suporte por email</span>
+        </li>
+        <li>
+          <span class="feature-icon disabled">✗</span>
+          <span>Componentes premium</span>
+        </li>
+        <li>
+          <span class="feature-icon disabled">✗</span>
+          <span>Exportação de código</span>
+        </li>
+        <li>
+          <span class="feature-icon disabled">✗</span>
+          <span>Suporte prioritário</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Pro Plan -->
+    <div class="pricing-card featured">
+      <span class="popular-badge">Mais Popular</span>
+      <h3 class="plan-name">Pro</h3>
+      <p class="plan-description">Para profissionais e equipes pequenas</p>
+      
+      <div class="plan-price">
+        <span class="price-currency">R$</span>
+        <span class="price-amount">49</span>
+        <span class="price-period">/mês</span>
+      </div>
+
+      <button class="plan-cta">Começar Agora</button>
+
+      <ul class="plan-features">
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Todos os componentes</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Projetos ilimitados</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Exportação de código</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Templates premium</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Suporte prioritário</span>
+        </li>
+        <li>
+          <span class="feature-icon disabled">✗</span>
+          <span>API de integração</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Enterprise Plan -->
+    <div class="pricing-card">
+      <h3 class="plan-name">Enterprise</h3>
+      <p class="plan-description">Para grandes equipes e empresas</p>
+      
+      <div class="plan-price">
+        <span class="price-currency">R$</span>
+        <span class="price-amount">199</span>
+        <span class="price-period">/mês</span>
+      </div>
+
+      <button class="plan-cta outline">Contatar Vendas</button>
+
+      <ul class="plan-features">
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Tudo do plano Pro</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Usuários ilimitados</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>API de integração</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Customização avançada</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>Suporte 24/7</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>SLA garantido</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pricing-faq">
+    <h2>Tem dúvidas?</h2>
+    <p>Confira nossa página de perguntas frequentes para mais informações</p>
+    <a href="{% url 'core:faq' %}" class="btn">Ver FAQ</a>
+  </div>
+
+  <script>
+    // Toggle pricing functionality
+    const toggleBtns = document.querySelectorAll('.toggle-btn');
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        toggleBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  </script>
+</article>
+{% endblock %}

@@ -1,0 +1,272 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Explorar — AkkaUi{% endblock %}
+
+{% block content %}
+<style>
+.explore-hero {
+  text-align: center;
+  padding: 40px 0;
+  margin-bottom: 48px;
+}
+
+.explore-hero h1 {
+  font-size: 48px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--primary), #9b8af5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.explore-hero p {
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.filter-section {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 10px 20px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.components-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.component-card {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.component-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(116, 96, 243, 0.2);
+}
+
+.component-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--primary), #9b8af5);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+.component-card h3 {
+  color: var(--text-light);
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.component-card p {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.component-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 4px 12px;
+  background: rgba(116, 96, 243, 0.1);
+  border: 1px solid rgba(116, 96, 243, 0.3);
+  border-radius: 6px;
+  color: var(--primary);
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .explore-hero h1 {
+    font-size: 32px;
+  }
+  
+  .components-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<article class="page">
+  <div class="explore-hero">
+    <h1>Explorar Componentes</h1>
+    <p>Descubra nossa coleção de componentes UI modernos e responsivos</p>
+  </div>
+
+  <div class="filter-section">
+    <button class="filter-btn active">Todos</button>
+    <button class="filter-btn">Botões</button>
+    <button class="filter-btn">Formulários</button>
+    <button class="filter-btn">Navegação</button>
+    <button class="filter-btn">Cards</button>
+    <button class="filter-btn">Modais</button>
+  </div>
+
+  <div class="components-grid">
+    <div class="component-card">
+      <div class="component-icon">🎨</div>
+      <h3>Buttons</h3>
+      <p>Coleção completa de botões modernos com diferentes estilos e estados.</p>
+      <div class="component-tags">
+        <span class="tag">UI</span>
+        <span class="tag">Interactive</span>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="component-icon">📝</div>
+      <h3>Forms</h3>
+      <p>Formulários elegantes e acessíveis com validação incorporada.</p>
+      <div class="component-tags">
+        <span class="tag">Input</span>
+        <span class="tag">Forms</span>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="component-icon">🧭</div>
+      <h3>Navigation</h3>
+      <p>Componentes de navegação responsivos para menus e sidebars.</p>
+      <div class="component-tags">
+        <span class="tag">Menu</span>
+        <span class="tag">Navigation</span>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="component-icon">🃏</div>
+      <h3>Cards</h3>
+      <p>Cards versáteis para exibir conteúdo de forma organizada.</p>
+      <div class="component-tags">
+        <span class="tag">Layout</span>
+        <span class="tag">Content</span>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="component-icon">🪟</div>
+      <h3>Modals</h3>
+      <p>Diálogos e modais elegantes com animações suaves.</p>
+      <div class="component-tags">
+        <span class="tag">Overlay</span>
+        <span class="tag">Interactive</span>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="component-icon">📊</div>
+      <h3>Charts</h3>
+      <p>Gráficos e visualizações de dados interativas.</p>
+      <div class="component-tags">
+        <span class="tag">Data</span>
+        <span class="tag">Visualization</span>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="component-icon">🎭</div>
+      <h3>Icons</h3>
+      <p>Biblioteca completa de ícones SVG escaláveis.</p>
+      <div class="component-tags">
+        <span class="tag">SVG</span>
+        <span class="tag">Graphics</span>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="component-icon">🌈</div>
+      <h3>Color Palette</h3>
+      <p>Sistema de cores consistente para seus projetos.</p>
+      <div class="component-tags">
+        <span class="tag">Design</span>
+        <span class="tag">Theme</span>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="component-icon">📱</div>
+      <h3>Mobile Components</h3>
+      <p>Componentes otimizados para dispositivos móveis.</p>
+      <div class="component-tags">
+        <span class="tag">Mobile</span>
+        <span class="tag">Responsive</span>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="component-icon">⚡</div>
+      <h3>Animations</h3>
+      <p>Animações e transições suaves para UX melhorada.</p>
+      <div class="component-tags">
+        <span class="tag">Motion</span>
+        <span class="tag">Effects</span>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="component-icon">🔔</div>
+      <h3>Notifications</h3>
+      <p>Sistema de notificações toast e alerts personalizáveis.</p>
+      <div class="component-tags">
+        <span class="tag">Feedback</span>
+        <span class="tag">Alerts</span>
+      </div>
+    </div>
+
+    <div class="component-card">
+      <div class="component-icon">🎯</div>
+      <h3>Badges</h3>
+      <p>Badges e tags para destacar informações importantes.</p>
+      <div class="component-tags">
+        <span class="tag">Labels</span>
+        <span class="tag">Status</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Filter functionality
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  </script>
+</article>
+{% endblock %}

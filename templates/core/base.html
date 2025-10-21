@@ -4,17 +4,21 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}AkkaUi Wiki{% endblock %}</title>
+    <title>{% block title %}AkkaUi{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'core/wiki.css' %}">
   </head>
   <body>
     <header class="site-header">
       <div class="container">
-        <a href="/" class="brand">AkkaUi</a>
-        <nav class="main-nav">
-          <a href="/">Home</a>
-          <a href="#">Explorar</a>
-          <a href="#">Criar</a>
+        <a href="{% url 'core:home' %}" class="brand">
+          <span>⚡</span> AkkaUi
+        </a>
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+        <nav class="main-nav" id="mainNav">
+          <a href="{% url 'core:home' %}" {% if request.path == '/' %}class="active"{% endif %}>Home</a>
+          <a href="{% url 'core:explore' %}" {% if 'explore' in request.path %}class="active"{% endif %}>Explorar</a>
+          <a href="{% url 'core:pricing' %}" {% if 'pricing' in request.path %}class="active"{% endif %}>Pricing</a>
+          <a href="{% url 'core:faq' %}" {% if 'faq' in request.path %}class="active"{% endif %}>FAQ</a>
         </nav>
         <div class="search">
           <form action="/search/" method="get">
@@ -25,18 +29,8 @@
     </header>
 
     <main class="container">
-      <aside class="sidebar">
-        {% block sidebar %}
-        <div class="toc">
-          <h4>Índice</h4>
-          <ul>
-            <li><a href="#">Introdução</a></li>
-            <li><a href="#">Categorias</a></li>
-            <li><a href="#">Recentes</a></li>
-          </ul>
-        </div>
-        {% endblock %}
-      </aside>
+      {% block sidebar %}
+      {% endblock %}
 
       <section class="content">
         {% block content %}
@@ -47,8 +41,56 @@
 
     <footer class="site-footer">
       <div class="container">
-        <p>© {{ year|default:2025 }} AkkaUi — Seu catálogo de recursos de design</p>
+        <div class="footer-brand">
+          <a href="{% url 'core:home' %}" class="brand">
+            <span>⚡</span> AkkaUi
+          </a>
+          <p>Seu catálogo completo de recursos de design UI modernos e responsivos.</p>
+        </div>
+        <div class="footer-section">
+          <h4>Produto</h4>
+          <ul>
+            <li><a href="{% url 'core:explore' %}">Explorar</a></li>
+            <li><a href="{% url 'core:pricing' %}">Pricing</a></li>
+            <li><a href="{% url 'core:faq' %}">FAQ</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Recursos</h4>
+          <ul>
+            <li><a href="#">Documentação</a></li>
+            <li><a href="#">Tutoriais</a></li>
+            <li><a href="#">Blog</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>Empresa</h4>
+          <ul>
+            <li><a href="#">Sobre</a></li>
+            <li><a href="#">Contato</a></li>
+            <li><a href="#">Termos</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© {{ year|default:2025 }} AkkaUi. Todos os direitos reservados.</p>
       </div>
     </footer>
+
+    <script>
+      function toggleMenu() {
+        const nav = document.getElementById('mainNav');
+        nav.classList.toggle('active');
+      }
+
+      // Close menu when clicking outside
+      document.addEventListener('click', function(event) {
+        const nav = document.getElementById('mainNav');
+        const toggle = document.querySelector('.menu-toggle');
+        if (!nav.contains(event.target) && !toggle.contains(event.target)) {
+          nav.classList.remove('active');
+        }
+      });
+    </script>
   </body>
 </html>

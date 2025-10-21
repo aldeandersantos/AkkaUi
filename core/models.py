@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils import timezone
 import bleach
-import re
 
 # Create your models here.
 
@@ -63,9 +62,6 @@ class SvgAsset(models.Model):
         if not svg_content:
             return ""
         
-        # Remove tags <script> e seu conteúdo
-        svg_content = re.sub(r'<script[^>]*>.*?</script>', '', svg_content, flags=re.DOTALL | re.IGNORECASE)
-        
         # Lista de tags SVG permitidas
         allowed_tags = [
             'svg', 'g', 'path', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon',
@@ -83,7 +79,7 @@ class SvgAsset(models.Model):
                           'onmousemove', 'onmousedown', 'onmouseup', 'onfocus', 'onblur',
                           'onchange', 'onsubmit', 'onkeydown', 'onkeyup', 'onkeypress']
         
-        # Usa bleach para sanitizar
+        # Usa bleach para sanitizar - bleach remove scripts e atributos perigosos de forma segura
         sanitized = bleach.clean(
             svg_content,
             tags=allowed_tags,

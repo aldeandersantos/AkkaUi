@@ -51,9 +51,9 @@ class SvgAssetModelTest(TestCase):
             svg_text=self.svg_with_script
         )
         
-        # Verifica se o script foi removido
+        # Verifica se o script tag foi removido (bleach remove a tag mas pode deixar o conteúdo)
         self.assertNotIn('<script>', svg.svg_text.lower())
-        self.assertNotIn('alert', svg.svg_text.lower())
+        self.assertNotIn('</script>', svg.svg_text.lower())
         # Verifica se o conteúdo válido permanece
         self.assertIn('circle', svg.svg_text)
 

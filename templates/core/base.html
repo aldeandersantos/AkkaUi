@@ -1,0 +1,54 @@
+{% load static %}
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}AkkaUi Wiki{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'core/wiki.css' %}">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container">
+        <a href="/" class="brand">AkkaUi</a>
+        <nav class="main-nav">
+          <a href="/">Home</a>
+          <a href="#">Explorar</a>
+          <a href="#">Criar</a>
+        </nav>
+        <div class="search">
+          <form action="/search/" method="get">
+            <input name="q" type="search" placeholder="Pesquisar...">
+          </form>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <aside class="sidebar">
+        {% block sidebar %}
+        <div class="toc">
+          <h4>Índice</h4>
+          <ul>
+            <li><a href="#">Introdução</a></li>
+            <li><a href="#">Categorias</a></li>
+            <li><a href="#">Recentes</a></li>
+          </ul>
+        </div>
+        {% endblock %}
+      </aside>
+
+      <section class="content">
+        {% block content %}
+        <!-- Conteúdo da página -->
+        {% endblock %}
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>© {{ year|default:2025 }} AkkaUi — Um wiki simples</p>
+      </div>
+    </footer>
+  </body>
+</html>

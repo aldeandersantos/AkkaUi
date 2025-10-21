@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Início — AkkaUi Wiki{% endblock %}
+
+{% block sidebar %}
+  <div class="toc">
+    <h4>Seções</h4>
+    <ul>
+      <li><a href="#getting-started">Começando</a></li>
+      <li><a href="#features">Recursos</a></li>
+      <li><a href="#about">Sobre</a></li>
+    </ul>
+  </div>
+{% endblock %}
+
+{% block content %}
+  <article class="page">
+    <header class="page-header">
+      <h1>Bem-vindo ao AkkaUi Wiki</h1>
+      <p class="lead">Um lugar rápido para documentar conceitos, componentes e guias do projeto.</p>
+    </header>
+
+    <div class="page-body">
+      <section id="getting-started">
+        <h2>Começando</h2>
+        <p>Use este wiki para organizar notas, tutoriais e guias de uso. Você pode editar páginas, criar novas e navegar pelas categorias.</p>
+      </section>
+
+      <section id="features">
+        <h2>Recursos</h2>
+        <ul>
+          <li>Pesquisa rápida</li>
+          <li>Índice lateral</li>
+          <li>Visual limpo e responsivo</li>
+        </ul>
+      </section>
+
+      <section id="about">
+        <h2>Sobre</h2>
+        <p>Modelo simples inspirado em uiwiki.com — focado em apresentação de conteúdo e leitura.</p>
+      </section>
+    </div>
+
+    <footer class="page-footer">
+      <a class="btn" href="#">Criar nova página</a>
+    </footer>
+  </article>
+{% endblock %}

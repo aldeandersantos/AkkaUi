@@ -1,0 +1,416 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}FAQ — AkkaUi{% endblock %}
+
+{% block content %}
+<style>
+.faq-hero {
+  text-align: center;
+  padding: 40px 0;
+  margin-bottom: 48px;
+}
+
+.faq-hero h1 {
+  font-size: 48px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--primary), #9b8af5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.faq-hero p {
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+.faq-search {
+  max-width: 600px;
+  margin: 0 auto 48px;
+}
+
+.faq-search input {
+  width: 100%;
+  padding: 16px 24px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text-light);
+  font-size: 16px;
+  transition: var(--transition);
+}
+
+.faq-search input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(116, 96, 243, 0.1);
+}
+
+.faq-search input::placeholder {
+  color: var(--text-muted);
+}
+
+.faq-categories {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.category-btn {
+  padding: 10px 20px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.category-btn:hover,
+.category-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.faq-list {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.faq-item {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.faq-item:hover {
+  border-color: rgba(116, 96, 243, 0.5);
+}
+
+.faq-question {
+  width: 100%;
+  padding: 24px;
+  background: none;
+  border: none;
+  color: var(--text-light);
+  font-size: 18px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: var(--transition);
+}
+
+.faq-question:hover {
+  color: var(--primary);
+}
+
+.faq-icon {
+  color: var(--primary);
+  font-size: 24px;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+  margin-left: 16px;
+}
+
+.faq-item.active .faq-icon {
+  transform: rotate(45deg);
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  padding: 0 24px;
+}
+
+.faq-item.active .faq-answer {
+  max-height: 500px;
+  padding: 0 24px 24px;
+}
+
+.faq-answer p {
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.faq-answer ul {
+  color: var(--text-muted);
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+
+.faq-answer li {
+  margin: 8px 0;
+}
+
+.faq-contact {
+  margin-top: 64px;
+  text-align: center;
+  padding: 48px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.faq-contact h2 {
+  color: var(--text-light);
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.faq-contact p {
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .faq-hero h1 {
+    font-size: 32px;
+  }
+  
+  .faq-question {
+    font-size: 16px;
+    padding: 20px;
+  }
+  
+  .faq-answer {
+    padding: 0 20px;
+  }
+  
+  .faq-item.active .faq-answer {
+    padding: 0 20px 20px;
+  }
+}
+</style>
+
+<article class="page">
+  <div class="faq-hero">
+    <h1>Perguntas Frequentes</h1>
+    <p>Encontre respostas para as dúvidas mais comuns</p>
+  </div>
+
+  <div class="faq-search">
+    <input type="search" placeholder="Buscar por uma pergunta..." id="faqSearch">
+  </div>
+
+  <div class="faq-categories">
+    <button class="category-btn active">Todas</button>
+    <button class="category-btn">Geral</button>
+    <button class="category-btn">Preços</button>
+    <button class="category-btn">Técnico</button>
+    <button class="category-btn">Conta</button>
+  </div>
+
+  <div class="faq-list">
+    <div class="faq-item" data-category="geral">
+      <button class="faq-question">
+        <span>O que é o AkkaUi?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>AkkaUi é uma plataforma moderna de recursos de design UI que oferece componentes, templates e ferramentas para desenvolvedores e designers criarem interfaces elegantes e funcionais. Nossa biblioteca inclui centenas de componentes prontos para uso com tema escuro moderno.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" data-category="geral">
+      <button class="faq-question">
+        <span>Como posso começar a usar o AkkaUi?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Começar é simples:</p>
+        <ul>
+          <li>Crie uma conta gratuita</li>
+          <li>Explore nossa biblioteca de componentes</li>
+          <li>Escolha os componentes que deseja usar</li>
+          <li>Copie o código e integre em seu projeto</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item" data-category="preços">
+      <button class="faq-question">
+        <span>Existe um plano gratuito?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Sim! Oferecemos um plano gratuito que inclui acesso a componentes básicos, até 5 projetos e suporte por email. É perfeito para começar e experimentar nossa plataforma antes de fazer upgrade para um plano pago.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" data-category="preços">
+      <button class="faq-question">
+        <span>Posso mudar de plano a qualquer momento?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Com certeza! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento. Ao fazer upgrade, você terá acesso imediato aos recursos adicionais. Ao fazer downgrade, as alterações entrarão em vigor no próximo ciclo de cobrança.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" data-category="técnico">
+      <button class="faq-question">
+        <span>Quais tecnologias são suportadas?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>AkkaUi é compatível com as principais tecnologias web:</p>
+        <ul>
+          <li>HTML5 e CSS3 puro</li>
+          <li>React, Vue e Angular</li>
+          <li>Tailwind CSS e Bootstrap</li>
+          <li>Django, Flask e outros frameworks Python</li>
+          <li>Node.js e Express</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item" data-category="técnico">
+      <button class="faq-question">
+        <span>Os componentes são responsivos?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Absolutamente! Todos os nossos componentes são desenvolvidos com mobile-first design e são totalmente responsivos. Eles funcionam perfeitamente em dispositivos móveis, tablets e desktops, adaptando-se automaticamente ao tamanho da tela.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" data-category="técnico">
+      <button class="faq-question">
+        <span>Posso customizar os componentes?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Sim! Todos os componentes são totalmente customizáveis. Você pode modificar cores, espaçamentos, tamanhos e qualquer outro aspecto visual através de CSS. Também fornecemos variáveis CSS para facilitar a customização em escala.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" data-category="conta">
+      <button class="faq-question">
+        <span>Como faço para cancelar minha conta?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Você pode cancelar sua conta a qualquer momento através das configurações da conta. Se você tiver um plano pago, o acesso aos recursos premium continuará até o final do período de cobrança atual. Seus dados serão mantidos por 30 dias caso você queira reativar sua conta.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" data-category="geral">
+      <button class="faq-question">
+        <span>Vocês oferecem suporte?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Sim! Oferecemos diferentes níveis de suporte dependendo do seu plano:</p>
+        <ul>
+          <li><strong>Free:</strong> Suporte por email com resposta em até 48h</li>
+          <li><strong>Pro:</strong> Suporte prioritário com resposta em até 24h</li>
+          <li><strong>Enterprise:</strong> Suporte 24/7 com resposta em até 4h</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="faq-item" data-category="preços">
+      <button class="faq-question">
+        <span>Há desconto para pagamento anual?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Sim! Ao optar pelo pagamento anual, você economiza 20% em comparação com o pagamento mensal. Isso significa que você paga por 10 meses e ganha 2 meses grátis.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" data-category="técnico">
+      <button class="faq-question">
+        <span>Os componentes funcionam em navegadores antigos?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Nossos componentes são otimizados para navegadores modernos (Chrome, Firefox, Safari, Edge). Suportamos as duas últimas versões principais de cada navegador. Para navegadores mais antigos, alguns recursos visuais podem não funcionar perfeitamente.</p>
+      </div>
+    </div>
+
+    <div class="faq-item" data-category="geral">
+      <button class="faq-question">
+        <span>Vocês têm documentação?</span>
+        <span class="faq-icon">+</span>
+      </button>
+      <div class="faq-answer">
+        <p>Sim! Temos uma documentação completa e detalhada para cada componente, incluindo exemplos de código, guias de uso e melhores práticas. Você pode acessá-la através da página de cada componente.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="faq-contact">
+    <h2>Não encontrou sua resposta?</h2>
+    <p>Nossa equipe está pronta para ajudar você com qualquer dúvida</p>
+    <a href="mailto:suporte@akkaui.com" class="btn">Entrar em Contato</a>
+  </div>
+
+  <script>
+    // FAQ accordion functionality
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach(item => {
+      const question = item.querySelector('.faq-question');
+      question.addEventListener('click', () => {
+        const isActive = item.classList.contains('active');
+        
+        // Close all items
+        faqItems.forEach(i => i.classList.remove('active'));
+        
+        // Open clicked item if it wasn't active
+        if (!isActive) {
+          item.classList.add('active');
+        }
+      });
+    });
+
+    // Category filter functionality
+    const categoryBtns = document.querySelectorAll('.category-btn');
+    categoryBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        categoryBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        const category = btn.textContent.toLowerCase();
+        faqItems.forEach(item => {
+          if (category === 'todas' || item.dataset.category === category) {
+            item.style.display = 'block';
+          } else {
+            item.style.display = 'none';
+            item.classList.remove('active');
+          }
+        });
+      });
+    });
+
+    // Search functionality
+    const searchInput = document.getElementById('faqSearch');
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      faqItems.forEach(item => {
+        const question = item.querySelector('.faq-question span').textContent.toLowerCase();
+        const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+        
+        if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+          item.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</article>
+{% endblock %}

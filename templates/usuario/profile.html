@@ -1,0 +1,54 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Perfil — AkkaUi{% endblock %}
+
+{% block content %}
+  <article class="page">
+    <header class="page-header">
+      <h1>Meu Perfil</h1>
+      <p class="lead">Gerencie suas informações pessoais</p>
+    </header>
+
+    <div class="page-body">
+      <div class="profile-container">
+        {% if messages %}
+          <div class="messages">
+            {% for message in messages %}
+              <div class="message {% if message.tags %}message-{{ message.tags }}{% endif %}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="profile-info">
+          <div class="profile-field">
+            <label>Nome de usuário</label>
+            <p>{{ user.username }}</p>
+          </div>
+
+          <div class="profile-field">
+            <label>Email</label>
+            <p>{{ user.email }}</p>
+          </div>
+
+          {% if user.phone %}
+          <div class="profile-field">
+            <label>Telefone</label>
+            <p>{{ user.phone }}</p>
+          </div>
+          {% endif %}
+
+          <div class="profile-field">
+            <label>Membro desde</label>
+            <p>{{ user.date_joined|date:"d/m/Y" }}</p>
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <a href="{% url 'usuario:signout' %}" class="btn btn-secondary">Sair da Conta</a>
+        </div>
+      </div>
+    </div>
+  </article>
+{% endblock %}

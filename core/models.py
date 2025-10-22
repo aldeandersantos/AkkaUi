@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 import re
 
 
@@ -11,7 +12,11 @@ class SvgFile(models.Model):
     content = models.TextField(help_text="Conteúdo do arquivo SVG (texto XML)")
     uploaded_at = models.DateTimeField(auto_now_add=True)
     thumbnail = models.ImageField(upload_to='thumbnails/', null=True, blank=True)
-    owner = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='svg_files',
+    )
     is_public = models.BooleanField(default=False)
     license_required = models.BooleanField(default=False)
 

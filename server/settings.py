@@ -139,6 +139,14 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Custom User Model
+AUTH_USER_MODEL = 'usuario.CustomUser'
+
+# Login/Logout URLs
+LOGIN_URL = '/usuario/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
 # Upload limits
 # Aumenta o limite para aceitar SVGs maiores via JSON (request.body).
 # Valores podem ser ajustados via variáveis de ambiente.

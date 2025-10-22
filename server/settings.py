@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env_path = BASE_DIR / '.env'
+env_path = BASE_DIR / 'env/.env'
 # Use python-dotenv to load environment variables from .env without
 # overriding existing environment variables (preserves current behavior).
 if env_path.exists():

@@ -68,27 +68,44 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       👁️ Visualizar
     </button>
     
-    {# Botão Carregar - usa HTMX para buscar SVG sanitizado do backend #}
+    {# Botão Copiar - usa fetch para buscar SVG sanitizado do backend #}
     <button
-      hx-get="{% url 'core:copy_svg' %}?id={{ item.pk }}"
-      hx-swap="none"
-      hx-on::after-request="
-        try {
-          const resp = JSON.parse(event.detail.xhr.response);
-          if (resp.svg_text) {
-            navigator.clipboard.writeText(resp.svg_text).then(() => {
-              const btn = event.target;
-              const originalText = btn.textContent;
-              btn.textContent = '✓ Copiado!';
-              setTimeout(() => { btn.textContent = originalText; }, 2000);
-            }).catch(() => {
-              alert('Erro ao copiar para área de transferência');
-            });
+      onclick="
+        const btn = this;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Copiando...';
+        
+        fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', {
+          method: 'GET',
+          headers: { 'Accept': 'application/json' }
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Erro HTTP: ' + response.status);
           }
-        } catch (e) {
-          console.error('Erro ao processar resposta:', e);
-          alert('Erro ao processar resposta do servidor');
-        }
+          return response.json();
+        })
+        .then(data => {
+          if (data.svg_text) {
+            return navigator.clipboard.writeText(data.svg_text);
+          } else {
+            throw new Error('SVG não encontrado na resposta');
+          }
+        })
+        .then(() => {
+          btn.textContent = '✓ Copiado!';
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = originalText;
+          }, 2000);
+        })
+        .catch(error => {
+          console.error('Erro ao copiar:', error);
+          alert('Erro ao copiar SVG: ' + error.message);
+          btn.disabled = false;
+          btn.textContent = originalText;
+        });
       "
       class="btn btn-secondary"
       type="button"

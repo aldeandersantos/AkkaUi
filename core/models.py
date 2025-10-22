@@ -19,6 +19,7 @@ class SvgFile(models.Model):
     )
     is_public = models.BooleanField(default=False)
     license_required = models.BooleanField(default=False)
+    hash_value = models.CharField(max_length=64, unique=True, blank=True)
 
     def __str__(self):
         return f"{self.filename} ({self.uploaded_at.isoformat()})"
@@ -38,3 +39,42 @@ class SvgFile(models.Model):
         # remove atributos onxxx="..." e onxxx='...'
         content = re.sub(r"(?i)\s+on[a-z]+\s*=\s*(\".*?\"|'.*?'|[^\s>]+)", "", content)
         return content
+
+    def _generate_hash(self, extra: str = "") -> str:
+        """
+        Gera um hash SHA-256 baseado no conteúdo, nome do arquivo, owner e timestamp.
+        O argumento `extra` é usado para alterar o input em caso de colisão.
+        """
+        import hashlib
+        from django.utils import timezone
+
+        base = (
+            (self.content or "") + "|" + (self.filename or "") + "|"
+            + str(getattr(self.owner, 'id', '')) + "|"
+            + timezone.now().isoformat() + "|" + extra
+        )
+        return hashlib.sha256(base.encode('utf-8')).hexdigest()
+
+    def save(self, *args, **kwargs):
+        # Apenas gerar hash na criação (quando campo vazio)
+        if not self.hash_value:
+            # Tentar gerar um hash único; em caso de colisão, acrescenta um salt incremental
+            from django.db import IntegrityError
+            extra = ""
+            attempt = 0
+            max_attempts = 5
+            while True:
+                self.hash_value = self._generate_hash(extra=extra)
+                try:
+                    super().save(*args, **kwargs)
+                    break
+                except IntegrityError:
+                    # Colisão rara: incrementar extra e tentar novamente
+                    attempt += 1
+                    if attempt >= max_attempts:
+                        # Re-raise after algumas tentativas
+                        raise
+                    extra = str(attempt)
+                    # Continue loop to generate new hash and try saving
+        else:
+            super().save(*args, **kwargs)

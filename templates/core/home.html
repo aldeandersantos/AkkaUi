@@ -48,7 +48,11 @@
                           <div class="svg-thumb-wrap" aria-hidden="true">
                             {% if item.thumbnail %}
                               <img class="svg-thumb" src="{{ item.thumbnail.url }}" alt="Thumbnail {{ item.title_name }}" loading="lazy" decoding="async"
-                                   onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\'svg-thumb-placeholder\'>Sem imagem<br/>Prévia</div>');" />
+                                  onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\'svg-thumb-placeholder\'>Sem imagem<br/>Prévia</div>');" />
+                            {% elif item.content %}
+                              <div class="svg-thumb svg-thumb-inline" aria-hidden="true" title="Pré-visualização do SVG">
+                                {{ item.get_sanitized_content|safe }}
+                              </div>
                             {% else %}
                               <div class="svg-thumb-placeholder">Sem imagem<br/>Prévia</div>
                             {% endif %}

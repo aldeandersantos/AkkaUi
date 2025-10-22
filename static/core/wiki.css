@@ -225,6 +225,34 @@ main.container{
   padding:8px;
 }
 
+.svg-thumb-inline {
+  width: 140px;            /* ajuste conforme seu card */
+  height: 140px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent; /* ou um contraste sutil */
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* garante que o <svg> preencha o container mantendo aspect ratio */
+.svg-thumb-inline svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 1;      /* sem "leve" */
+  filter: none;    /* sem grayscale */
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Opcional: esconder um <rect> de fundo (muitas vezes usado para background branco)
+   Atenção: isso pode alterar a renderização de alguns SVGs legítimos — use com cuidado. */
+.svg-thumb-inline svg rect[width][height]:first-child {
+  display: none;
+}
+
 /* Buttons */
 .btn{
   display:inline-block;

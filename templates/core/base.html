@@ -19,6 +19,9 @@
           <a href="{% url 'core:explore' %}" {% if 'explore' in request.path %}class="active"{% endif %}>Explorar</a>
           <a href="{% url 'core:pricing' %}" {% if 'pricing' in request.path %}class="active"{% endif %}>Pricing</a>
           <a href="{% url 'core:faq' %}" {% if 'faq' in request.path %}class="active"{% endif %}>FAQ</a>
+          {% if user.is_authenticated and user.admin %}
+            <a href="{% url 'core:admin_svg' %}" {% if 'manage/svg' in request.path %}class="active"{% endif %}>Gerenciar SVG</a>
+          {% endif %}
           {% if user.is_authenticated %}
             <a href="{% url 'usuario:profile' %}" class="mobile-only">Perfil</a>
             <a href="{% url 'usuario:signout' %}" class="mobile-only">Sair</a>

@@ -1,0 +1,384 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Admin - Gerenciar SVGs — AkkaUi{% endblock %}
+
+{% block content %}
+  <article class="page">
+    <header class="page-header">
+      <h1>Gerenciar SVGs</h1>
+      <p class="lead">Sistema administrativo para criação e gerenciamento de arquivos SVG.</p>
+    </header>
+
+    <div class="page-body">
+      <section id="create-svg" style="margin-bottom:2rem">
+        <h2>Criar Novo SVG</h2>
+        <p class="muted">Preencha as informações abaixo para criar um novo SVG no banco de dados.</p>
+
+        <form id="admin-svg-form" style="margin-top:1.5rem">
+          <div style="display:flex; flex-direction:column; gap:1rem; max-width:800px">
+            
+            <!-- Filename -->
+            <div style="display:flex; flex-direction:column; gap:.5rem">
+              <label for="filename" style="font-weight:600; color:var(--text-light)">
+                Nome do Arquivo <span style="color:#ff7b7b">*</span>
+              </label>
+              <input 
+                id="filename" 
+                name="filename" 
+                type="text" 
+                required
+                placeholder="ex: icone-usuario.svg"
+                style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
+              />
+            </div>
+
+            <!-- Title Name -->
+            <div style="display:flex; flex-direction:column; gap:.5rem">
+              <label for="title_name" style="font-weight:600; color:var(--text-light)">
+                Título
+              </label>
+              <input 
+                id="title_name" 
+                name="title_name" 
+                type="text" 
+                placeholder="ex: Ícone de Usuário"
+                style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
+              />
+            </div>
+
+            <!-- Description -->
+            <div style="display:flex; flex-direction:column; gap:.5rem">
+              <label for="description" style="font-weight:600; color:var(--text-light)">
+                Descrição
+              </label>
+              <textarea 
+                id="description" 
+                name="description" 
+                rows="3"
+                placeholder="Descreva o SVG..."
+                style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem; font-family:inherit; resize:vertical"
+              ></textarea>
+            </div>
+
+            <!-- Tags -->
+            <div style="display:flex; flex-direction:column; gap:.5rem">
+              <label for="tags" style="font-weight:600; color:var(--text-light)">
+                Tags
+              </label>
+              <input 
+                id="tags" 
+                name="tags" 
+                type="text" 
+                placeholder="ex: icone, usuario, perfil (separadas por vírgula)"
+                style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
+              />
+              <small class="muted">Separe as tags por vírgula</small>
+            </div>
+
+            <!-- Category -->
+            <div style="display:flex; flex-direction:column; gap:.5rem">
+              <label for="category" style="font-weight:600; color:var(--text-light)">
+                Categoria
+              </label>
+              <input 
+                id="category" 
+                name="category" 
+                type="text" 
+                placeholder="ex: Ícones"
+                style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
+              />
+            </div>
+
+            <!-- Thumbnail -->
+            <div style="display:flex; flex-direction:column; gap:.5rem">
+              <label for="thumbnail" style="font-weight:600; color:var(--text-light)">
+                Thumbnail (Imagem de Prévia)
+              </label>
+              <input 
+                id="thumbnail" 
+                name="thumbnail" 
+                type="file" 
+                accept="image/*"
+                style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
+              />
+              <small class="muted">Opcional: adicione uma imagem de prévia</small>
+            </div>
+
+            <!-- SVG Content -->
+            <div style="display:flex; flex-direction:column; gap:.5rem">
+              <label for="svg_text" style="font-weight:600; color:var(--text-light)">
+                Conteúdo SVG <span style="color:#ff7b7b">*</span>
+              </label>
+              <div style="display:flex; gap:.5rem; margin-bottom:.5rem">
+                <button type="button" id="btn-paste-clipboard" class="btn btn-secondary">
+                  Colar do Clipboard
+                </button>
+                <button type="button" id="btn-load-file" class="btn btn-secondary">
+                  Carregar Arquivo SVG
+                </button>
+                <input type="file" id="svg-file-input" accept=".svg,image/svg+xml" style="display:none" />
+              </div>
+              <textarea 
+                id="svg_text" 
+                name="svg_text" 
+                rows="12"
+                required
+                placeholder="Cole o código SVG aqui... <svg>...</svg>"
+                style="padding:1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size:.9rem; resize:vertical"
+              ></textarea>
+            </div>
+
+            <!-- Checkboxes -->
+            <div style="display:flex; flex-direction:column; gap:.75rem">
+              <label style="display:flex; align-items:center; gap:.5rem; cursor:pointer">
+                <input type="checkbox" id="is_public" name="is_public" style="width:18px; height:18px; cursor:pointer" />
+                <span style="font-weight:500">Tornar público</span>
+              </label>
+              
+              <label style="display:flex; align-items:center; gap:.5rem; cursor:pointer">
+                <input type="checkbox" id="license_required" name="license_required" style="width:18px; height:18px; cursor:pointer" />
+                <span style="font-weight:500">Requer licença</span>
+              </label>
+            </div>
+
+            <!-- Submit Button -->
+            <div style="display:flex; gap:1rem; align-items:center; margin-top:1rem">
+              <button type="submit" class="btn btn-primary" style="padding:.75rem 2rem; font-size:1rem">
+                Criar SVG
+              </button>
+              <span id="form-status" class="muted"></span>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <hr style="border-color:var(--border); margin:2rem 0" />
+
+      <section id="my-svgs">
+        <h2>Meus SVGs</h2>
+        {% if svgfiles %}
+          <div style="margin-top:1rem; display:flex; flex-direction:column; gap:.75rem">
+            {% for svg in svgfiles %}
+              <div style="padding:1rem; border:1px solid var(--border); border-radius:8px; background:var(--bg-card)">
+                <div style="display:flex; justify-content:space-between; align-items:start; gap:1rem">
+                  <div style="flex:1">
+                    <h3 style="margin:0 0 .5rem; color:var(--text-light)">
+                      {{ svg.title_name|default:svg.filename }}
+                    </h3>
+                    <div style="font-size:.9rem; color:var(--text-muted); margin-bottom:.5rem">
+                      <strong>Arquivo:</strong> {{ svg.filename }}
+                    </div>
+                    {% if svg.description %}
+                      <p class="muted" style="margin:.5rem 0">{{ svg.description }}</p>
+                    {% endif %}
+                    {% if svg.tags %}
+                      <div style="margin-top:.5rem">
+                        <span style="padding:.25rem .5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:4px; font-size:.85rem">
+                          {{ svg.tags }}
+                        </span>
+                      </div>
+                    {% endif %}
+                    <div style="margin-top:.5rem; font-size:.85rem; color:var(--text-muted)">
+                      Criado em: {{ svg.uploaded_at|date:"d/m/Y H:i" }}
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:.5rem">
+                    <button class="btn btn-secondary btn-copy-svg" data-id="{{ svg.id }}">
+                      Copiar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="muted" style="margin-top:1rem">Você ainda não criou nenhum SVG.</p>
+        {% endif %}
+      </section>
+    </div>
+  </article>
+
+  <script>
+    (function() {
+      const form = document.getElementById('admin-svg-form');
+      const formStatus = document.getElementById('form-status');
+      const svgTextarea = document.getElementById('svg_text');
+      const btnPaste = document.getElementById('btn-paste-clipboard');
+      const btnLoadFile = document.getElementById('btn-load-file');
+      const svgFileInput = document.getElementById('svg-file-input');
+      const createUrl = "{% url 'core:admin_create_svg' %}";
+      const copyUrl = "{% url 'core:copy_svg' %}";
+
+      function setStatus(msg, isError = false) {
+        formStatus.textContent = msg;
+        formStatus.style.color = isError ? '#ff7b7b' : '#7bffb0';
+        if (msg) {
+          setTimeout(() => {
+            formStatus.textContent = '';
+          }, 5000);
+        }
+      }
+
+      // Paste from clipboard
+      btnPaste?.addEventListener('click', async () => {
+        try {
+          setStatus('Lendo do clipboard...');
+          let text = '';
+          
+          // Try modern clipboard API first
+          if (navigator.clipboard && navigator.clipboard.read) {
+            try {
+              const items = await navigator.clipboard.read();
+              for (const item of items) {
+                if (item.types.includes('image/svg+xml')) {
+                  const blob = await item.getType('image/svg+xml');
+                  text = await blob.text();
+                  break;
+                }
+                if (item.types.includes('text/plain')) {
+                  const blob = await item.getType('text/plain');
+                  text = await blob.text();
+                  break;
+                }
+              }
+            } catch (e) {
+              // Fall back to readText
+            }
+          }
+          
+          // Fallback to simple readText
+          if (!text && navigator.clipboard && navigator.clipboard.readText) {
+            text = await navigator.clipboard.readText();
+          }
+          
+          if (!text) {
+            throw new Error('Clipboard vazio ou não suportado');
+          }
+          
+          if (!text.trim().toLowerCase().includes('<svg')) {
+            setStatus('Aviso: O conteúdo do clipboard não parece ser um SVG', true);
+          }
+          
+          svgTextarea.value = text;
+          setStatus('Conteúdo colado do clipboard');
+          
+          // Auto-fill filename if empty
+          const filenameInput = document.getElementById('filename');
+          if (!filenameInput.value) {
+            filenameInput.value = 'clipboard.svg';
+          }
+        } catch (err) {
+          setStatus('Erro ao ler do clipboard: ' + err.message, true);
+        }
+      });
+
+      // Load from file
+      btnLoadFile?.addEventListener('click', () => {
+        svgFileInput?.click();
+      });
+
+      svgFileInput?.addEventListener('change', (ev) => {
+        const file = ev.target.files?.[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = () => {
+          const text = reader.result;
+          if (!text.trim().toLowerCase().includes('<svg')) {
+            setStatus('Aviso: O arquivo não parece ser um SVG válido', true);
+          }
+          svgTextarea.value = text;
+          setStatus('Arquivo carregado: ' + file.name);
+          
+          // Auto-fill filename if empty
+          const filenameInput = document.getElementById('filename');
+          if (!filenameInput.value) {
+            filenameInput.value = file.name;
+          }
+        };
+        reader.onerror = () => {
+          setStatus('Erro ao ler arquivo', true);
+        };
+        reader.readAsText(file);
+        ev.target.value = ''; // Reset input
+      });
+
+      // Form submission
+      form?.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        
+        submitBtn.disabled = true;
+        setStatus('Criando SVG...');
+        
+        try {
+          const response = await fetch(createUrl, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-CSRFToken': '{{ csrf_token }}',
+            },
+          });
+          
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Erro ao criar SVG');
+          }
+          
+          setStatus('SVG criado com sucesso!');
+          
+          // Reset form
+          form.reset();
+          
+          // Reload page after a brief delay to show the new SVG
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+          
+        } catch (err) {
+          setStatus('Erro: ' + err.message, true);
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+
+      // Copy SVG functionality
+      document.addEventListener('click', async (ev) => {
+        const btn = ev.target.closest('.btn-copy-svg');
+        if (!btn) return;
+        
+        const id = btn.dataset.id;
+        if (!id) return;
+        
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = 'Copiando...';
+        
+        try {
+          const url = copyUrl + '?id=' + encodeURIComponent(id);
+          const response = await fetch(url);
+          const data = await response.json();
+          
+          if (!response.ok) {
+            throw new Error(data.error || 'Erro ao copiar');
+          }
+          
+          await navigator.clipboard.writeText(data.svg_text || '');
+          btn.textContent = 'Copiado!';
+          
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+          }, 2000);
+        } catch (err) {
+          alert('Erro ao copiar: ' + err.message);
+          btn.textContent = originalText;
+          btn.disabled = false;
+        }
+      });
+    })();
+  </script>
+{% endblock %}

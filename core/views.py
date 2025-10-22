@@ -4,6 +4,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.exceptions import RequestDataTooBig
+from usuario.views import admin_required
 
 from .models import SvgFile
 
@@ -146,3 +147,96 @@ def paste_svg(request):
         }),
         content_type="application/json",
     )
+
+@admin_required
+def admin_svg(request):
+    """
+    Admin-only page for managing SVG files.
+    Allows admins to create new SVGs with complete information.
+    """
+    svgfiles = SvgFile.objects.filter(owner=request.user).order_by("-uploaded_at")
+    return render(request, "core/admin_svg.html", {"svgfiles": svgfiles})
+
+@admin_required
+@require_POST
+def admin_create_svg(request):
+    """
+    Admin-only endpoint to create a new SVG with full metadata.
+    Expects JSON or form-data with filename, content, title_name, description, tags, category.
+    """
+    ctype = request.META.get("CONTENT_TYPE", "").lower()
+    
+    # Handle JSON requests
+    if ctype.startswith("application/json"):
+        try:
+            body = request.body or b""
+        except RequestDataTooBig:
+            return HttpResponseBadRequest(
+                json.dumps({"error": "payload too large"}),
+                content_type="application/json",
+            )
+        
+        try:
+            payload = json.loads(body.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return HttpResponseBadRequest(
+                json.dumps({"error": "invalid json"}),
+                content_type="application/json",
+            )
+        
+        svg_text = payload.get("svg_text") or payload.get("content")
+        filename = payload.get("filename", "unnamed.svg")
+        title_name = payload.get("title_name", "")
+        description = payload.get("description", "")
+        tags = payload.get("tags", "")
+        category = payload.get("category", "")
+        is_public = payload.get("is_public", False)
+        license_required = payload.get("license_required", False)
+    
+    # Handle form-data requests
+    elif ctype.startswith("application/x-www-form-urlencoded") or ctype.startswith("multipart/form-data"):
+        svg_text = request.POST.get("svg_text") or request.POST.get("content")
+        filename = request.POST.get("filename", "unnamed.svg")
+        title_name = request.POST.get("title_name", "")
+        description = request.POST.get("description", "")
+        tags = request.POST.get("tags", "")
+        category = request.POST.get("category", "")
+        is_public = request.POST.get("is_public") == "on" or request.POST.get("is_public") == "true"
+        license_required = request.POST.get("license_required") == "on" or request.POST.get("license_required") == "true"
+    else:
+        return HttpResponseBadRequest(
+            json.dumps({"error": "unsupported content-type"}),
+            content_type="application/json",
+        )
+    
+    if not svg_text:
+        return HttpResponseBadRequest(
+            json.dumps({"error": "svg_text or content is required"}),
+            content_type="application/json",
+        )
+    
+    # Handle thumbnail upload if present
+    thumbnail = None
+    if request.FILES.get("thumbnail"):
+        thumbnail = request.FILES["thumbnail"]
+    
+    # Create the SvgFile
+    svg_file = SvgFile.objects.create(
+        filename=filename,
+        title_name=title_name,
+        description=description,
+        tags=tags,
+        category=category,
+        content=svg_text,
+        owner=request.user,
+        is_public=is_public,
+        license_required=license_required,
+        thumbnail=thumbnail,
+    )
+    
+    return JsonResponse({
+        "id": svg_file.pk,
+        "filename": svg_file.filename,
+        "title_name": svg_file.title_name,
+        "success": True,
+    })

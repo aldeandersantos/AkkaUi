@@ -15,16 +15,16 @@
         <p class="muted">Cole abaixo o SVG que você está manuseando. Você pode salvar no banco e copiar o conteúdo sanitizado depois.</p>
 
         <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin:.5rem 0 1rem">
-          <label style="display:flex; gap:.5rem; align-items:center">
-            <span>Nome do arquivo:</span>
-            <input id="svg-filename" type="text" placeholder="ex: meu-icone.svg" style="min-width:240px; padding:.5rem .75rem; background:#0c0c0c; color:#e7e7e7; border:1px solid #2a2a2a; border-radius:6px" />
-          </label>
           <button id="btn-save-svg" class="btn">Salvar no banco</button>
           <button id="btn-clipboard-paste" class="btn" title="Lê o SVG do clipboard e coloca no editor">Colar SVG do Clipboard</button>
           <button id="btn-clipboard-save" class="btn" title="Lê do clipboard e já salva no banco">Colar e Salvar</button>
           <label class="btn" style="cursor:pointer">
             <input id="svg-file-input" type="file" accept=".svg,image/svg+xml" style="display:none" />
             Selecionar arquivo .svg
+          </label>
+          <label style="display:inline-flex; align-items:center; gap:.5rem">
+            <span class="muted">Thumbnail:</span>
+            <input id="thumbnail-file-input" type="file" accept="image/*" style="background:transparent; color:var(--text-light);" />
           </label>
           <span id="save-status" class="muted" style="min-height:1.25rem"></span>
         </div>
@@ -40,20 +40,30 @@
         <hr style="border-color:#2a2a2a; margin:1.5rem 0" />
 
         <h3>SVGS salvos recentemente</h3>
-        {% if svgfiles %}
-          <ul id="svg-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.5rem">
-            {% for item in svgfiles %}
-              <li data-id="{{ item.id }}" style="display:flex; justify-content:space-between; align-items:center; padding:.75rem 1rem; border:1px solid #2a2a2a; border-radius:8px">
-                <div>
-                  <strong>{{ item.filename }}</strong>
-                  <span class="muted" style="margin-left:.5rem">{{ item.uploaded_at }}</span>
-                </div>
-                <div style="display:flex; gap:.5rem; align-items:center">
-                  <button class="btn btn-copy" data-id="{{ item.id }}">Copiar</button>
-                </div>
-              </li>
-            {% endfor %}
-          </ul>
+                {% if svgfiles %}
+                  <ul id="svg-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.5rem">
+                    {% for item in svgfiles %}
+                      <li data-id="{{ item.id }}" style="display:flex; justify-content:space-between; align-items:center; padding:.75rem 1rem; border:1px solid #2a2a2a; border-radius:8px">
+                        <div style="display:flex; gap:1rem; align-items:center;">
+                          <div class="svg-thumb-wrap" aria-hidden="true">
+                            {% if item.thumbnail %}
+                              <img class="svg-thumb" src="{{ item.thumbnail.url }}" alt="Thumbnail {{ item.filename }}" loading="lazy" decoding="async"
+                                   onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\'svg-thumb-placeholder\'>Sem imagem<br/>Prévia</div>');" />
+                            {% else %}
+                              <div class="svg-thumb-placeholder">Sem imagem<br/>Prévia</div>
+                            {% endif %}
+                          </div>
+                          <div>
+                            <strong>{{ item.filename }}</strong>
+                            <span class="muted" style="margin-left:.5rem">{{ item.uploaded_at }}</span>
+                          </div>
+                        </div>
+                        <div style="display:flex; gap:.5rem; align-items:center">
+                          <button class="btn btn-copy" data-id="{{ item.id }}">Copiar</button>
+                        </div>
+                      </li>
+                    {% endfor %}
+                  </ul>
         {% else %}
           <p class="muted">Nenhum SVG salvo ainda. Salve o primeiro usando o formulário acima.</p>
         {% endif %}
@@ -101,6 +111,11 @@
                 const fd = new FormData();
                 fd.append('filename', filename);
                 fd.append('svg_text', svg);
+                // optional thumbnail file
+                const thumbInput = document.getElementById('thumbnail-file-input');
+                if (thumbInput && thumbInput.files && thumbInput.files[0]) {
+                  fd.append('thumbnail', thumbInput.files[0]);
+                }
                 const res = await fetch(pasteUrl, {
                   method: 'POST',
                   body: fd

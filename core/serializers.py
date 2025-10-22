@@ -4,5 +4,5 @@ from .models import SvgFile
 class SvgFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = SvgFile
-        fields = ['id', 'filename', 'uploaded_at']
+        fields = ['id', 'title_name', 'uploaded_at']
         read_only_fields = ['id', 'uploaded_at']

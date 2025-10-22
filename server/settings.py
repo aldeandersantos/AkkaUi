@@ -146,6 +146,13 @@ STATICFILES_DIRS = [
 # You can change this when deploying.
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Media files (uploads)
+# Durante desenvolvimento usamos MEDIA_URL e MEDIA_ROOT para servir imagens
+# enviadas pelos usuários (thumbnails). Em produção configure um storage
+# externo e não sirva media diretamente pelo Django.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

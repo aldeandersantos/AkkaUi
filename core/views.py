@@ -98,7 +98,11 @@ def paste_svg(request):
         svg_text = request.POST.get("svg_text")
         filename = request.POST.get("filename") or "unnamed.svg"
         if svg_text:
-            asset = SvgFile.objects.create(filename=filename, content=svg_text)
+            # Accept an optional thumbnail upload in multipart requests
+            thumbnail = None
+            if request.FILES.get('thumbnail'):
+                thumbnail = request.FILES['thumbnail']
+            asset = SvgFile.objects.create(filename=filename, content=svg_text, thumbnail=thumbnail)
             return JsonResponse({"id": asset.pk, "filename": asset.filename})
 
     # 3) Se for text/plain, trata o corpo como SVG direto

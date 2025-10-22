@@ -4,7 +4,7 @@ import re
 
 
 class SvgFile(models.Model):
-    filename = models.CharField(max_length=255)
+    filename = models.CharField(max_length=255, blank=True)
     title_name = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     tags = models.CharField(max_length=255, blank=True, help_text="Tags separadas por vírgula")
@@ -22,7 +22,7 @@ class SvgFile(models.Model):
     hash_value = models.CharField(max_length=64, unique=True, blank=True)
 
     def __str__(self):
-        return f"{self.filename} ({self.uploaded_at.isoformat()})"
+        return f"{self.title_name} ({self.uploaded_at.isoformat()})"
 
     def get_sanitized_content(self):
         """
@@ -49,7 +49,7 @@ class SvgFile(models.Model):
         from django.utils import timezone
 
         base = (
-            (self.content or "") + "|" + (self.filename or "") + "|"
+            (self.content or "") + "|" + (self.title_name or "") + "|"
             + str(getattr(self.owner, 'id', '')) + "|"
             + timezone.now().isoformat() + "|" + extra
         )

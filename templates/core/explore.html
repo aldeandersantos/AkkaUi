@@ -5,13 +5,13 @@
 
 {% block content %}
 <div style="width: 100%; background: var(--bg-dark);">
-  <header style="text-align: center; padding: 60px 48px 40px; max-width: 1400px; margin: 0 auto;">
+  <header style="text-align: center; padding: 60px 80px 40px; max-width: 1600px; margin: 0 auto;">
     <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Explorar SVGs</h1>
     <p style="color: var(--text-muted); font-size: 20px; max-width: 800px; margin: 0 auto;">Descubra nossa coleção de SVGs salvos no sistema</p>
   </header>
 
   <section id="svg-gallery">
-    <div style="max-width: 1600px; margin: 0 auto; padding: 0 48px 60px;">
+    <div style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
       {% if svgfiles %}
         <div class="container-cards" style="padding: 0;">
           {% for item in svgfiles %}

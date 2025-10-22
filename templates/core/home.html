@@ -11,33 +11,6 @@
 
     <div class="page-body">
       <section id="svg-tools" style="margin-bottom:2rem">
-        <h2>Ferramentas de SVG</h2>
-        <p class="muted">Cole abaixo o SVG que você está manuseando. Você pode salvar no banco e copiar o conteúdo sanitizado depois.</p>
-
-        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; margin:.5rem 0 1rem">
-          <button id="btn-save-svg" class="btn">Salvar no banco</button>
-          <button id="btn-clipboard-paste" class="btn" title="Lê o SVG do clipboard e coloca no editor">Colar SVG do Clipboard</button>
-          <button id="btn-clipboard-save" class="btn" title="Lê do clipboard e já salva no banco">Colar e Salvar</button>
-          <label class="btn" style="cursor:pointer">
-            <input id="svg-file-input" type="file" accept=".svg,image/svg+xml" style="display:none" />
-            Selecionar arquivo .svg
-          </label>
-          <label style="display:inline-flex; align-items:center; gap:.5rem">
-            <span class="muted">Thumbnail:</span>
-            <input id="thumbnail-file-input" type="file" accept="image/*" style="background:transparent; color:var(--text-light);" />
-          </label>
-          <span id="save-status" class="muted" style="min-height:1.25rem"></span>
-        </div>
-
-        <textarea id="svg-textarea" rows="10" placeholder="Cole aqui seu &lt;svg&gt;...&lt;/svg&gt;"
-                  style="width:100%; padding:1rem; background:#0c0c0c; color:#e7e7e7; border:1px solid #2a2a2a; border-radius:8px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"></textarea>
-
-        <div style="margin-top:1rem">
-          <button id="btn-copy-editor" class="btn" style="margin-right:.5rem">Copiar do editor (sem backend)</button>
-          <span class="muted">Use os botões “Copiar” abaixo para copiar do banco (conteúdo sanitizado).</span>
-        </div>
-
-        <hr style="border-color:#2a2a2a; margin:1.5rem 0" />
 
         <h3>SVGS salvos recentemente</h3>
                 {% if svgfiles %}
@@ -86,200 +59,16 @@
 
         <script>
           (function () {
-            const pasteUrl = "{% url 'core:paste_svg' %}";
-            const copyUrl = "{% url 'core:copy_svg' %}"; // usa ?id=
+            // Versão mínima: funções compartilhadas usadas em outros templates
+            const copyUrl = "{% url 'core:copy_svg' %}"; // usado para obter svg sanitizado do backend
 
-            const $ta = document.getElementById('svg-textarea');
-            const $save = document.getElementById('btn-save-svg');
-            const $saveStatus = document.getElementById('save-status');
             const $list = document.getElementById('svg-list');
-            const $tpl = document.getElementById('svg-list-item-template');
             const $copyEditor = document.getElementById('btn-copy-editor');
-            const $btnClipPaste = document.getElementById('btn-clipboard-paste');
-            const $btnClipSave = document.getElementById('btn-clipboard-save');
-            const $fileInput = document.getElementById('svg-file-input');
+            const $ta = document.getElementById('svg-textarea');
 
-            function setStatus(msg, ok=true) {
-              $saveStatus.textContent = msg || '';
-              $saveStatus.style.color = ok ? '#7bffb0' : '#ff7b7b';
-            }
-
-            async function doSave() {
-              const svg = ($ta.value || '').trim();
-              if (!svg) { setStatus('Cole um SVG para salvar', false); return; }
-              // não usamos mais filename; opcionalmente poderíamos enviar um title_name
-              const title = '';
-              setStatus('Salvando...');
-              try {
-                // Envia como multipart/form-data para permitir stream mais eficiente no backend
-                const fd = new FormData();
-                  if (title) fd.append('title_name', title);
-                  fd.append('svg_text', svg);
-                // optional thumbnail file
-                const thumbInput = document.getElementById('thumbnail-file-input');
-                if (thumbInput && thumbInput.files && thumbInput.files[0]) {
-                  fd.append('thumbnail', thumbInput.files[0]);
-                }
-                  const res = await fetch(pasteUrl, { method: 'POST', body: fd });
-                  // parse response safely (may be text/html on error)
-                  async function parseJsonOrText(response) {
-                    const ct = response.headers.get('content-type') || '';
-                    if (ct.includes('application/json')) {
-                      return await response.json();
-                    }
-                    const text = await response.text();
-                    return { __raw_text: text };
-                  }
-                  const data = await parseJsonOrText(res);
-                  if (!res.ok) {
-                    const msg = (data && (data.error || data.__raw_text)) || res.statusText;
-                    throw new Error(msg);
-                  }
-                setStatus('Salvo!');
-                // Atualiza lista localmente sem recarregar
-                if ($list && $tpl) {
-                  const li = $tpl.content.firstElementChild.cloneNode(true);
-                  li.dataset.id = data.id;
-                    li.querySelector('.name').textContent = title || 'SVG';
-                  li.querySelector('.ts').textContent = 'agora';
-                  li.querySelector('.btn-copy').setAttribute('data-id', data.id);
-                  $list.prepend(li);
-                }
-              } catch (err) {
-                console.error(err);
-                setStatus('Falha ao salvar: ' + err.message, false);
-              }
-            }
-
-            async function readSvgFromClipboard() {
-              // Tenta API avançada: navigator.clipboard.read
-              if (navigator.clipboard && navigator.clipboard.read) {
-                try {
-                  const items = await navigator.clipboard.read();
-                  for (const item of items) {
-                    // Preferir SVG explícito, senão texto
-                    if (item.types.includes('image/svg+xml')) {
-                      const blob = await item.getType('image/svg+xml');
-                      const text = await blob.text();
-                      return text;
-                    }
-                    if (item.types.includes('text/plain')) {
-                      const blob = await item.getType('text/plain');
-                      const text = await blob.text();
-                      return text;
-                    }
-                  }
-                } catch (e) {
-                  // Continua para fallback
-                }
-              }
-              // Fallback simples
-              if (navigator.clipboard && navigator.clipboard.readText) {
-                return await navigator.clipboard.readText();
-              }
-              throw new Error('API de clipboard não suportada pelo navegador.');
-            }
-
-            function looksLikeSvg(text) {
-              const t = (text || '').trim().slice(0, 200).toLowerCase();
-              return t.includes('<svg');
-            }
-
-            async function pasteClipboardIntoEditor({ autoSave = false } = {}) {
-              setStatus('Lendo do clipboard...');
-              try {
-                const text = await readSvgFromClipboard();
-                if (!looksLikeSvg(text)) {
-                  setStatus('O conteúdo do clipboard não parece ser um SVG.', false);
-                  return;
-                }
-                $ta.value = text;
-                setStatus('Conteúdo colado do clipboard.');
-                if (autoSave) await doSave();
-              } catch (e) {
-                setStatus('Falha ao ler do clipboard: ' + e.message, false);
-              }
-            }
-
-            function handleFile(file, { autoSave = true } = {}) {
-              const reader = new FileReader();
-              reader.onload = async () => {
-                const text = String(reader.result || '');
-                if (!looksLikeSvg(text)) {
-                  setStatus('O arquivo selecionado não parece ser um SVG válido.', false);
-                  return;
-                }
-                $ta.value = text;
-                setStatus('Arquivo carregado: ' + (file.name || 'arquivo'));
-                if (autoSave) await doSave();
-              };
-              reader.onerror = () => setStatus('Erro ao ler arquivo.', false);
-              reader.readAsText(file);
-            }
-
-            function setupDragAndDrop() {
-              if (!$ta) return;
-              $ta.addEventListener('dragover', (ev) => {
-                ev.preventDefault();
-                ev.dataTransfer.dropEffect = 'copy';
-              });
-              $ta.addEventListener('drop', (ev) => {
-                ev.preventDefault();
-                const f = ev.dataTransfer.files && ev.dataTransfer.files[0];
-                if (f) handleFile(f);
-              });
-            }
-
-            async function copyFromDb(id) {
-              try {
-                const url = copyUrl + '?id=' + encodeURIComponent(id);
-                const res = await fetch(url);
-                  const ct = res.headers.get('content-type') || '';
-                  let data;
-                  if (ct.includes('application/json')) data = await res.json(); else data = { __raw_text: await res.text() };
-                  if (!res.ok) throw new Error((data && (data.error || data.__raw_text)) || res.statusText);
-                  const text = data.svg_text || data.__raw_text || '';
-                await safeCopy(text);
-                // feedback rápido no botão
-                return true;
-              } catch (err) {
-                console.error(err);
-                alert('Não foi possível copiar do banco: ' + err.message);
-                return false;
-              }
-            }
-
-            function handleListClick(ev) {
-              const btn = ev.target.closest('.btn-copy');
-              if (btn) {
-                const id = btn.getAttribute('data-id') || btn.closest('li')?.dataset?.id;
-                if (!id) return;
-                btn.disabled = true;
-                const old = btn.textContent;
-                btn.textContent = 'Copiado!';
-                copyFromDb(id).finally(() => {
-                  setTimeout(() => {
-                    btn.disabled = false;
-                    btn.textContent = old;
-                  }, 900);
-                });
-              }
-            }
-
-            async function copyFromEditor() {
-              const text = ($ta.value || '').trim();
-              if (!text) { alert('Cole um SVG no editor para copiar.'); return; }
-              try {
-                await safeCopy(text);
-              } catch (e) {
-                alert('Falha ao copiar do editor: ' + e.message);
-              }
-            }
-
-            // Utilitário seguro para copiar texto
+            // utilitário seguro para copiar texto (fallback)
             async function safeCopy(text) {
               if (!text) return;
-              // Tenta usar a API moderna
               try {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                   return await navigator.clipboard.writeText(text);
@@ -287,7 +76,6 @@
               } catch (e) {
                 // continua para fallback
               }
-              // Fallback clássico: textarea + execCommand
               return new Promise((resolve, reject) => {
                 try {
                   const ta = document.createElement('textarea');
@@ -306,17 +94,57 @@
               });
             }
 
-            if ($save) $save.addEventListener('click', doSave);
-            if ($list) $list.addEventListener('click', handleListClick);
-            if ($copyEditor) $copyEditor.addEventListener('click', copyFromEditor);
-            if ($btnClipPaste) $btnClipPaste.addEventListener('click', () => pasteClipboardIntoEditor({ autoSave: false }));
-            if ($btnClipSave) $btnClipSave.addEventListener('click', () => pasteClipboardIntoEditor({ autoSave: true }));
-            if ($fileInput) $fileInput.addEventListener('change', (ev) => {
-              const f = ev.target.files && ev.target.files[0];
-              if (f) handleFile(f, { autoSave: true });
-              ev.target.value = '';
+            async function copyFromDb(id) {
+              try {
+                const url = copyUrl + '?id=' + encodeURIComponent(id);
+                const res = await fetch(url, { credentials: 'same-origin' });
+                const ct = res.headers.get('content-type') || '';
+                let data;
+                if (ct.includes('application/json')) data = await res.json(); else data = { __raw_text: await res.text() };
+                if (!res.ok) throw new Error((data && (data.error || data.__raw_text)) || res.statusText);
+                const text = data.svg_text || data.__raw_text || '';
+                await safeCopy(text);
+                return true;
+              } catch (err) {
+                console.error(err);
+                alert('Não foi possível copiar do banco: ' + err.message);
+                return false;
+              }
+            }
+
+            // Delegated click handler para botões .btn-copy dentro da lista
+            document.addEventListener('click', (ev) => {
+              const btn = ev.target.closest('.btn-copy');
+              if (!btn) return;
+              const id = btn.getAttribute('data-id') || btn.closest('li')?.dataset?.id;
+              if (!id) return;
+              btn.disabled = true;
+              const old = btn.textContent;
+              btn.textContent = 'Copiando...';
+              copyFromDb(id).then(() => {
+                btn.textContent = 'Copiado!';
+                setTimeout(() => {
+                  btn.disabled = false;
+                  btn.textContent = old;
+                }, 900);
+              }).catch(() => {
+                btn.disabled = false;
+                btn.textContent = old;
+              });
             });
-            setupDragAndDrop();
+
+            // Botão que copia o conteúdo do editor (se presente)
+            if ($copyEditor && $ta) {
+              $copyEditor.addEventListener('click', async () => {
+                const text = ($ta.value || '').trim();
+                if (!text) { alert('Cole um SVG no editor para copiar.'); return; }
+                try {
+                  await safeCopy(text);
+                } catch (e) {
+                  alert('Falha ao copiar do editor: ' + e.message);
+                }
+              });
+            }
           })();
         </script>
       </section>

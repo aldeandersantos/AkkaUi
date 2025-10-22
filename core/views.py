@@ -18,9 +18,10 @@ def home(request):
 
 def explore(request):
     """
-    Explore page showing UI components catalog.
+    Explore page showing all SVG files from database.
     """
-    return render(request, "core/explore.html")
+    svgfiles = SvgFile.objects.filter(is_public=True).order_by("-uploaded_at")
+    return render(request, "core/explore.html", {"svgfiles": svgfiles})
 
 def pricing(request):
     """

@@ -3,26 +3,27 @@
 {% block title %}Início — AkkaUi{% endblock %}
 
 {% block content %}
-  <article class="page">
-    <header class="page-header">
+  <div style="padding: 40px 24px; width: 100%;">
+    <header style="text-align: center; margin-bottom: 48px;">
       <h1>Bem-vindo ao AkkaUi</h1>
       <p class="lead">Seu catálogo completo de recursos de design UI modernos e responsivos com tema escuro.</p>
     </header>
 
-    <div class="page-body">
-      <section id="svg-tools" style="margin-bottom:2rem">
+    <section id="svg-tools" style="margin-bottom:3rem">
+      <h3 style="padding: 0 24px; margin-bottom: 24px;">SVGs salvos recentemente</h3>
+      {% if svgfiles %}
+        <div class="container-cards">
+          {% for item in svgfiles %}
+            {% include 'core/partials/item_card.html' %}
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="muted" style="padding: 0 24px;">Nenhum SVG salvo ainda. Salve o primeiro usando o formulário acima.</p>
+      {% endif %}
+    </section>
 
-        <h3>SVGs salvos recentemente</h3>
-        {% if svgfiles %}
-          <div class="container-cards">
-            {% for item in svgfiles %}
-              {% include 'core/partials/item_card.html' %}
-            {% endfor %}
-          </div>
-        {% else %}
-          <p class="muted">Nenhum SVG salvo ainda. Salve o primeiro usando o formulário acima.</p>
-        {% endif %}
-      </section>
+    <article class="page" style="max-width: 1200px; margin: 0 auto;">
+      <section id="getting-started">
 
       <section id="getting-started">
         <h2>Começando</h2>
@@ -44,10 +45,10 @@
         <h2>Sobre o AkkaUi</h2>
         <p>AkkaUi é uma plataforma moderna inspirada em uiwiki.co, focada em apresentação de conteúdo e leitura com tema escuro elegante. Utilizamos as cores #7460F3 (primary), #e7e7e7 (text), #7b7b7b (muted) e #0c0c0c (background) para criar uma experiência visual única.</p>
       </section>
-    </div>
 
-    <footer class="page-footer">
-      <a class="btn" href="{% url 'core:explore' %}">Explorar Componentes</a>
-    </footer>
-  </article>
+      <footer class="page-footer">
+        <a class="btn" href="{% url 'core:explore' %}">Explorar Componentes</a>
+      </footer>
+    </article>
+  </div>
 {% endblock %}

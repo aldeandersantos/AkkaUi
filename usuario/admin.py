@@ -5,14 +5,14 @@ from .models import CustomUser
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     """Admin configuration for CustomUser model."""
-    list_display = ['username', 'email', 'phone', 'is_staff', 'date_joined']
-    list_filter = ['is_staff', 'is_superuser', 'is_active', 'date_joined']
+    list_display = ['username', 'email', 'phone', 'admin', 'is_staff', 'date_joined']
+    list_filter = ['admin', 'is_staff', 'is_superuser', 'is_active', 'date_joined']
     search_fields = ['username', 'email', 'phone']
     
     fieldsets = UserAdmin.fieldsets + (
-        ('Informações Adicionais', {'fields': ('phone',)}),
+        ('Informações Adicionais', {'fields': ('phone', 'admin')}),
     )
     
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ('Informações Adicionais', {'fields': ('email', 'phone')}),
+        ('Informações Adicionais', {'fields': ('email', 'phone', 'admin')}),
     )

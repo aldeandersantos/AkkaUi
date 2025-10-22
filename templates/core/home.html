@@ -47,14 +47,14 @@
                         <div style="display:flex; gap:1rem; align-items:center;">
                           <div class="svg-thumb-wrap" aria-hidden="true">
                             {% if item.thumbnail %}
-                              <img class="svg-thumb" src="{{ item.thumbnail.url }}" alt="Thumbnail {{ item.filename }}" loading="lazy" decoding="async"
+                              <img class="svg-thumb" src="{{ item.thumbnail.url }}" alt="Thumbnail {{ item.title_name }}" loading="lazy" decoding="async"
                                    onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\'svg-thumb-placeholder\'>Sem imagem<br/>Prévia</div>');" />
                             {% else %}
                               <div class="svg-thumb-placeholder">Sem imagem<br/>Prévia</div>
                             {% endif %}
                           </div>
                           <div>
-                            <strong>{{ item.filename }}</strong>
+                            <strong>{{ item.title_name|default:"SVG" }}</strong>
                             <span class="muted" style="margin-left:.5rem">{{ item.uploaded_at }}</span>
                           </div>
                         </div>
@@ -86,7 +86,6 @@
             const copyUrl = "{% url 'core:copy_svg' %}"; // usa ?id=
 
             const $ta = document.getElementById('svg-textarea');
-            const $name = document.getElementById('svg-filename');
             const $save = document.getElementById('btn-save-svg');
             const $saveStatus = document.getElementById('save-status');
             const $list = document.getElementById('svg-list');
@@ -104,33 +103,40 @@
             async function doSave() {
               const svg = ($ta.value || '').trim();
               if (!svg) { setStatus('Cole um SVG para salvar', false); return; }
-              const filename = ($name.value || 'unnamed.svg').trim();
+              // não usamos mais filename; opcionalmente poderíamos enviar um title_name
+              const title = '';
               setStatus('Salvando...');
               try {
                 // Envia como multipart/form-data para permitir stream mais eficiente no backend
                 const fd = new FormData();
-                fd.append('filename', filename);
-                fd.append('svg_text', svg);
+                  if (title) fd.append('title_name', title);
+                  fd.append('svg_text', svg);
                 // optional thumbnail file
                 const thumbInput = document.getElementById('thumbnail-file-input');
                 if (thumbInput && thumbInput.files && thumbInput.files[0]) {
                   fd.append('thumbnail', thumbInput.files[0]);
                 }
-                const res = await fetch(pasteUrl, {
-                  method: 'POST',
-                  body: fd
-                });
-                const data = await res.json();
-                if (!res.ok) {
-                  const msg = data && (data.error + (data.detail ? ' — ' + data.detail : '')) || res.statusText;
-                  throw new Error(msg);
-                }
+                  const res = await fetch(pasteUrl, { method: 'POST', body: fd });
+                  // parse response safely (may be text/html on error)
+                  async function parseJsonOrText(response) {
+                    const ct = response.headers.get('content-type') || '';
+                    if (ct.includes('application/json')) {
+                      return await response.json();
+                    }
+                    const text = await response.text();
+                    return { __raw_text: text };
+                  }
+                  const data = await parseJsonOrText(res);
+                  if (!res.ok) {
+                    const msg = (data && (data.error || data.__raw_text)) || res.statusText;
+                    throw new Error(msg);
+                  }
                 setStatus('Salvo!');
                 // Atualiza lista localmente sem recarregar
                 if ($list && $tpl) {
                   const li = $tpl.content.firstElementChild.cloneNode(true);
                   li.dataset.id = data.id;
-                  li.querySelector('.name').textContent = data.filename;
+                    li.querySelector('.name').textContent = title || 'SVG';
                   li.querySelector('.ts').textContent = 'agora';
                   li.querySelector('.btn-copy').setAttribute('data-id', data.id);
                   $list.prepend(li);
@@ -184,7 +190,6 @@
                   return;
                 }
                 $ta.value = text;
-                if (!$name.value.trim()) $name.value = 'clipboard.svg';
                 setStatus('Conteúdo colado do clipboard.');
                 if (autoSave) await doSave();
               } catch (e) {
@@ -201,8 +206,7 @@
                   return;
                 }
                 $ta.value = text;
-                $name.value = file.name || 'arquivo.svg';
-                setStatus('Arquivo carregado: ' + (file.name || 'arquivo.svg'));
+                setStatus('Arquivo carregado: ' + (file.name || 'arquivo'));
                 if (autoSave) await doSave();
               };
               reader.onerror = () => setStatus('Erro ao ler arquivo.', false);
@@ -226,10 +230,12 @@
               try {
                 const url = copyUrl + '?id=' + encodeURIComponent(id);
                 const res = await fetch(url);
-                const data = await res.json();
-                if (!res.ok) throw new Error(data && data.error || res.statusText);
-                const text = data.svg_text || '';
-                await navigator.clipboard.writeText(text);
+                  const ct = res.headers.get('content-type') || '';
+                  let data;
+                  if (ct.includes('application/json')) data = await res.json(); else data = { __raw_text: await res.text() };
+                  if (!res.ok) throw new Error((data && (data.error || data.__raw_text)) || res.statusText);
+                  const text = data.svg_text || data.__raw_text || '';
+                await safeCopy(text);
                 // feedback rápido no botão
                 return true;
               } catch (err) {
@@ -260,10 +266,40 @@
               const text = ($ta.value || '').trim();
               if (!text) { alert('Cole um SVG no editor para copiar.'); return; }
               try {
-                await navigator.clipboard.writeText(text);
+                await safeCopy(text);
               } catch (e) {
                 alert('Falha ao copiar do editor: ' + e.message);
               }
+            }
+
+            // Utilitário seguro para copiar texto
+            async function safeCopy(text) {
+              if (!text) return;
+              // Tenta usar a API moderna
+              try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  return await navigator.clipboard.writeText(text);
+                }
+              } catch (e) {
+                // continua para fallback
+              }
+              // Fallback clássico: textarea + execCommand
+              return new Promise((resolve, reject) => {
+                try {
+                  const ta = document.createElement('textarea');
+                  ta.value = text;
+                  ta.setAttribute('readonly', '');
+                  ta.style.position = 'absolute';
+                  ta.style.left = '-9999px';
+                  document.body.appendChild(ta);
+                  ta.select();
+                  const ok = document.execCommand && document.execCommand('copy');
+                  document.body.removeChild(ta);
+                  if (ok) resolve(); else reject(new Error('Fallback copy falhou'));
+                } catch (err) {
+                  reject(err);
+                }
+              });
             }
 
             if ($save) $save.addEventListener('click', doSave);

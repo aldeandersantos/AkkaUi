@@ -95,9 +95,11 @@
                 Conteúdo SVG <span style="color:#ff7b7b">*</span>
               </label>
               <div style="display:flex; gap:.5rem; margin-bottom:.5rem">
+                <!--
+                Botão comentado para ajuste posterior
                 <button type="button" id="btn-paste-clipboard" class="btn btn-secondary">
                   Colar do Clipboard
-                </button>
+                </button> -->
                 <button type="button" id="btn-load-file" class="btn btn-secondary">
                   Carregar Arquivo SVG
                 </button>
@@ -148,10 +150,10 @@
                 <div style="display:flex; justify-content:space-between; align-items:start; gap:1rem">
                   <div style="flex:1">
                     <h3 style="margin:0 0 .5rem; color:var(--text-light)">
-                      {{ svg.title_name|default:svg.filename }}
+                      {{ svg.title_name|default:"SVG" }}
                     </h3>
                     <div style="font-size:.9rem; color:var(--text-muted); margin-bottom:.5rem">
-                      <strong>Arquivo:</strong> {{ svg.filename }}
+                      <strong>Nome:</strong> {{ svg.title_name|default:"-" }}
                     </div>
                     {% if svg.description %}
                       <p class="muted" style="margin:.5rem 0">{{ svg.description }}</p>
@@ -247,10 +249,10 @@
           svgTextarea.value = text;
           setStatus('Conteúdo colado do clipboard');
           
-          // Auto-fill filename if empty
-          const filenameInput = document.getElementById('filename');
-          if (!filenameInput.value) {
-            filenameInput.value = 'clipboard.svg';
+          // Não usamos mais campo filename; opcionalmente preencher title_name se quiser
+          const titleInput = document.getElementById('title_name');
+          if (titleInput && !titleInput.value) {
+            titleInput.value = 'clipboard';
           }
         } catch (err) {
           setStatus('Erro ao ler do clipboard: ' + err.message, true);
@@ -275,10 +277,10 @@
           svgTextarea.value = text;
           setStatus('Arquivo carregado: ' + file.name);
           
-          // Auto-fill filename if empty
-          const filenameInput = document.getElementById('filename');
-          if (!filenameInput.value) {
-            filenameInput.value = file.name;
+          // Não usamos mais campo filename; opcionalmente preencher title_name se vazio
+          const titleInput = document.getElementById('title_name');
+          if (titleInput && !titleInput.value) {
+            titleInput.value = file.name || '';
           }
         };
         reader.onerror = () => {
@@ -299,20 +301,16 @@
         setStatus('Criando SVG...');
         
         try {
-          const response = await fetch(createUrl, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'X-CSRFToken': '{{ csrf_token }}',
-            },
-          });
-          
-          const data = await response.json();
-          
-          if (!response.ok) {
-            throw new Error(data.error || 'Erro ao criar SVG');
+          const response = await fetch(createUrl, { method: 'POST', body: formData, headers: { 'X-CSRFToken': '{{ csrf_token }}' } });
+          async function parseJsonOrText(response) {
+            const ct = response.headers.get('content-type') || '';
+            if (ct.includes('application/json')) return await response.json();
+            return { __raw_text: await response.text() };
           }
-          
+          const data = await parseJsonOrText(response);
+          if (!response.ok) {
+            throw new Error((data && (data.error || data.__raw_text)) || 'Erro ao criar SVG');
+          }
           setStatus('SVG criado com sucesso!');
           
           // Reset form
@@ -345,13 +343,11 @@
         try {
           const url = copyUrl + '?id=' + encodeURIComponent(id);
           const response = await fetch(url);
-          const data = await response.json();
-          
-          if (!response.ok) {
-            throw new Error(data.error || 'Erro ao copiar');
-          }
-          
-          await navigator.clipboard.writeText(data.svg_text || '');
+          const ct = response.headers.get('content-type') || '';
+          let data;
+          if (ct.includes('application/json')) data = await response.json(); else data = { __raw_text: await response.text() };
+          if (!response.ok) throw new Error((data && (data.error || data.__raw_text)) || 'Erro ao copiar');
+          await safeCopy(data.svg_text || data.__raw_text || '');
           btn.textContent = 'Copiado!';
           
           setTimeout(() => {
@@ -364,6 +360,34 @@
           btn.disabled = false;
         }
       });
+
+      // safeCopy util (fallback para navegadores/contexts sem navigator.clipboard)
+      async function safeCopy(text) {
+        if (!text) return;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return await navigator.clipboard.writeText(text);
+          }
+        } catch (e) {
+          // continua para fallback
+        }
+        return new Promise((resolve, reject) => {
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'absolute';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand && document.execCommand('copy');
+            document.body.removeChild(ta);
+            if (ok) resolve(); else reject(new Error('Fallback copy falhou'));
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }
     })();
   </script>
 {% endblock %}

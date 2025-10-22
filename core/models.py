@@ -4,8 +4,11 @@ import re
 
 
 class SvgFile(models.Model):
-    filename = models.CharField(max_length=255, blank=True)
     title_name = models.CharField(max_length=255, blank=True)
+    # Campo mantido para compatibilidade com esquema existente (migrations
+    # antigas esperam `filename` not-null). Mantemos default vazio para não
+    # alterar o comportamento das views — objetivo: mínima alteração.
+    filename = models.CharField(max_length=255, blank=True, default="")
     description = models.TextField(blank=True)
     tags = models.CharField(max_length=255, blank=True, help_text="Tags separadas por vírgula")
     category = models.CharField(max_length=100, blank=True)

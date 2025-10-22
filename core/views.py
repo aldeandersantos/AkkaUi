@@ -178,9 +178,9 @@ def admin_create_svg(request):
         
         try:
             payload = json.loads(body.decode("utf-8"))
-        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        except (json.JSONDecodeError, UnicodeDecodeError):
             return HttpResponseBadRequest(
-                json.dumps({"error": "invalid json", "detail": str(e)}),
+                json.dumps({"error": "invalid json"}),
                 content_type="application/json",
             )
         

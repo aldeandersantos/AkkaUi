@@ -3,7 +3,24 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
+from django.http import HttpResponseForbidden
+from functools import wraps
 from .models import CustomUser
+
+
+def admin_required(view_func):
+    """
+    Decorator to require that the user is authenticated and has admin=True.
+    """
+    @wraps(view_func)
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if not request.user.admin:
+            return HttpResponseForbidden(
+                "Acesso negado. Esta área é restrita a administradores."
+            )
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 @require_http_methods(["GET", "POST"])
 def signup(request):

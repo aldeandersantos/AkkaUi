@@ -3,26 +3,28 @@
 {% block title %}Início — AkkaUi{% endblock %}
 
 {% block content %}
-  <div style="padding: 40px 24px; width: 100%;">
-    <header style="text-align: center; margin-bottom: 48px;">
-      <h1>Bem-vindo ao AkkaUi</h1>
-      <p class="lead">Seu catálogo completo de recursos de design UI modernos e responsivos com tema escuro.</p>
+  <div style="width: 100%; background: var(--bg-dark);">
+    <header style="text-align: center; padding: 60px 48px 40px; max-width: 1400px; margin: 0 auto;">
+      <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Bem-vindo ao AkkaUi</h1>
+      <p class="lead" style="font-size: 20px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">Seu catálogo completo de recursos de design UI modernos e responsivos com tema escuro.</p>
     </header>
 
-    <section id="svg-tools" style="margin-bottom:3rem">
-      <h3 style="padding: 0 24px; margin-bottom: 24px;">SVGs salvos recentemente</h3>
-      {% if svgfiles %}
-        <div class="container-cards">
-          {% for item in svgfiles %}
-            {% include 'core/partials/item_card.html' %}
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="muted" style="padding: 0 24px;">Nenhum SVG salvo ainda. Salve o primeiro usando o formulário acima.</p>
-      {% endif %}
+    <section id="svg-tools">
+      <div style="max-width: 1600px; margin: 0 auto; padding: 0 48px 60px;">
+        <h3 style="margin-bottom: 32px; font-size: 28px;">SVGs salvos recentemente</h3>
+        {% if svgfiles %}
+          <div class="container-cards" style="padding: 0;">
+            {% for item in svgfiles %}
+              {% include 'core/partials/item_card.html' %}
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="muted">Nenhum SVG salvo ainda. Salve o primeiro usando o formulário acima.</p>
+        {% endif %}
+      </div>
     </section>
 
-    <article class="page" style="max-width: 1200px; margin: 0 auto;">
+    <article class="page" style="max-width: 1200px; margin: 0 auto; padding: 0 48px;">
       <section id="getting-started">
 
       <section id="getting-started">

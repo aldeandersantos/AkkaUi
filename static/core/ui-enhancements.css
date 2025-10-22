@@ -7,21 +7,29 @@
   /* --bg-card, --border, --text-light, --text-muted já existem */
 }
 
-/* Container e Grid Responsivo - Full Width */
+/* Container e Grid Responsivo - Full Width estilo uiwiki.co */
 .container-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 24px;
-  margin: 32px 0;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 32px;
+  margin: 0 auto;
   width: 100%;
-  max-width: 100%;
-  padding: 0 24px;
+  max-width: 1600px;
+  padding: 40px 48px;
+}
+
+@media (max-width: 1200px) {
+  .container-cards {
+    padding: 32px 40px;
+    gap: 28px;
+  }
 }
 
 @media (max-width: 768px) {
   .container-cards {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 20px;
+    padding: 24px 20px;
   }
 }
 

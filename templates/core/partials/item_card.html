@@ -68,13 +68,46 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       👁️ Visualizar
     </button>
     
-    {# Botão Copiar - usa fetch para buscar SVG sanitizado do backend #}
+    {# Botão Copiar - usa fetch com fallback para clipboard #}
     <button
       onclick="
         const btn = this;
         const originalText = btn.textContent;
         btn.disabled = true;
         btn.textContent = 'Copiando...';
+        
+        // Função para copiar com fallback
+        function copyToClipboard(text) {
+          // Tentar usar a Clipboard API moderna
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(text);
+          }
+          
+          // Fallback para navegadores mais antigos ou HTTP
+          return new Promise((resolve, reject) => {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-999999px';
+            textarea.style.top = '-999999px';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            
+            try {
+              const successful = document.execCommand('copy');
+              document.body.removeChild(textarea);
+              if (successful) {
+                resolve();
+              } else {
+                reject(new Error('execCommand falhou'));
+              }
+            } catch (err) {
+              document.body.removeChild(textarea);
+              reject(err);
+            }
+          });
+        }
         
         fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', {
           method: 'GET',
@@ -88,7 +121,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         })
         .then(data => {
           if (data.svg_text) {
-            return navigator.clipboard.writeText(data.svg_text);
+            return copyToClipboard(data.svg_text);
           } else {
             throw new Error('SVG não encontrado na resposta');
           }

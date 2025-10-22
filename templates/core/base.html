@@ -6,6 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}AkkaUi{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'core/wiki.css' %}">
+    <link rel="stylesheet" href="{% static 'core/ui-enhancements.css' %}">
+    
+    <!-- HTMX para interações dinâmicas sem JavaScript complexo -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    <!-- Alpine.js para reatividade leve (modais, toggles) -->
+    <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js"></script>
+    
+    {% block extra_head %}{% endblock %}
   </head>
   <body>
     <header class="site-header">
@@ -40,8 +49,8 @@
           {% endif %}
         </div>
         <div class="search">
-          <form action="/search/" method="get">
-            <input name="q" type="search" placeholder="Pesquisar...">
+          <form action="{% url 'core:explore' %}" method="get">
+            <input name="q" type="search" placeholder="Pesquisar..." aria-label="Pesquisar componentes">
           </form>
         </div>
       </div>
@@ -111,5 +120,7 @@
         }
       });
     </script>
+    
+    {% block extra_js %}{% endblock %}
   </body>
 </html>

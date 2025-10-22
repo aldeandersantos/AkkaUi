@@ -1,0 +1,145 @@
+{% load akka_filters %}
+{% comment %}
+Partial: Card reutilizável para exibir SvgFile (variável: item)
+Usa Alpine.js para modal de preview e HTMX para carregar SVG via API
+Segurança: usa item.get_sanitized_content que remove <script> e event handlers
+{% endcomment %}
+
+<div class="card" id="svg-card-{{ item.pk }}" x-data="{ showModal: false }">
+  {# Preview do SVG #}
+  <div class="svg-thumb">
+    {% if item.thumbnail %}
+      {# Opção 1: Thumbnail existe - usar imagem #}
+      <img 
+        src="{{ item.thumbnail.url }}" 
+        alt="Preview de {{ item.title_name|default:item.filename }}"
+        loading="lazy"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      >
+      <div class="svg-thumb-placeholder" style="display:none;">
+        Sem prévia<br>disponível
+      </div>
+    {% elif item.content %}
+      {# Opção 2: Sem thumbnail mas tem content - preview inline via data-URI #}
+      {# Usa data-URI para evitar execução de scripts #}
+      <img 
+        src="data:image/svg+xml;base64,{{ item.get_sanitized_content|base64_encode }}"
+        alt="Preview de {{ item.title_name|default:item.filename }}"
+        loading="lazy"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+      >
+      <div class="svg-thumb-placeholder" style="display:none;">
+        Erro ao carregar<br>prévia
+      </div>
+    {% else %}
+      {# Opção 3: Sem thumbnail e sem content - placeholder #}
+      <div class="svg-thumb-placeholder">
+        Sem prévia<br>disponível
+      </div>
+    {% endif %}
+  </div>
+
+  {# Informações do card #}
+  <h3 class="card-title" title="{{ item.title_name|default:item.filename }}">
+    {{ item.title_name|default:item.filename|default:"SVG sem nome" }}
+  </h3>
+  
+  {% if item.description %}
+    <p class="card-description" title="{{ item.description }}">
+      {{ item.description }}
+    </p>
+  {% else %}
+    <p class="card-description text-muted">
+      Sem descrição disponível
+    </p>
+  {% endif %}
+
+  {# Ações #}
+  <div class="card-actions">
+    {# Botão Visualizar - abre modal com Alpine.js #}
+    <button 
+      @click="showModal = true" 
+      class="btn btn-accent"
+      type="button"
+      aria-label="Visualizar {{ item.title_name|default:item.filename }}"
+    >
+      👁️ Visualizar
+    </button>
+    
+    {# Botão Carregar - usa HTMX para buscar SVG sanitizado do backend #}
+    <button
+      hx-get="{% url 'core:copy_svg' %}?id={{ item.pk }}"
+      hx-swap="none"
+      hx-on::after-request="
+        const resp = JSON.parse(event.detail.xhr.response);
+        if (resp.svg_text) {
+          navigator.clipboard.writeText(resp.svg_text).then(() => {
+            event.target.textContent = '✓ Copiado!';
+            setTimeout(() => { event.target.textContent = '📋 Copiar'; }, 2000);
+          }).catch(() => {
+            alert('Erro ao copiar para área de transferência');
+          });
+        }
+      "
+      class="btn btn-secondary"
+      type="button"
+      aria-label="Copiar SVG {{ item.title_name|default:item.filename }}"
+    >
+      📋 Copiar
+    </button>
+  </div>
+
+  {# Modal de Preview - Alpine.js #}
+  <template x-teleport="body">
+    <div 
+      x-show="showModal" 
+      x-cloak
+      class="modal-backdrop"
+      @click.self="showModal = false"
+      @keydown.escape.window="showModal = false"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title-{{ item.pk }}"
+      style="display: none;"
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+    >
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="modal-title-{{ item.pk }}">
+            {{ item.title_name|default:item.filename|default:"Preview SVG" }}
+          </h3>
+          <button 
+            @click="showModal = false" 
+            class="modal-close"
+            type="button"
+            aria-label="Fechar modal"
+          >
+            ×
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-preview">
+            {% if item.content %}
+              {# 
+                Renderiza SVG inline no modal 
+                SEGURANÇA: usa get_sanitized_content que remove <script> e event handlers (sanitização mínima)
+                TODO futuro: implementar sanitização robusta com whitelist de tags/attrs
+              #}
+              {{ item.get_sanitized_content|safe }}
+            {% else %}
+              <p class="text-muted">Conteúdo SVG não disponível</p>
+            {% endif %}
+          </div>
+          {% if item.description %}
+            <p class="mt-4 text-muted">{{ item.description }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </template>
+</div>

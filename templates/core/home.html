@@ -12,141 +12,16 @@
     <div class="page-body">
       <section id="svg-tools" style="margin-bottom:2rem">
 
-        <h3>SVGS salvos recentemente</h3>
-                {% if svgfiles %}
-                  <ul id="svg-list" style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.5rem">
-                    {% for item in svgfiles %}
-                      <li data-id="{{ item.id }}" style="display:flex; justify-content:space-between; align-items:center; padding:.75rem 1rem; border:1px solid #2a2a2a; border-radius:8px">
-                        <div style="display:flex; gap:1rem; align-items:center;">
-                          <div class="svg-thumb-wrap" aria-hidden="true">
-                            {% if item.thumbnail %}
-                              <img class="svg-thumb" src="{{ item.thumbnail.url }}" alt="Thumbnail {{ item.title_name }}" loading="lazy" decoding="async"
-                                  onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<div class=\'svg-thumb-placeholder\'>Sem imagem<br/>Prévia</div>');" />
-                            {% elif item.content %}
-                              <div class="svg-thumb svg-thumb-inline" aria-hidden="true" title="Pré-visualização do SVG">
-                                {{ item.get_sanitized_content|safe }}
-                              </div>
-                            {% else %}
-                              <div class="svg-thumb-placeholder">Sem imagem<br/>Prévia</div>
-                            {% endif %}
-                          </div>
-                          <div>
-                            <strong>{{ item.title_name|default:"SVG" }}</strong>
-                            <span class="muted" style="margin-left:.5rem">{{ item.uploaded_at }}</span>
-                          </div>
-                        </div>
-                        <div style="display:flex; gap:.5rem; align-items:center">
-                          <button class="btn btn-copy" data-id="{{ item.id }}">Copiar</button>
-                        </div>
-                      </li>
-                    {% endfor %}
-                  </ul>
+        <h3>SVGs salvos recentemente</h3>
+        {% if svgfiles %}
+          <div class="container-cards">
+            {% for item in svgfiles %}
+              {% include 'core/partials/item_card.html' %}
+            {% endfor %}
+          </div>
         {% else %}
           <p class="muted">Nenhum SVG salvo ainda. Salve o primeiro usando o formulário acima.</p>
         {% endif %}
-
-        <template id="svg-list-item-template">
-          <li style="display:flex; justify-content:space-between; align-items:center; padding:.75rem 1rem; border:1px solid #2a2a2a; border-radius:8px">
-            <div>
-              <strong class="name"></strong>
-              <span class="muted ts" style="margin-left:.5rem"></span>
-            </div>
-            <div style="display:flex; gap:.5rem; align-items:center">
-              <button class="btn btn-copy">Copiar</button>
-            </div>
-          </li>
-        </template>
-
-        <script>
-          (function () {
-            // Versão mínima: funções compartilhadas usadas em outros templates
-            const copyUrl = "{% url 'core:copy_svg' %}"; // usado para obter svg sanitizado do backend
-
-            const $list = document.getElementById('svg-list');
-            const $copyEditor = document.getElementById('btn-copy-editor');
-            const $ta = document.getElementById('svg-textarea');
-
-            // utilitário seguro para copiar texto (fallback)
-            async function safeCopy(text) {
-              if (!text) return;
-              try {
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                  return await navigator.clipboard.writeText(text);
-                }
-              } catch (e) {
-                // continua para fallback
-              }
-              return new Promise((resolve, reject) => {
-                try {
-                  const ta = document.createElement('textarea');
-                  ta.value = text;
-                  ta.setAttribute('readonly', '');
-                  ta.style.position = 'absolute';
-                  ta.style.left = '-9999px';
-                  document.body.appendChild(ta);
-                  ta.select();
-                  const ok = document.execCommand && document.execCommand('copy');
-                  document.body.removeChild(ta);
-                  if (ok) resolve(); else reject(new Error('Fallback copy falhou'));
-                } catch (err) {
-                  reject(err);
-                }
-              });
-            }
-
-            async function copyFromDb(id) {
-              try {
-                const url = copyUrl + '?id=' + encodeURIComponent(id);
-                const res = await fetch(url, { credentials: 'same-origin' });
-                const ct = res.headers.get('content-type') || '';
-                let data;
-                if (ct.includes('application/json')) data = await res.json(); else data = { __raw_text: await res.text() };
-                if (!res.ok) throw new Error((data && (data.error || data.__raw_text)) || res.statusText);
-                const text = data.svg_text || data.__raw_text || '';
-                await safeCopy(text);
-                return true;
-              } catch (err) {
-                console.error(err);
-                alert('Não foi possível copiar do banco: ' + err.message);
-                return false;
-              }
-            }
-
-            // Delegated click handler para botões .btn-copy dentro da lista
-            document.addEventListener('click', (ev) => {
-              const btn = ev.target.closest('.btn-copy');
-              if (!btn) return;
-              const id = btn.getAttribute('data-id') || btn.closest('li')?.dataset?.id;
-              if (!id) return;
-              btn.disabled = true;
-              const old = btn.textContent;
-              btn.textContent = 'Copiando...';
-              copyFromDb(id).then(() => {
-                btn.textContent = 'Copiado!';
-                setTimeout(() => {
-                  btn.disabled = false;
-                  btn.textContent = old;
-                }, 900);
-              }).catch(() => {
-                btn.disabled = false;
-                btn.textContent = old;
-              });
-            });
-
-            // Botão que copia o conteúdo do editor (se presente)
-            if ($copyEditor && $ta) {
-              $copyEditor.addEventListener('click', async () => {
-                const text = ($ta.value || '').trim();
-                if (!text) { alert('Cole um SVG no editor para copiar.'); return; }
-                try {
-                  await safeCopy(text);
-                } catch (e) {
-                  alert('Falha ao copiar do editor: ' + e.message);
-                }
-              });
-            }
-          })();
-        </script>
       </section>
 
       <section id="getting-started">

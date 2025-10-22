@@ -1,3 +1,18 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from .models import CustomUser
 
-# Register your models here.
+@admin.register(CustomUser)
+class CustomUserAdmin(UserAdmin):
+    """Admin configuration for CustomUser model."""
+    list_display = ['username', 'email', 'phone', 'is_staff', 'date_joined']
+    list_filter = ['is_staff', 'is_superuser', 'is_active', 'date_joined']
+    search_fields = ['username', 'email', 'phone']
+    
+    fieldsets = UserAdmin.fieldsets + (
+        ('Informações Adicionais', {'fields': ('phone',)}),
+    )
+    
+    add_fieldsets = UserAdmin.add_fieldsets + (
+        ('Informações Adicionais', {'fields': ('email', 'phone')}),
+    )

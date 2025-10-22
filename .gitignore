@@ -10,6 +10,7 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media
+*.svg
 
 # Ignorar todas as pastas migrations (OPCIONAL — remova se preferir versionar migrations)
 # Isto ignora qualquer pasta chamada "migrations" em qualquer subdiretório
@@ -23,6 +24,7 @@ media
 # Byte-compiled / optimized / DLL files
 *.py[cod]
 *$py.class
+/**/migrations/
 
 # C extensions
 *.so

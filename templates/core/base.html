@@ -9,10 +9,14 @@
     <link rel="stylesheet" href="{% static 'core/ui-enhancements.css' %}">
     
     <!-- HTMX para interações dinâmicas sem JavaScript complexo -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10" 
+            integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" 
+            crossorigin="anonymous"></script>
     
     <!-- Alpine.js para reatividade leve (modais, toggles) -->
-    <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" 
+            integrity="sha384-Uz679UqE3+L2WCGSYkh+Y2KnGFN7aRRLJMWc9lL3QYAKrVEkbydCPvFODHOcbH1M" 
+            crossorigin="anonymous"></script>
     
     {% block extra_head %}{% endblock %}
   </head>

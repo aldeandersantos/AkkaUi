@@ -5,7 +5,7 @@ Usa Alpine.js para modal de preview e HTMX para carregar SVG via API
 Segurança: usa item.get_sanitized_content que remove <script> e event handlers
 {% endcomment %}
 
-<div class="card" id="svg-card-{{ item.pk }}" x-data="{ showModal: false }">
+<div class="card" id="svg-card-{{ item.pk }}" x-data="{ showModal: false, imgError: false }">
   {# Preview do SVG #}
   <div class="svg-thumb">
     {% if item.thumbnail %}
@@ -14,9 +14,10 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         src="{{ item.thumbnail.url }}" 
         alt="Preview de {{ item.title_name|default:item.filename }}"
         loading="lazy"
-        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        x-show="!imgError"
+        @error="imgError = true"
       >
-      <div class="svg-thumb-placeholder" style="display:none;">
+      <div class="svg-thumb-placeholder" x-show="imgError" style="display:none;">
         Sem prévia<br>disponível
       </div>
     {% elif item.content %}
@@ -26,9 +27,10 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         src="data:image/svg+xml;base64,{{ item.get_sanitized_content|base64_encode }}"
         alt="Preview de {{ item.title_name|default:item.filename }}"
         loading="lazy"
-        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+        x-show="!imgError"
+        @error="imgError = true"
       >
-      <div class="svg-thumb-placeholder" style="display:none;">
+      <div class="svg-thumb-placeholder" x-show="imgError" style="display:none;">
         Erro ao carregar<br>prévia
       </div>
     {% else %}
@@ -71,14 +73,21 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       hx-get="{% url 'core:copy_svg' %}?id={{ item.pk }}"
       hx-swap="none"
       hx-on::after-request="
-        const resp = JSON.parse(event.detail.xhr.response);
-        if (resp.svg_text) {
-          navigator.clipboard.writeText(resp.svg_text).then(() => {
-            event.target.textContent = '✓ Copiado!';
-            setTimeout(() => { event.target.textContent = '📋 Copiar'; }, 2000);
-          }).catch(() => {
-            alert('Erro ao copiar para área de transferência');
-          });
+        try {
+          const resp = JSON.parse(event.detail.xhr.response);
+          if (resp.svg_text) {
+            navigator.clipboard.writeText(resp.svg_text).then(() => {
+              const btn = event.target;
+              const originalText = btn.textContent;
+              btn.textContent = '✓ Copiado!';
+              setTimeout(() => { btn.textContent = originalText; }, 2000);
+            }).catch(() => {
+              alert('Erro ao copiar para área de transferência');
+            });
+          }
+        } catch (e) {
+          console.error('Erro ao processar resposta:', e);
+          alert('Erro ao processar resposta do servidor');
         }
       "
       class="btn btn-secondary"

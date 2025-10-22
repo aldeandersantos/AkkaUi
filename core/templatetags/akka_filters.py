@@ -17,5 +17,5 @@ def base64_encode(value):
         return ''
     try:
         return base64.b64encode(value.encode('utf-8')).decode('utf-8')
-    except Exception:
+    except (UnicodeEncodeError, UnicodeDecodeError, AttributeError):
         return ''

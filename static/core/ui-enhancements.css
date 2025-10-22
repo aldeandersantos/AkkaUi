@@ -12,16 +12,22 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 32px;
-  margin: 0 auto;
+  margin: 32px 0 0 0;
   width: 100%;
-  max-width: 1600px;
-  padding: 40px 80px;
+  padding: 0;
 }
 
 @media (max-width: 1200px) {
   .container-cards {
-    padding: 32px 60px;
+    margin-top: 28px;
     gap: 28px;
+  }
+}
+
+@media (max-width: 900px) {
+  .container-cards {
+    margin-top: 24px;
+    gap: 24px;
   }
 }
 
@@ -29,7 +35,7 @@
   .container-cards {
     grid-template-columns: 1fr;
     gap: 20px;
-    padding: 24px 20px;
+    margin-top: 20px;
   }
 }
 

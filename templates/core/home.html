@@ -4,13 +4,13 @@
 
 {% block content %}
   <div style="width: 100%; background: var(--bg-dark);">
-    <header style="text-align: center; padding: 60px 80px 40px; max-width: 1600px; margin: 0 auto;">
+    <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
       <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Bem-vindo ao AkkaUi</h1>
       <p class="lead" style="font-size: 20px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">Seu catálogo completo de recursos de design UI modernos e responsivos com tema escuro.</p>
     </header>
 
-    <section id="svg-tools" style="max-width: 1600px; margin: 0 auto; padding: 0 0 60px;">
-      <h3 style="margin-bottom: 0; font-size: 28px; padding: 0 80px;">SVGs salvos recentemente</h3>
+    <section id="svg-tools" style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
+      <h3 style="margin-bottom: 16px; font-size: 28px;">SVGs salvos recentemente</h3>
       {% if svgfiles %}
         <div class="container-cards">
           {% for item in svgfiles %}

@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.exceptions import RequestDataTooBig
 from usuario.views import admin_required
+from .services import *
 
 from .models import SvgFile
 
@@ -53,98 +54,79 @@ def copy_svg(request):
 @csrf_exempt  # remova se quiser exigir CSRF
 @require_POST
 def paste_svg(request):
-    """
-    POST JSON: {"filename": "nome.svg", "svg_text": "<svg...>"}
-    - Conteúdo esperado em application/json (UTF-8). Também aceitamos fallback
-      em text/plain (corpo inteiro vira svg_text) e form-urlencoded/multipart
-      com campos filename e svg_text.
+    """Recebe vários content-types e cria um SvgFile. Não usa campo `filename`.
 
-    Cria um novo SvgFile. A sanitização é aplicada quando o conteúdo é servido
-    para cópia (via get_sanitized_content), preservando o original no banco.
+    Suporta:
+    - application/json: {"svg_text": "...", "title_name": "..."}
+    - multipart/form-data ou x-www-form-urlencoded com campo "svg_text"
+    - text/plain com corpo inteiro contendo o SVG
     """
     ctype = request.META.get("CONTENT_TYPE", "").lower()
     body = b""
-
     payload = None
     decode_errors = None
+    # owner is required by SvgFile model; only allow creation for authenticated users
+    owner = request.user if request.user.is_authenticated else None
 
-    # 1) Tenta JSON padrão (UTF-8). Se falhar, tenta utf-8-sig (remove BOM)
+    # JSON branch
     if ctype.startswith("application/json"):
-        # Só acessa request.body quando for realmente JSON para evitar
-        # RequestDataTooBig em uploads multipart ou outros content-types.
         try:
             body = request.body or b""
         except RequestDataTooBig:
             return HttpResponseBadRequest(
-                json.dumps({
-                    "error": "payload too large",
-                    "detail": "JSON body exceeded DATA_UPLOAD_MAX_MEMORY_SIZE",
-                }),
+                json.dumps({"error": "payload too large", "detail": "JSON body exceeded DATA_UPLOAD_MAX_MEMORY_SIZE"}),
                 content_type="application/json",
             )
         try:
             payload = json.loads(body.decode("utf-8"))
-        except UnicodeDecodeError as ue:
-            decode_errors = f"unicode-decode-error: {ue}"
+        except UnicodeDecodeError:
             try:
                 payload = json.loads(body.decode("utf-8-sig"))
-            except Exception as je:
-                decode_errors += f"; utf-8-sig-fallback: {je}"
+            except Exception as e:
+                decode_errors = str(e)
         except json.JSONDecodeError as je:
-            decode_errors = f"json-decode-error: {je}"
+            decode_errors = str(je)
 
-    # 2) Se não for JSON, tenta form-data/urlencoded
+    # form-data / urlencoded
     if payload is None and (ctype.startswith("application/x-www-form-urlencoded") or ctype.startswith("multipart/form-data")):
         svg_text = request.POST.get("svg_text")
-        filename = request.POST.get("filename") or "unnamed.svg"
         if svg_text:
-            asset = SvgFile.objects.create(filename=filename, content=svg_text)
-            return JsonResponse({"id": asset.pk, "filename": asset.filename})
+            if owner is None:
+                return HttpResponseBadRequest(json.dumps({"error": "authentication required to save SVG"}), content_type="application/json")
+            thumbnail = request.FILES.get('thumbnail') if request.FILES.get('thumbnail') else None
+            asset = SvgFile.objects.create(title_name=(request.POST.get('title_name') or ''), content=svg_text, thumbnail=thumbnail, owner=owner)
+            return JsonResponse({"id": asset.pk})
 
-    # 3) Se for text/plain, trata o corpo como SVG direto
+    # text/plain
     if payload is None and ctype.startswith("text/plain"):
         try:
-            # Apenas lê o corpo cru se ainda não tivermos lido
-            if body:
-                raw = body
-            else:
-                try:
-                    raw = request.body or b""
-                except RequestDataTooBig:
-                    return HttpResponseBadRequest(
-                        json.dumps({
-                            "error": "payload too large",
-                            "detail": "text/plain body exceeded DATA_UPLOAD_MAX_MEMORY_SIZE",
-                        }),
-                        content_type="application/json",
-                    )
-            svg_text = raw.decode("utf-8", errors="replace")
-        except Exception:
-            svg_text = ""
+            raw = request.body or b""
+        except RequestDataTooBig:
+            return HttpResponseBadRequest(
+                json.dumps({"error": "payload too large", "detail": "text/plain body exceeded DATA_UPLOAD_MAX_MEMORY_SIZE"}),
+                content_type="application/json",
+            )
+        svg_text = raw.decode("utf-8", errors="replace")
         if svg_text.strip():
-            filename = (request.GET.get("filename") or request.POST.get("filename") or "unnamed.svg")
-            asset = SvgFile.objects.create(filename=filename, content=svg_text)
-            return JsonResponse({"id": asset.pk, "filename": asset.filename})
+            if owner is None:
+                return HttpResponseBadRequest(json.dumps({"error": "authentication required to save SVG"}), content_type="application/json")
+            asset = SvgFile.objects.create(title_name=(request.GET.get('title_name') or ''), content=svg_text, owner=owner)
+            return JsonResponse({"id": asset.pk})
 
-    # 4) Se conseguimos JSON, valida campos
+    # JSON payload handling
     if payload is not None:
         svg_text = payload.get("svg_text")
         if not svg_text:
-            return HttpResponseBadRequest(
-                json.dumps({"error": "svg_text is required"}),
-                content_type="application/json",
-            )
-        filename = payload.get("filename") or "unnamed.svg"
-        asset = SvgFile.objects.create(filename=filename, content=svg_text)
-        return JsonResponse({"id": asset.pk, "filename": asset.filename})
+            return HttpResponseBadRequest(json.dumps({"error": "svg_text is required"}), content_type="application/json")
+        if owner is None:
+            return HttpResponseBadRequest(json.dumps({"error": "authentication required to save SVG"}), content_type="application/json")
+        title_name = payload.get("title_name") or ""
+        asset = SvgFile.objects.create(title_name=title_name, content=svg_text, owner=owner)
+        return JsonResponse({"id": asset.pk})
 
-    # 5) Falha: retorna detalhes para facilitar o debug no frontend
+    # fallback error
     return HttpResponseBadRequest(
-        json.dumps({
-            "error": "invalid json",
-            "detail": decode_errors or f"unsupported content-type: {ctype or 'unknown'}",
-            "length": len(body),
-        }),
+        json.dumps({"error": "invalid json", "detail": decode_errors or f"unsupported content-type: {ctype or 'unknown'}", "length": len(body)}),
         content_type="application/json",
     )
 
@@ -157,72 +139,70 @@ def admin_svg(request):
     svgfiles = SvgFile.objects.filter(owner=request.user).order_by("-uploaded_at")
     return render(request, "core/admin_svg.html", {"svgfiles": svgfiles})
 
+
+@admin_required
+def admin_delete_svg(request):
+    try:
+        if request.method != "DELETE":
+            return HttpResponseNotAllowed(["DELETE"])
+        svg_file_id = request.GET.get("id") or request.GET.get("pk")
+        if not svg_file_id:
+            return HttpResponseBadRequest(json.dumps({"error": "id parameter required"}), content_type="application/json")
+        success = del_svg_file(svg_file_id)
+        if not success:
+            return HttpResponseBadRequest(json.dumps({"error": "SVG file not found"}), content_type="application/json")
+        return JsonResponse({"success": True})
+    except Exception as e:
+        return HttpResponseBadRequest(json.dumps({"error": "failed to delete SVG file", "detail": str(e)}), content_type="application/json")
+
+
 @admin_required
 @require_POST
 def admin_create_svg(request):
     """
     Admin-only endpoint to create a new SVG with full metadata.
-    Expects JSON or form-data with filename, content, title_name, description, tags, category.
+    Expects JSON or form-data with content/title_name, description, tags, category.
     """
     ctype = request.META.get("CONTENT_TYPE", "").lower()
-    
-    # Handle JSON requests
+
+    # JSON
     if ctype.startswith("application/json"):
         try:
             body = request.body or b""
         except RequestDataTooBig:
-            return HttpResponseBadRequest(
-                json.dumps({"error": "payload too large"}),
-                content_type="application/json",
-            )
-        
+            return HttpResponseBadRequest(json.dumps({"error": "payload too large"}), content_type="application/json")
         try:
             payload = json.loads(body.decode("utf-8"))
         except (json.JSONDecodeError, UnicodeDecodeError):
-            return HttpResponseBadRequest(
-                json.dumps({"error": "invalid json"}),
-                content_type="application/json",
-            )
-        
+            return HttpResponseBadRequest(json.dumps({"error": "invalid json"}), content_type="application/json")
+
         svg_text = payload.get("svg_text") or payload.get("content")
-        filename = payload.get("filename", "unnamed.svg")
-        title_name = payload.get("title_name", "")
+        title_name = payload.get("title_name") or ""
         description = payload.get("description", "")
         tags = payload.get("tags", "")
         category = payload.get("category", "")
         is_public = payload.get("is_public", False)
         license_required = payload.get("license_required", False)
-    
-    # Handle form-data requests
+
+    # form-data / urlencoded
     elif ctype.startswith("application/x-www-form-urlencoded") or ctype.startswith("multipart/form-data"):
         svg_text = request.POST.get("svg_text") or request.POST.get("content")
-        filename = request.POST.get("filename", "unnamed.svg")
-        title_name = request.POST.get("title_name", "")
+        title_name = request.POST.get("title_name") or ""
         description = request.POST.get("description", "")
         tags = request.POST.get("tags", "")
         category = request.POST.get("category", "")
         is_public = request.POST.get("is_public") == "on" or request.POST.get("is_public") == "true"
         license_required = request.POST.get("license_required") == "on" or request.POST.get("license_required") == "true"
+
     else:
-        return HttpResponseBadRequest(
-            json.dumps({"error": "unsupported content-type"}),
-            content_type="application/json",
-        )
-    
+        return HttpResponseBadRequest(json.dumps({"error": "unsupported content-type"}), content_type="application/json")
+
     if not svg_text:
-        return HttpResponseBadRequest(
-            json.dumps({"error": "svg_text or content is required"}),
-            content_type="application/json",
-        )
-    
-    # Handle thumbnail upload if present
-    thumbnail = None
-    if request.FILES.get("thumbnail"):
-        thumbnail = request.FILES["thumbnail"]
-    
-    # Create the SvgFile
+        return HttpResponseBadRequest(json.dumps({"error": "svg_text or content is required"}), content_type="application/json")
+
+    thumbnail = request.FILES.get("thumbnail") if request.FILES.get("thumbnail") else None
+
     svg_file = SvgFile.objects.create(
-        filename=filename,
         title_name=title_name,
         description=description,
         tags=tags,
@@ -233,10 +213,5 @@ def admin_create_svg(request):
         license_required=license_required,
         thumbnail=thumbnail,
     )
-    
-    return JsonResponse({
-        "id": svg_file.pk,
-        "filename": svg_file.filename,
-        "title_name": svg_file.title_name,
-        "success": True,
-    })
+
+    return JsonResponse({"id": svg_file.pk, "title_name": svg_file.title_name, "success": True})

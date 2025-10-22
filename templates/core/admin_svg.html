@@ -17,21 +17,6 @@
         <form id="admin-svg-form" style="margin-top:1.5rem">
           <div style="display:flex; flex-direction:column; gap:1rem; max-width:800px">
             
-            <!-- Filename -->
-            <div style="display:flex; flex-direction:column; gap:.5rem">
-              <label for="filename" style="font-weight:600; color:var(--text-light)">
-                Nome do Arquivo <span style="color:#ff7b7b">*</span>
-              </label>
-              <input 
-                id="filename" 
-                name="filename" 
-                type="text" 
-                required
-                placeholder="ex: icone-usuario.svg"
-                style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
-              />
-            </div>
-
             <!-- Title Name -->
             <div style="display:flex; flex-direction:column; gap:.5rem">
               <label for="title_name" style="font-weight:600; color:var(--text-light)">
@@ -110,9 +95,11 @@
                 Conteúdo SVG <span style="color:#ff7b7b">*</span>
               </label>
               <div style="display:flex; gap:.5rem; margin-bottom:.5rem">
+                <!--
+                Botão comentado para ajuste posterior
                 <button type="button" id="btn-paste-clipboard" class="btn btn-secondary">
                   Colar do Clipboard
-                </button>
+                </button> -->
                 <button type="button" id="btn-load-file" class="btn btn-secondary">
                   Carregar Arquivo SVG
                 </button>
@@ -159,14 +146,14 @@
         {% if svgfiles %}
           <div style="margin-top:1rem; display:flex; flex-direction:column; gap:.75rem">
             {% for svg in svgfiles %}
-              <div style="padding:1rem; border:1px solid var(--border); border-radius:8px; background:var(--bg-card)">
+              <div class="svg-item" style="padding:1rem; border:1px solid var(--border); border-radius:8px; background:var(--bg-card)">
                 <div style="display:flex; justify-content:space-between; align-items:start; gap:1rem">
                   <div style="flex:1">
                     <h3 style="margin:0 0 .5rem; color:var(--text-light)">
-                      {{ svg.title_name|default:svg.filename }}
+                      {{ svg.title_name|default:"SVG" }}
                     </h3>
                     <div style="font-size:.9rem; color:var(--text-muted); margin-bottom:.5rem">
-                      <strong>Arquivo:</strong> {{ svg.filename }}
+                      <strong>Nome:</strong> {{ svg.title_name|default:"-" }}
                     </div>
                     {% if svg.description %}
                       <p class="muted" style="margin:.5rem 0">{{ svg.description }}</p>
@@ -185,6 +172,17 @@
                   <div style="display:flex; gap:.5rem">
                     <button class="btn btn-secondary btn-copy-svg" data-id="{{ svg.id }}">
                       Copiar
+                    </button>
+                    <!-- Delete button -->
+                    <button title="Excluir SVG" class="btn btn-danger btn-delete-svg" data-id="{{ svg.id }}" style="display:inline-flex; align-items:center; justify-content:center; padding:.5rem;">
+                      <!-- simples ícone de lixeira em SVG -->
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                        <path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 6v14a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -208,6 +206,7 @@
       const svgFileInput = document.getElementById('svg-file-input');
       const createUrl = "{% url 'core:admin_create_svg' %}";
       const copyUrl = "{% url 'core:copy_svg' %}";
+  const deleteUrl = "{% url 'core:admin_delete_svg' %}";
 
       function setStatus(msg, isError = false) {
         formStatus.textContent = msg;
@@ -262,10 +261,10 @@
           svgTextarea.value = text;
           setStatus('Conteúdo colado do clipboard');
           
-          // Auto-fill filename if empty
-          const filenameInput = document.getElementById('filename');
-          if (!filenameInput.value) {
-            filenameInput.value = 'clipboard.svg';
+          // Não usamos mais campo filename; opcionalmente preencher title_name se quiser
+          const titleInput = document.getElementById('title_name');
+          if (titleInput && !titleInput.value) {
+            titleInput.value = 'clipboard';
           }
         } catch (err) {
           setStatus('Erro ao ler do clipboard: ' + err.message, true);
@@ -290,10 +289,10 @@
           svgTextarea.value = text;
           setStatus('Arquivo carregado: ' + file.name);
           
-          // Auto-fill filename if empty
-          const filenameInput = document.getElementById('filename');
-          if (!filenameInput.value) {
-            filenameInput.value = file.name;
+          // Não usamos mais campo filename; opcionalmente preencher title_name se vazio
+          const titleInput = document.getElementById('title_name');
+          if (titleInput && !titleInput.value) {
+            titleInput.value = file.name || '';
           }
         };
         reader.onerror = () => {
@@ -314,20 +313,16 @@
         setStatus('Criando SVG...');
         
         try {
-          const response = await fetch(createUrl, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'X-CSRFToken': '{{ csrf_token }}',
-            },
-          });
-          
-          const data = await response.json();
-          
-          if (!response.ok) {
-            throw new Error(data.error || 'Erro ao criar SVG');
+          const response = await fetch(createUrl, { method: 'POST', body: formData, headers: { 'X-CSRFToken': '{{ csrf_token }}' } });
+          async function parseJsonOrText(response) {
+            const ct = response.headers.get('content-type') || '';
+            if (ct.includes('application/json')) return await response.json();
+            return { __raw_text: await response.text() };
           }
-          
+          const data = await parseJsonOrText(response);
+          if (!response.ok) {
+            throw new Error((data && (data.error || data.__raw_text)) || 'Erro ao criar SVG');
+          }
           setStatus('SVG criado com sucesso!');
           
           // Reset form
@@ -360,13 +355,11 @@
         try {
           const url = copyUrl + '?id=' + encodeURIComponent(id);
           const response = await fetch(url);
-          const data = await response.json();
-          
-          if (!response.ok) {
-            throw new Error(data.error || 'Erro ao copiar');
-          }
-          
-          await navigator.clipboard.writeText(data.svg_text || '');
+          const ct = response.headers.get('content-type') || '';
+          let data;
+          if (ct.includes('application/json')) data = await response.json(); else data = { __raw_text: await response.text() };
+          if (!response.ok) throw new Error((data && (data.error || data.__raw_text)) || 'Erro ao copiar');
+          await safeCopy(data.svg_text || data.__raw_text || '');
           btn.textContent = 'Copiado!';
           
           setTimeout(() => {
@@ -379,6 +372,93 @@
           btn.disabled = false;
         }
       });
+
+      // Delete SVG functionality
+      document.addEventListener('click', async (ev) => {
+        const btn = ev.target.closest('.btn-delete-svg');
+        if (!btn) return;
+
+        const id = btn.dataset.id;
+        if (!id) return;
+
+        // confirmação simples
+        if (!confirm('Tem certeza que deseja excluir este SVG? Esta ação não pode ser desfeita.')) return;
+
+        btn.disabled = true;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '...';
+
+        try {
+          // tenta obter CSRF do cookie e enviar DELETE
+          const csrftoken = getCookie('csrftoken');
+          const url = deleteUrl + '?id=' + encodeURIComponent(id);
+          const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRFToken': csrftoken || '',
+              'Accept': 'application/json',
+            },
+            credentials: 'same-origin'
+          });
+
+          let data;
+          const ct = response.headers.get('content-type') || '';
+          if (ct.includes('application/json')) data = await response.json(); else data = { __raw_text: await response.text() };
+
+          if (!response.ok) throw new Error((data && (data.error || data.__raw_text)) || 'Erro ao excluir');
+
+          // remover do DOM
+          const item = btn.closest('.svg-item');
+          if (item) {
+            item.remove();
+          }
+
+        } catch (err) {
+          alert('Erro ao excluir: ' + err.message);
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+        }
+      });
+
+      // util: pegar cookie (para CSRF)
+      function getCookie(name) {
+        const cookies = document.cookie ? document.cookie.split(';') : [];
+        for (let i = 0; i < cookies.length; i++) {
+          const c = cookies[i].trim();
+          if (c.startsWith(name + '=')) {
+            return decodeURIComponent(c.substring(name.length + 1));
+          }
+        }
+        return null;
+      }
+
+      // safeCopy util (fallback para navegadores/contexts sem navigator.clipboard)
+      async function safeCopy(text) {
+        if (!text) return;
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return await navigator.clipboard.writeText(text);
+          }
+        } catch (e) {
+          // continua para fallback
+        }
+        return new Promise((resolve, reject) => {
+          try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'absolute';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            const ok = document.execCommand && document.execCommand('copy');
+            document.body.removeChild(ta);
+            if (ok) resolve(); else reject(new Error('Fallback copy falhou'));
+          } catch (err) {
+            reject(err);
+          }
+        });
+      }
     })();
   </script>
 {% endblock %}

@@ -1,20 +1,17 @@
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env_path = BASE_DIR / '.env'
+env_path = BASE_DIR / 'env/.env'
+# Use python-dotenv to load environment variables from .env without
+# overriding existing environment variables (preserves current behavior).
 if env_path.exists():
-    with open(env_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#') or '=' not in line:
-                continue
-            key, val = line.split('=', 1)
-            # Remove optional quotes
-            val = val.strip().strip('"').strip("'")
-            os.environ.setdefault(key.strip(), val)
+    # load_dotenv accepts a path-like or string path; override=False
+    # ensures we do not overwrite already-set environment variables.
+    load_dotenv(dotenv_path=str(env_path), override=False)
 
 # Read DEBUG first so we can decide how strict to be when SECRET_KEY is missing.
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes', 'on')
@@ -28,7 +25,22 @@ if not SECRET_KEY:
     else:
         raise RuntimeError("SECRET_KEY not found in environment; set it in .env for production")
 
-ALLOWED_HOSTS = []
+raw_allowed = os.getenv('ALLOWED_HOSTS', '').strip()
+if raw_allowed:
+    try:
+        import json
+
+        parsed = json.loads(raw_allowed)
+        if isinstance(parsed, (list, tuple)):
+            ALLOWED_HOSTS = [str(h).strip() for h in parsed if str(h).strip()]
+        else:
+            # If JSON parsed to a single value, fall back to comma-split
+            ALLOWED_HOSTS = [p.strip() for p in str(parsed).split(',') if p.strip()]
+    except Exception:
+        # Not JSON: parse as comma-separated string
+        ALLOWED_HOSTS = [h.strip() for h in raw_allowed.split(',') if h.strip()]
+else:
+    ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -133,6 +145,13 @@ STATICFILES_DIRS = [
 # Directory where `collectstatic` will collect static files for production.
 # You can change this when deploying.
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Media files (uploads)
+# Durante desenvolvimento usamos MEDIA_URL e MEDIA_ROOT para servir imagens
+# enviadas pelos usuários (thumbnails). Em produção configure um storage
+# externo e não sirva media diretamente pelo Django.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

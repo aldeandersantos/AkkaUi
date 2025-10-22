@@ -146,7 +146,7 @@
         {% if svgfiles %}
           <div style="margin-top:1rem; display:flex; flex-direction:column; gap:.75rem">
             {% for svg in svgfiles %}
-              <div style="padding:1rem; border:1px solid var(--border); border-radius:8px; background:var(--bg-card)">
+              <div class="svg-item" style="padding:1rem; border:1px solid var(--border); border-radius:8px; background:var(--bg-card)">
                 <div style="display:flex; justify-content:space-between; align-items:start; gap:1rem">
                   <div style="flex:1">
                     <h3 style="margin:0 0 .5rem; color:var(--text-light)">
@@ -173,6 +173,17 @@
                     <button class="btn btn-secondary btn-copy-svg" data-id="{{ svg.id }}">
                       Copiar
                     </button>
+                    <!-- Delete button -->
+                    <button title="Excluir SVG" class="btn btn-danger btn-delete-svg" data-id="{{ svg.id }}" style="display:inline-flex; align-items:center; justify-content:center; padding:.5rem;">
+                      <!-- simples ícone de lixeira em SVG -->
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                        <path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 6v14a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -195,6 +206,7 @@
       const svgFileInput = document.getElementById('svg-file-input');
       const createUrl = "{% url 'core:admin_create_svg' %}";
       const copyUrl = "{% url 'core:copy_svg' %}";
+  const deleteUrl = "{% url 'core:admin_delete_svg' %}";
 
       function setStatus(msg, isError = false) {
         formStatus.textContent = msg;
@@ -360,6 +372,65 @@
           btn.disabled = false;
         }
       });
+
+      // Delete SVG functionality
+      document.addEventListener('click', async (ev) => {
+        const btn = ev.target.closest('.btn-delete-svg');
+        if (!btn) return;
+
+        const id = btn.dataset.id;
+        if (!id) return;
+
+        // confirmação simples
+        if (!confirm('Tem certeza que deseja excluir este SVG? Esta ação não pode ser desfeita.')) return;
+
+        btn.disabled = true;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '...';
+
+        try {
+          // tenta obter CSRF do cookie e enviar DELETE
+          const csrftoken = getCookie('csrftoken');
+          const url = deleteUrl + '?id=' + encodeURIComponent(id);
+          const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+              'X-CSRFToken': csrftoken || '',
+              'Accept': 'application/json',
+            },
+            credentials: 'same-origin'
+          });
+
+          let data;
+          const ct = response.headers.get('content-type') || '';
+          if (ct.includes('application/json')) data = await response.json(); else data = { __raw_text: await response.text() };
+
+          if (!response.ok) throw new Error((data && (data.error || data.__raw_text)) || 'Erro ao excluir');
+
+          // remover do DOM
+          const item = btn.closest('.svg-item');
+          if (item) {
+            item.remove();
+          }
+
+        } catch (err) {
+          alert('Erro ao excluir: ' + err.message);
+          btn.disabled = false;
+          btn.innerHTML = originalHtml;
+        }
+      });
+
+      // util: pegar cookie (para CSRF)
+      function getCookie(name) {
+        const cookies = document.cookie ? document.cookie.split(';') : [];
+        for (let i = 0; i < cookies.length; i++) {
+          const c = cookies[i].trim();
+          if (c.startsWith(name + '=')) {
+            return decodeURIComponent(c.substring(name.length + 1));
+          }
+        }
+        return null;
+      }
 
       // safeCopy util (fallback para navegadores/contexts sem navigator.clipboard)
       async function safeCopy(text) {

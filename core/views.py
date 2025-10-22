@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.exceptions import RequestDataTooBig
 from usuario.views import admin_required
+from .services import *
 
 from .models import SvgFile
 
@@ -137,6 +138,23 @@ def admin_svg(request):
     """
     svgfiles = SvgFile.objects.filter(owner=request.user).order_by("-uploaded_at")
     return render(request, "core/admin_svg.html", {"svgfiles": svgfiles})
+
+
+@admin_required
+def admin_delete_svg(request):
+    try:
+        if request.method != "DELETE":
+            return HttpResponseNotAllowed(["DELETE"])
+        svg_file_id = request.GET.get("id") or request.GET.get("pk")
+        if not svg_file_id:
+            return HttpResponseBadRequest(json.dumps({"error": "id parameter required"}), content_type="application/json")
+        success = del_svg_file(svg_file_id)
+        if not success:
+            return HttpResponseBadRequest(json.dumps({"error": "SVG file not found"}), content_type="application/json")
+        return JsonResponse({"success": True})
+    except Exception as e:
+        return HttpResponseBadRequest(json.dumps({"error": "failed to delete SVG file", "detail": str(e)}), content_type="application/json")
+
 
 @admin_required
 @require_POST

@@ -12,6 +12,10 @@
     <section id="svg-tools" style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
       <h3 style="margin-bottom: 16px; font-size: 28px;">SVGs salvos recentemente</h3>
       {% if svgfiles %}
+        {# Debug: mostrar quantos SVGs estão sendo renderizados #}
+        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">
+          Exibindo {{ svgfiles|length }} SVG{{ svgfiles|length|pluralize }} público{{ svgfiles|length|pluralize }}
+        </p>
         <div class="container-cards">
           {% for item in svgfiles %}
             {% include 'core/partials/item_card.html' %}

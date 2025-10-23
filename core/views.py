@@ -13,14 +13,18 @@ def home(request):
     """
     Home page with introduction to AkkaUi.
     """
-    svgfiles = SvgFile.objects.order_by("-uploaded_at")
+    svgfiles = SvgFile.objects.filter(is_public=True).order_by("-uploaded_at")
+    print("debug")
+    for svg in svgfiles:
+        print(f"SVG File: {svg.title_name}, Uploaded at: {svg.uploaded_at}")
     return render(request, "core/home.html", {"svgfiles": svgfiles})
 
 def explore(request):
     """
-    Explore page showing UI components catalog.
+    Explore page showing all SVG files from database.
     """
-    return render(request, "core/explore.html")
+    svgfiles = SvgFile.objects.filter(is_public=True).order_by("-uploaded_at")
+    return render(request, "core/explore.html", {"svgfiles": svgfiles})
 
 def pricing(request):
     """

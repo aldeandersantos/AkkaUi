@@ -299,3 +299,7 @@
 .mb-4 {
   margin-bottom: 32px;
 }
+
+/* DEBUG: outline visual para diagnosticar sobreposição de cards
+   Remover/commentar após verificação */
+/* outline de debug removido */

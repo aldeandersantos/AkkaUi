@@ -8,6 +8,7 @@ import os
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('usuario/', include('usuario.urls')),
+    path('payment/', include('payment.urls')),
     path('', include('core.urls')),
 ]
 

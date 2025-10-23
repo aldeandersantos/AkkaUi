@@ -10,6 +10,7 @@ urlpatterns = [
     path("faq/", faq, name="faq"),
     path('api/copy_svg/', copy_svg, name='copy_svg'),
     path('api/paste_svg/', paste_svg, name='paste_svg'),
+    path('api/search_svg/', search_svg, name='search_svg'),
     path('manage/svg/', admin_svg, name='admin_svg'),
     path('manage/svg/create/', admin_create_svg, name='admin_create_svg'),
     path('api/manage/svg/delete/', admin_delete_svg, name='admin_delete_svg'),

@@ -11,10 +11,73 @@
   </header>
 
   <section id="svg-gallery" style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
+    {# Barra de pesquisa e filtros #}
+    <div class="search-filters">
+      <form method="get" action="{% url 'core:explore' %}" class="search-form">
+        {# Barra de pesquisa #}
+        <div class="search-box">
+          <input 
+            type="search" 
+            name="q" 
+            value="{{ search_query }}" 
+            placeholder="Pesquisar por título..." 
+            class="search-input"
+            aria-label="Pesquisar SVGs por título"
+          >
+          <button type="submit" class="search-btn">🔍 Buscar</button>
+        </div>
+        
+        {# Filtros #}
+        <div class="filters">
+          {# Filtro por categoria #}
+          <div class="filter-group">
+            <label for="category-filter">Categoria:</label>
+            <select name="category" id="category-filter" class="filter-select" onchange="this.form.submit()">
+              <option value="">Todas</option>
+              {% for cat in all_categories %}
+                <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          {# Filtro por tag #}
+          <div class="filter-group">
+            <label for="tag-filter">Tag:</label>
+            <select name="tag" id="tag-filter" class="filter-select" onchange="this.form.submit()">
+              <option value="">Todas</option>
+              {% for t in all_tags %}
+                <option value="{{ t }}" {% if t == selected_tag %}selected{% endif %}>{{ t }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          
+          {# Ordenação #}
+          <div class="filter-group">
+            <label for="sort-filter">Ordenar:</label>
+            <select name="sort" id="sort-filter" class="filter-select" onchange="this.form.submit()">
+              <option value="-uploaded_at" {% if selected_sort == '-uploaded_at' %}selected{% endif %}>Mais recentes</option>
+              <option value="uploaded_at" {% if selected_sort == 'uploaded_at' %}selected{% endif %}>Mais antigos</option>
+              <option value="title_name" {% if selected_sort == 'title_name' %}selected{% endif %}>Nome (A-Z)</option>
+              <option value="-title_name" {% if selected_sort == '-title_name' %}selected{% endif %}>Nome (Z-A)</option>
+            </select>
+          </div>
+          
+          {# Botão limpar filtros #}
+          {% if search_query or selected_category or selected_tag or selected_sort != '-uploaded_at' %}
+            <a href="{% url 'core:explore' %}" class="btn-clear-filters">✕ Limpar</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+
     {% if svgfiles %}
-      {# Debug: mostrar quantos SVGs estão sendo renderizados #}
-      <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px; text-align: center;">
-        Exibindo {{ svgfiles|length }} SVG{{ svgfiles|length|pluralize }} público{{ svgfiles|length|pluralize }}
+      {# Contador de resultados #}
+      <p style="color: var(--text-muted); margin-bottom: 16px; margin-top: 24px; font-size: 14px; text-align: center;">
+        {% if search_query or selected_category or selected_tag %}
+          Encontrado{{ svgfiles|length|pluralize }} {{ svgfiles|length }} resultado{{ svgfiles|length|pluralize }}
+        {% else %}
+          Exibindo {{ svgfiles|length }} SVG{{ svgfiles|length|pluralize }} público{{ svgfiles|length|pluralize }}
+        {% endif %}
       </p>
       <div class="container-cards">
         {% for item in svgfiles %}
@@ -25,7 +88,15 @@
         {% endfor %}
       </div>
     {% else %}
-      <p class="muted" style="text-align: center; padding: 60px 24px; font-size: 18px;">Nenhum SVG público disponível ainda. Faça upload do primeiro!</p>
+      {% if search_query or selected_category or selected_tag %}
+        <p class="muted" style="text-align: center; padding: 60px 24px; font-size: 18px;">
+          Nenhum resultado encontrado. Tente ajustar os filtros.
+        </p>
+      {% else %}
+        <p class="muted" style="text-align: center; padding: 60px 24px; font-size: 18px;">
+          Nenhum SVG público disponível ainda. Faça upload do primeiro!
+        </p>
+      {% endif %}
     {% endif %}
   </section>
 </div>

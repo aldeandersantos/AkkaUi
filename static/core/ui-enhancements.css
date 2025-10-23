@@ -7,6 +7,156 @@
   /* --bg-card, --border, --text-light, --text-muted já existem */
 }
 
+/* Search and Filters Section */
+.search-filters {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.search-box {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-light);
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(116, 96, 243, 0.1);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-btn {
+  padding: 12px 24px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.search-btn:hover {
+  background: #8674f5;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(116, 96, 243, 0.3);
+}
+
+.filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 180px;
+  flex: 1;
+}
+
+.filter-group label {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.filter-select {
+  padding: 10px 14px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-light);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-select:hover {
+  border-color: var(--accent);
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(116, 96, 243, 0.1);
+}
+
+.btn-clear-filters {
+  padding: 10px 20px;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-light);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.btn-clear-filters:hover {
+  border-color: #e74c3c;
+  color: #e74c3c;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .search-filters {
+    padding: 16px;
+  }
+  
+  .search-box {
+    flex-direction: column;
+  }
+  
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-group {
+    min-width: auto;
+  }
+  
+  .btn-clear-filters {
+    align-self: stretch;
+  }
+}
+
 /* Container e Grid Responsivo - Full Width estilo uiwiki.co */
 .container-cards {
   display: grid;

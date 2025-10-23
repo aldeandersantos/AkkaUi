@@ -7,6 +7,20 @@
   /* --bg-card, --border, --text-light, --text-muted já existem */
 }
 
+/* Ajustes para permitir que o main ocupe maior largura disponível
+   e reduzir as margens laterais visíveis na página de explorar */
+.app-container {
+  max-width: 100%; /* permite uso de toda largura do viewport */
+  padding: 24px 40px; /* deixa algum espaçamento horizontal */
+}
+
+/* Header container: aumenta largura máxima para evitar grandes espaços nas laterais */
+.site-header .container{
+  max-width: 2000px; /* maior que o padrão para cabeçalho mais largo */
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
 /* Explore Page Layout com Sidebar Lateral */
 .explore-sidebar {
   background: var(--bg-card);
@@ -20,6 +34,19 @@
   overflow-y: auto;
   width: 280px;
   flex-shrink: 0;
+}
+
+/* Sobrescritas para container global usadas no base.html
+   Aumenta a largura útil e diminui padding para aproveitar mais o espaço */
+.container {
+  max-width: 100%;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
+main.container {
+  gap: 24px; /* reduz um pouco o gap entre sidebar e conteúdo */
+  padding-top: 40px;
 }
 
 .sidebar-title {
@@ -296,6 +323,7 @@
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   margin: 0;
 }

@@ -20,7 +20,7 @@ class PageViewTests(TestCase):
         response = self.client.get(reverse('core:explore'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Explorar SVGs')
-        self.assertContains(response, 'search-filters')
+        self.assertContains(response, 'explore-sidebar')
     
     def test_pricing_page_loads(self):
         """Test that pricing page loads successfully."""

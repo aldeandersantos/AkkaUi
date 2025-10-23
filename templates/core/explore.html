@@ -3,76 +3,81 @@
 
 {% block title %}Explorar — AkkaUi{% endblock %}
 
+{% block sidebar %}
+{# Sidebar lateral com filtros #}
+<aside class="explore-sidebar">
+  <form method="get" action="{% url 'core:explore' %}" class="sidebar-filters-form">
+    <h3 class="sidebar-title">Filtros</h3>
+    
+    {# Barra de pesquisa na sidebar #}
+    <div class="sidebar-filter-group">
+      <label for="sidebar-search">Pesquisar</label>
+      <input 
+        type="search" 
+        name="q" 
+        id="sidebar-search"
+        value="{{ search_query }}" 
+        placeholder="Buscar por título..." 
+        class="sidebar-search-input"
+        aria-label="Pesquisar SVGs por título"
+      >
+    </div>
+    
+    {# Filtro por categoria #}
+    <div class="sidebar-filter-group">
+      <label for="sidebar-category">Categoria</label>
+      <select name="category" id="sidebar-category" class="sidebar-select" onchange="this.form.submit()">
+        <option value="">Todas</option>
+        {% for cat in all_categories %}
+          <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    {# Filtro por tag #}
+    <div class="sidebar-filter-group">
+      <label for="sidebar-tag">Tag</label>
+      <select name="tag" id="sidebar-tag" class="sidebar-select" onchange="this.form.submit()">
+        <option value="">Todas</option>
+        {% for t in all_tags %}
+          <option value="{{ t }}" {% if t == selected_tag %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    
+    {# Ordenação #}
+    <div class="sidebar-filter-group">
+      <label for="sidebar-sort">Ordenar</label>
+      <select name="sort" id="sidebar-sort" class="sidebar-select" onchange="this.form.submit()">
+        <option value="-uploaded_at" {% if selected_sort == '-uploaded_at' %}selected{% endif %}>Mais recentes</option>
+        <option value="uploaded_at" {% if selected_sort == 'uploaded_at' %}selected{% endif %}>Mais antigos</option>
+        <option value="title_name" {% if selected_sort == 'title_name' %}selected{% endif %}>Nome (A-Z)</option>
+        <option value="-title_name" {% if selected_sort == '-title_name' %}selected{% endif %}>Nome (Z-A)</option>
+      </select>
+    </div>
+    
+    {# Botões #}
+    <div class="sidebar-actions">
+      <button type="submit" class="sidebar-btn sidebar-btn-primary">🔍 Buscar</button>
+      {% if search_query or selected_category or selected_tag or selected_sort != '-uploaded_at' %}
+        <a href="{% url 'core:explore' %}" class="sidebar-btn sidebar-btn-secondary">✕ Limpar</a>
+      {% endif %}
+    </div>
+  </form>
+</aside>
+{% endblock %}
+
 {% block content %}
-<div style="width: 100%; background: var(--bg-dark);">
-  <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
-    <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Explorar SVGs</h1>
-    <p style="color: var(--text-muted); font-size: 20px; max-width: 800px; margin: 0 auto;">Descubra nossa coleção de SVGs salvos no sistema</p>
+<div class="explore-content">
+  <header class="explore-header">
+    <h1>Explorar SVGs</h1>
+    <p>Descubra nossa coleção de SVGs salvos no sistema</p>
   </header>
 
-  <section id="svg-gallery" style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
-    {# Barra de pesquisa e filtros #}
-    <div class="search-filters">
-      <form method="get" action="{% url 'core:explore' %}" class="search-form">
-        {# Barra de pesquisa #}
-        <div class="search-box">
-          <input 
-            type="search" 
-            name="q" 
-            value="{{ search_query }}" 
-            placeholder="Pesquisar por título..." 
-            class="search-input"
-            aria-label="Pesquisar SVGs por título"
-          >
-          <button type="submit" class="search-btn">🔍 Buscar</button>
-        </div>
-        
-        {# Filtros #}
-        <div class="filters">
-          {# Filtro por categoria #}
-          <div class="filter-group">
-            <label for="category-filter">Categoria:</label>
-            <select name="category" id="category-filter" class="filter-select" onchange="this.form.submit()">
-              <option value="">Todas</option>
-              {% for cat in all_categories %}
-                <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          
-          {# Filtro por tag #}
-          <div class="filter-group">
-            <label for="tag-filter">Tag:</label>
-            <select name="tag" id="tag-filter" class="filter-select" onchange="this.form.submit()">
-              <option value="">Todas</option>
-              {% for t in all_tags %}
-                <option value="{{ t }}" {% if t == selected_tag %}selected{% endif %}>{{ t }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          
-          {# Ordenação #}
-          <div class="filter-group">
-            <label for="sort-filter">Ordenar:</label>
-            <select name="sort" id="sort-filter" class="filter-select" onchange="this.form.submit()">
-              <option value="-uploaded_at" {% if selected_sort == '-uploaded_at' %}selected{% endif %}>Mais recentes</option>
-              <option value="uploaded_at" {% if selected_sort == 'uploaded_at' %}selected{% endif %}>Mais antigos</option>
-              <option value="title_name" {% if selected_sort == 'title_name' %}selected{% endif %}>Nome (A-Z)</option>
-              <option value="-title_name" {% if selected_sort == '-title_name' %}selected{% endif %}>Nome (Z-A)</option>
-            </select>
-          </div>
-          
-          {# Botão limpar filtros #}
-          {% if search_query or selected_category or selected_tag or selected_sort != '-uploaded_at' %}
-            <a href="{% url 'core:explore' %}" class="btn-clear-filters">✕ Limpar</a>
-          {% endif %}
-        </div>
-      </form>
-    </div>
-
+  <section class="explore-results">
     {% if svgfiles %}
       {# Contador de resultados #}
-      <p style="color: var(--text-muted); margin-bottom: 16px; margin-top: 24px; font-size: 14px; text-align: center;">
+      <p class="results-counter">
         {% if search_query or selected_category or selected_tag %}
           Encontrado{{ svgfiles|length|pluralize }} {{ svgfiles|length }} resultado{{ svgfiles|length|pluralize }}
         {% else %}
@@ -82,30 +87,19 @@
       <div class="container-cards">
         {% for item in svgfiles %}
           {% include 'core/partials/item_card.html' with item=item %}
-          <script>
-            console.log('SVG item:', '{{ item|escapejs }}', 'pk:', '{{ item.pk }}');
-          </script>
         {% endfor %}
       </div>
     {% else %}
       {% if search_query or selected_category or selected_tag %}
-        <p class="muted" style="text-align: center; padding: 60px 24px; font-size: 18px;">
+        <p class="no-results">
           Nenhum resultado encontrado. Tente ajustar os filtros.
         </p>
       {% else %}
-        <p class="muted" style="text-align: center; padding: 60px 24px; font-size: 18px;">
+        <p class="no-results">
           Nenhum SVG público disponível ainda. Faça upload do primeiro!
         </p>
       {% endif %}
     {% endif %}
   </section>
 </div>
-
-<style>
-@media (max-width: 768px) {
-  h1 {
-    font-size: 32px !important;
-  }
-}
-</style>
 {% endblock %}

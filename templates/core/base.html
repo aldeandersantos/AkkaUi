@@ -1,6 +1,7 @@
 {% load static %}
+{% load i18n %}
 <!doctype html>
-<html lang="pt-br">
+<html lang="{{ LANGUAGE_CODE }}">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -28,33 +29,56 @@
         </a>
         <button class="menu-toggle" onclick="toggleMenu()">☰</button>
         <nav class="main-nav" id="mainNav">
-          <a href="{% url 'core:home' %}" {% if request.path == '/' %}class="active"{% endif %}>Home</a>
-          <a href="{% url 'core:explore' %}" {% if 'explore' in request.path %}class="active"{% endif %}>Explorar</a>
-          <a href="{% url 'core:pricing' %}" {% if 'pricing' in request.path %}class="active"{% endif %}>Pricing</a>
+          <a href="{% url 'core:home' %}" {% if request.path == '/' %}class="active"{% endif %}>{% trans "Home" %}</a>
+          <a href="{% url 'core:explore' %}" {% if 'explore' in request.path %}class="active"{% endif %}>{% trans "Explore" %}</a>
+          <a href="{% url 'core:pricing' %}" {% if 'pricing' in request.path %}class="active"{% endif %}>{% trans "Pricing" %}</a>
           <a href="{% url 'core:faq' %}" {% if 'faq' in request.path %}class="active"{% endif %}>FAQ</a>
           {% if user.is_authenticated and user.admin %}
-            <a href="{% url 'core:admin_svg' %}" {% if 'manage/svg' in request.path %}class="active"{% endif %}>Gerenciar SVG</a>
+            <a href="{% url 'core:admin_svg' %}" {% if 'manage/svg' in request.path %}class="active"{% endif %}>{% trans "Manage SVG" %}</a>
           {% endif %}
           {% if user.is_authenticated %}
-            <a href="{% url 'usuario:profile' %}" class="mobile-only">Perfil</a>
-            <a href="{% url 'usuario:signout' %}" class="mobile-only">Sair</a>
+            <a href="{% url 'usuario:profile' %}" class="mobile-only">{% trans "Profile" %}</a>
+            <a href="{% url 'usuario:signout' %}" class="mobile-only">{% trans "Sign Out" %}</a>
           {% else %}
-            <a href="{% url 'usuario:signin' %}" class="mobile-only">Entrar</a>
-            <a href="{% url 'usuario:signup' %}" class="mobile-only">Criar Conta</a>
+            <a href="{% url 'usuario:signin' %}" class="mobile-only">{% trans "Sign In" %}</a>
+            <a href="{% url 'usuario:signup' %}" class="mobile-only">{% trans "Sign Up" %}</a>
           {% endif %}
         </nav>
         <div class="auth-buttons">
           {% if user.is_authenticated %}
             <a href="{% url 'usuario:profile' %}" class="btn btn-secondary">{{ user.username }}</a>
-            <a href="{% url 'usuario:signout' %}" class="btn btn-outline">Sair</a>
+            <a href="{% url 'usuario:signout' %}" class="btn btn-outline">{% trans "Sign Out" %}</a>
           {% else %}
-            <a href="{% url 'usuario:signin' %}" class="btn btn-outline">Entrar</a>
-            <a href="{% url 'usuario:signup' %}" class="btn btn-primary">Criar Conta</a>
+            <a href="{% url 'usuario:signin' %}" class="btn btn-outline">{% trans "Sign In" %}</a>
+            <a href="{% url 'usuario:signup' %}" class="btn btn-primary">{% trans "Sign Up" %}</a>
           {% endif %}
+          
+          <!-- Language Switcher -->
+          <div class="language-switcher" style="position: relative; display: inline-block; margin-left: 12px;">
+            <button onclick="toggleLanguageMenu()" class="btn btn-outline" style="padding: 8px 12px; font-size: 14px;">
+              🌐 {{ LANGUAGE_CODE|upper }}
+            </button>
+            <div id="languageMenu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000;">
+              <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
+                {% csrf_token %}
+                <input name="next" type="hidden" value="{{ request.path }}">
+                {% get_current_language as LANGUAGE_CODE %}
+                {% get_available_languages as LANGUAGES %}
+                {% for lang_code, lang_name in LANGUAGES %}
+                <button type="submit" name="language" value="{{ lang_code }}" 
+                        style="width: 100%; padding: 12px 16px; background: {% if lang_code == LANGUAGE_CODE %}var(--primary){% else %}transparent{% endif %}; 
+                               border: none; color: {% if lang_code == LANGUAGE_CODE %}#fff{% else %}var(--text-light){% endif %}; 
+                               text-align: left; cursor: pointer; transition: var(--transition); font-size: 14px;">
+                  {{ lang_name }}
+                </button>
+                {% endfor %}
+              </form>
+            </div>
+          </div>
         </div>
         <div class="search">
           <form action="{% url 'core:explore' %}" method="get">
-            <input name="q" type="search" placeholder="Pesquisar..." aria-label="Pesquisar componentes">
+            <input name="q" type="search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search components' %}">
           </form>
         </div>
       </div>
@@ -77,35 +101,35 @@
           <a href="{% url 'core:home' %}" class="brand">
             <span>⚡</span> AkkaUi
           </a>
-          <p>Seu catálogo completo de recursos de design UI modernos e responsivos.</p>
+          <p>{% trans "Your complete catalog of modern and responsive UI design resources." %}</p>
         </div>
         <div class="footer-section">
-          <h4>Produto</h4>
+          <h4>{% trans "Product" %}</h4>
           <ul>
-            <li><a href="{% url 'core:explore' %}">Explorar</a></li>
-            <li><a href="{% url 'core:pricing' %}">Pricing</a></li>
+            <li><a href="{% url 'core:explore' %}">{% trans "Explore" %}</a></li>
+            <li><a href="{% url 'core:pricing' %}">{% trans "Pricing" %}</a></li>
             <li><a href="{% url 'core:faq' %}">FAQ</a></li>
           </ul>
         </div>
         <div class="footer-section">
-          <h4>Recursos</h4>
+          <h4>{% trans "Resources" %}</h4>
           <ul>
-            <li><a href="#">Documentação</a></li>
-            <li><a href="#">Tutoriais</a></li>
-            <li><a href="#">Blog</a></li>
+            <li><a href="#">{% trans "Documentation" %}</a></li>
+            <li><a href="#">{% trans "Tutorials" %}</a></li>
+            <li><a href="#">{% trans "Blog" %}</a></li>
           </ul>
         </div>
         <div class="footer-section">
-          <h4>Empresa</h4>
+          <h4>{% trans "Company" %}</h4>
           <ul>
-            <li><a href="#">Sobre</a></li>
-            <li><a href="#">Contato</a></li>
-            <li><a href="#">Termos</a></li>
+            <li><a href="#">{% trans "About" %}</a></li>
+            <li><a href="#">{% trans "Contact" %}</a></li>
+            <li><a href="#">{% trans "Terms" %}</a></li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
-        <p>© {{ year|default:2025 }} AkkaUi. Todos os direitos reservados.</p>
+        <p>© {{ year|default:2025 }} AkkaUi. {% trans "All rights reserved." %}</p>
       </div>
     </footer>
 
@@ -115,12 +139,24 @@
         nav.classList.toggle('active');
       }
 
+      function toggleLanguageMenu() {
+        const menu = document.getElementById('languageMenu');
+        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+      }
+
       // Close menu when clicking outside
       document.addEventListener('click', function(event) {
         const nav = document.getElementById('mainNav');
         const toggle = document.querySelector('.menu-toggle');
+        const langMenu = document.getElementById('languageMenu');
+        const langSwitcher = document.querySelector('.language-switcher');
+        
         if (!nav.contains(event.target) && !toggle.contains(event.target)) {
           nav.classList.remove('active');
+        }
+        
+        if (langSwitcher && !langSwitcher.contains(event.target)) {
+          langMenu.style.display = 'none';
         }
       });
     </script>

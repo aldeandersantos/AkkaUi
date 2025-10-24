@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'payment',
     'usuario',
     'core',
 ]
@@ -172,3 +173,9 @@ LOGOUT_REDIRECT_URL = '/'
 DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('DATA_UPLOAD_MAX_MEMORY_SIZE', str(50 * 1024 * 1024)))  # 50 MB
 # Para uploads multipart/form-data, controla quando arquivos vão para memória vs. disco temporário
 FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('FILE_UPLOAD_MAX_MEMORY_SIZE', str(50 * 1024 * 1024)))  # 50 MB
+
+
+
+# Environment-specific API keys
+ABACATE_API_TEST_KEY = os.getenv('ABACATE_API_TEST_KEY')
+ABACATE_API_PROD_KEY = os.getenv('ABACATE_API_PROD_KEY')

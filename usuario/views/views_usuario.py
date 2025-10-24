@@ -3,9 +3,14 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseForbidden
 from functools import wraps
-from .models import CustomUser
+from ..models import CustomUser
+import base64
+from django.http import JsonResponse
+from django.core import signing
+from django.contrib.auth import authenticate
 
 
 def admin_required(view_func):
@@ -86,6 +91,51 @@ def signup(request):
             messages.error(request, f'Erro ao criar conta: {str(e)}')
     
     return render(request, 'usuario/signup.html')
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def get_token(request):
+    """
+    Autentica via Basic Auth (header Authorization: Basic ...) e retorna um token assinado.
+    Uso: no Postman, selecionar Authorization -> Type: "No Auth" e adicionar header:
+    Authorization: Basic <base64(username:password)>
+    """
+
+    auth_header = request.META.get('HTTP_AUTHORIZATION', '')
+    if not auth_header:
+        return JsonResponse({'detail': 'Cabeçalho Authorization ausente.'}, status=400)
+
+    parts = auth_header.split()
+    if len(parts) != 2 or parts[0].lower() != 'basic':
+        return JsonResponse({'detail': 'Cabeçalho Authorization inválido. Use Basic.'}, status=400)
+
+    try:
+        decoded = base64.b64decode(parts[1]).decode('utf-8')
+    except Exception:
+        return JsonResponse({'detail': 'Credencial Basic malformada.'}, status=400)
+
+    if ':' not in decoded:
+        return JsonResponse({'detail': 'Formato de credencial inválido.'}, status=400)
+
+    username, password = decoded.split(':', 1)
+    if not username or not password:
+        return JsonResponse({'detail': 'Nome de usuário e senha são obrigatórios.'}, status=400)
+
+    user = authenticate(request, username=username, password=password)
+    if user is None:
+        return JsonResponse({'detail': 'Credenciais inválidas.'}, status=401)
+
+    # Gera token assinado (verificável com signing.loads(token, max_age=expires_in))
+    expires_in = 3600  # segundos
+    payload = {'user_id': user.pk}
+    token = signing.dumps(payload, salt='usuario-api-token')
+
+    return JsonResponse({
+        'token': token,
+        'token_type': 'signed',
+        'expires_in': expires_in
+    }, status=200)
 
 @require_http_methods(["GET", "POST"])
 def signin(request):

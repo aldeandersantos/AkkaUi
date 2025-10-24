@@ -43,6 +43,13 @@
             <label>Membro desde</label>
             <p>{{ user.date_joined|date:"d/m/Y" }}</p>
           </div>
+
+          {% if user.is_vip %}
+          <div class="profile-field profile-vip">
+            <label>Status</label>
+            <p class="vip-badge">Assinante{% if user.vip_expiration %} — até {{ user.vip_expiration|date:"d/m/Y" }}{% endif %}</p>
+          </div>
+          {% endif %}
         </div>
 
         <div class="profile-actions">

@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import secrets
+import hashlib
+import time
 
 class CustomUser(AbstractUser):
     """
@@ -18,6 +21,26 @@ class CustomUser(AbstractUser):
         verbose_name="Administrador",
         help_text="Permite acesso ao sistema de gerenciamento de SVGs"
     )
+    is_active = models.BooleanField(default=True)
+    is_vip = models.BooleanField(default=False)
+    vip_expiration = models.DateField(
+        blank=True, 
+        null=True,
+        verbose_name="Expiração VIP",
+        help_text="Data de expiração do status VIP"
+    )
+    hash_id = models.CharField(max_length=64, blank=True, null=True, unique=True)
+
+    def save(self, *args, **kwargs) -> None:
+        # Gera hash único apenas na criação do usuário, preservando em atualizações
+        if not self.pk and not self.hash_id:
+            try:
+                # token_hex(32) gera 64 caracteres hexadecimais
+                self.hash_id = secrets.token_hex(32)
+            except Exception:
+                # fallback seguro caso ocorra algum erro inesperado
+                self.hash_id = hashlib.sha256(f"{self.username}-{time.time()}".encode()).hexdigest()
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return self.username

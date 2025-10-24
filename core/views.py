@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.exceptions import RequestDataTooBig
-from usuario.views import admin_required
+from usuario.views.views_usuario import admin_required
 from .services import *
 
 from .models import SvgFile
@@ -13,14 +13,64 @@ def home(request):
     """
     Home page with introduction to AkkaUi.
     """
-    svgfiles = SvgFile.objects.order_by("-uploaded_at")
+    svgfiles = SvgFile.objects.filter(is_public=True).order_by("-uploaded_at")
+    for svg in svgfiles:
     return render(request, "core/home.html", {"svgfiles": svgfiles})
 
 def explore(request):
     """
-    Explore page showing UI components catalog.
+    Explore page showing all SVG files from database with search and filters.
     """
-    return render(request, "core/explore.html")
+    svgfiles = SvgFile.objects.filter(is_public=True)
+    
+    # Pesquisa por título
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        svgfiles = svgfiles.filter(title_name__icontains=search_query)
+    
+    # Filtro por categoria
+    category = request.GET.get('category', '').strip()
+    if category:
+        svgfiles = svgfiles.filter(category=category)
+    
+    # Filtro por tags
+    tag = request.GET.get('tag', '').strip()
+    if tag:
+        svgfiles = svgfiles.filter(tags__icontains=tag)
+    
+    # Ordenação
+    sort_by = request.GET.get('sort', '-uploaded_at')
+    valid_sorts = ['-uploaded_at', 'uploaded_at', 'title_name', '-title_name']
+    if sort_by in valid_sorts:
+        svgfiles = svgfiles.order_by(sort_by)
+    else:
+        svgfiles = svgfiles.order_by('-uploaded_at')
+    
+    # Obter categorias e tags únicas para os filtros
+    all_categories = SvgFile.objects.filter(is_public=True).exclude(category='').values_list('category', flat=True).distinct()
+    all_tags_raw = SvgFile.objects.filter(is_public=True).exclude(tags='').values_list('tags', flat=True)
+    
+    # Processar tags (separadas por vírgula)
+    all_tags = set()
+    for tags_str in all_tags_raw:
+        if tags_str:
+            for t in tags_str.split(','):
+                tag_clean = t.strip()
+                if tag_clean:
+                    all_tags.add(tag_clean)
+    all_tags = sorted(all_tags)
+    
+    context = {
+        'svgfiles': svgfiles,
+        'search_query': search_query,
+        'selected_category': category,
+        'selected_tag': tag,
+        'selected_sort': sort_by,
+        'all_categories': all_categories,
+        'all_tags': all_tags,
+    }
+    
+    return render(request, "core/explore.html", context)
 
 def pricing(request):
     """
@@ -215,3 +265,47 @@ def admin_create_svg(request):
     )
 
     return JsonResponse({"id": svg_file.pk, "title_name": svg_file.title_name, "success": True})
+
+
+def search_svg(request):
+    """
+    API endpoint for searching SVG files.
+    Supports query parameters: q (search), category, tag, sort
+    Returns JSON with matching SVG files.
+    """
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    
+    svgfiles = SvgFile.objects.filter(is_public=True)
+    
+    # Pesquisa por título
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        svgfiles = svgfiles.filter(title_name__icontains=search_query)
+    
+    # Filtro por categoria
+    category = request.GET.get('category', '').strip()
+    if category:
+        svgfiles = svgfiles.filter(category=category)
+    
+    # Filtro por tags
+    tag = request.GET.get('tag', '').strip()
+    if tag:
+        svgfiles = svgfiles.filter(tags__icontains=tag)
+    
+    # Ordenação
+    sort_by = request.GET.get('sort', '-uploaded_at')
+    valid_sorts = ['-uploaded_at', 'uploaded_at', 'title_name', '-title_name']
+    if sort_by in valid_sorts:
+        svgfiles = svgfiles.order_by(sort_by)
+    else:
+        svgfiles = svgfiles.order_by('-uploaded_at')
+    
+    # Serializar dados
+    from .serializers import SvgFileSerializer
+    serializer = SvgFileSerializer(svgfiles, many=True)
+    
+    return JsonResponse({
+        'count': svgfiles.count(),
+        'results': serializer.data
+    })

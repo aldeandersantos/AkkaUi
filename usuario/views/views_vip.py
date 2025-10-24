@@ -11,11 +11,11 @@ from core.utils.date_utils import datefield_now, one_month_more, one_year_more
 
 
 
-
+@csrf_exempt
 def vip_status(request):
-    """View to display VIP status information."""
-    #user = request.user
-    user = CustomUser.objects.filter().first()
+    data = json.loads(request.body)
+    hash_id = data.get("hash")
+    user = CustomUser.objects.get(hash_id=hash_id)
     context = {
         'is_vip': user.is_vip,
         'vip_expiration': user.vip_expiration,

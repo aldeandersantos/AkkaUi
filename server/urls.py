@@ -16,7 +16,7 @@ urlpatterns += i18n_patterns(
     path('usuario/', include('usuario.urls')),
     path('payment/', include('payment.urls')),
     path('', include('core.urls')),
-    prefix_default_language=False,
+    prefix_default_language=True,
 )
 
 if settings.DEBUG or os.environ.get('SERVE_MEDIA', 'true').lower() in ('1', 'true', 'yes'):

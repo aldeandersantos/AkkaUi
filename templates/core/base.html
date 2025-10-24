@@ -61,7 +61,7 @@
             <div id="languageMenu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000;">
               <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
                 {% csrf_token %}
-                <input name="next" type="hidden" value="{{ request.path }}">
+                <input name="next" type="hidden" value="/">
                 {% get_current_language as LANGUAGE_CODE %}
                 {% get_available_languages as LANGUAGES %}
                 {% for lang_code, lang_name in LANGUAGES %}

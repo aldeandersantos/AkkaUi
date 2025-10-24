@@ -3,6 +3,7 @@ from typing import Dict, Any, Optional
 from django.conf import settings
 from .base import PaymentGateway
 from ..services.services_abacate import norm_response
+from decimal import Decimal, ROUND_HALF_UP
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +44,10 @@ class AbacatePayGateway(PaymentGateway):
         
         try:
             # Cria a compra real no AbacatePay - ficará pendente até o cliente pagar
+            # Converte valor em reais para centavos (ex.: 9.9 -> 990)
+            amount_dec = Decimal(str(amount))
+            amount = int((amount_dec * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+            logger.info(f"Valor convertido para centavos: {amount}")
             payload = {
                 "amount": amount,
                 "currency": currency,
@@ -83,7 +88,16 @@ class AbacatePayGateway(PaymentGateway):
             }
         
         try:
-            result = self.client.pixQrCode.get(id=payment_id)
+            result = None
+            pix_client = getattr(self.client, 'pixQrCode', None)
+            if pix_client is None:
+                raise AttributeError("AbacatePay client has no attribute 'pixQrCode'")
+            
+            if hasattr(pix_client, 'check'):
+                result = pix_client.check(payment_id)
+            else:
+                raise AttributeError("AbacatePay PixQrCode client does not implement 'check' method")
+
             gateway_response = norm_response(result)
             
             return {

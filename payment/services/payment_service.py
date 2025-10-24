@@ -21,8 +21,8 @@ class PaymentService:
     }
     
     PLAN_PRICES = {
-        'pro_month': 49.00,
-        'pro_year': 470.40,  # 20% desconto
+        'pro_month': 9.90,
+        'pro_year': 99.90,  # preço anual definido: 99.90
         'enterprise_month': 199.00,
         'enterprise_year': 1910.40,  # 20% desconto
     }

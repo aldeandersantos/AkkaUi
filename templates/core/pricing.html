@@ -293,12 +293,12 @@
       
       <div class="plan-price">
         <span class="price-currency">R$</span>
-        <span class="price-amount">49</span>
+        <span class="price-amount">9.90</span>
         <span class="price-period">/{% trans "month" %}</span>
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta">{% trans "Start Now" %}</button>
+  <button class="plan-cta" data-plan="pro" data-month="9.90" data-year="99.90">{% trans "Start Now" %}</button>
   {% else %}
   <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Now" %}</a>
   {% endif %}
@@ -576,6 +576,22 @@
         toggleBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       });
+    });
+
+    // Conectar botões de compra ao modal, respeitando Monthly/Annual
+    const planCtas = document.querySelectorAll('.plan-cta');
+    planCtas.forEach(btn => {
+      // apenas para botões (não anchors) que tenham dataset.plan
+      if (btn.tagName.toLowerCase() === 'button' && btn.dataset && btn.dataset.plan) {
+        btn.addEventListener('click', (e) => {
+          const planBase = btn.dataset.plan; // ex: 'pro'
+          const isAnnual = toggleBtns[1] && toggleBtns[1].classList.contains('active');
+          const period = isAnnual ? 'year' : 'month';
+          const planKey = `${planBase}_${period}`; // ex: 'pro_month'
+          const amount = parseFloat(isAnnual ? btn.dataset.year : btn.dataset.month);
+          openPaymentModal(planKey, amount);
+        });
+      }
     });
 
     function openPaymentModal(plan, amount) {

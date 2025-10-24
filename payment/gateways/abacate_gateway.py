@@ -27,7 +27,7 @@ class AbacatePayGateway(PaymentGateway):
         return "abacatepay"
     
     def create_payment(self, amount: float, currency: str = "BRL", metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Cria um pagamento PIX via Abacate Pay"""
+        """Cria um pagamento PIX via Abacate Pay - compra real que fica pendente até pagamento"""
         if not self.client:
             # Modo simulado quando o cliente não está configurado
             return {
@@ -41,6 +41,7 @@ class AbacatePayGateway(PaymentGateway):
             }
         
         try:
+            # Cria a compra real no AbacatePay - ficará pendente até o cliente pagar
             payload = {
                 "amount": amount,
                 "currency": currency,
@@ -54,7 +55,7 @@ class AbacatePayGateway(PaymentGateway):
             
             return {
                 "id": gateway_response.get("id"),
-                "status": gateway_response.get("status", "pending"),
+                "status": "pending",  # Status inicial sempre pendente até pagamento
                 "amount": amount,
                 "currency": currency,
                 "qr_code": gateway_response.get("qr_code"),

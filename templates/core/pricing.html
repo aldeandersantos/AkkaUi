@@ -642,22 +642,38 @@
           status.className = 'payment-status success';
           
           const payment = data.payment;
-          let message = `✓ Pagamento criado com sucesso!<br><br>`;
-          message += `ID da transação: ${payment.transaction_id}<br>`;
-          message += `Gateway: ${payment.gateway}<br>`;
-          message += `Status: ${payment.status}<br>`;
+          let message = '';
           
-          if (payment.gateway_response && payment.gateway_response.qr_code) {
-            message += `<br><strong>QR Code PIX disponível!</strong><br>`;
-            message += `<small>Use seu app de banco para pagar</small>`;
+          // Mensagem específica para AbacatePay/PIX
+          if (payment.gateway === 'abacatepay') {
+            message = `✓ Pagamento PIX criado com sucesso!<br><br>`;
+            message += `<strong>Aguardando pagamento</strong><br>`;
+            message += `Valor: R$ ${parseFloat(payment.amount).toFixed(2)}<br>`;
+            message += `ID da transação: ${payment.transaction_id}<br><br>`;
+            
+            if (payment.gateway_response && payment.gateway_response.qr_code) {
+              message += `<div style="padding: 16px; background: rgba(116, 96, 243, 0.1); border-radius: 8px; margin: 12px 0;">`;
+              message += `<strong>📱 Pague com PIX:</strong><br>`;
+              message += `1. Abra o app do seu banco<br>`;
+              message += `2. Escaneie o QR Code ou copie o código PIX<br>`;
+              message += `3. Confirme o pagamento<br><br>`;
+              message += `<small>Seu VIP será ativado automaticamente após a confirmação do pagamento.</small>`;
+              message += `</div>`;
+            }
+            
+            // Para ambiente de teste, mostrar botão de simular pagamento
+            message += `<br><button onclick="simulatePayment('${payment.transaction_id}')" class="btn" style="margin-top: 12px; background: #ffa502;">🧪 Simular Confirmação PIX (Teste)</button>`;
+          } else {
+            // Mensagem genérica para outros gateways
+            message = `✓ Pagamento criado com sucesso!<br><br>`;
+            message += `ID da transação: ${payment.transaction_id}<br>`;
+            message += `Gateway: ${payment.gateway}<br>`;
+            message += `Status: ${payment.status}<br>`;
+            
+            if (payment.gateway_response && payment.gateway_response.payment_url) {
+              message += `<br><a href="${payment.gateway_response.payment_url}" target="_blank" class="btn" style="margin-top: 12px;">Ir para pagamento</a>`;
+            }
           }
-          
-          if (payment.gateway_response && payment.gateway_response.payment_url) {
-            message += `<br><a href="${payment.gateway_response.payment_url}" target="_blank" class="btn" style="margin-top: 12px;">Ir para pagamento</a>`;
-          }
-          
-          // Para ambiente de teste, mostrar botão de simular pagamento
-          message += `<br><br><button onclick="simulatePayment('${payment.transaction_id}')" class="btn" style="margin-top: 12px; background: #ffa502;">🧪 Simular Pagamento (Teste)</button>`;
           
           status.innerHTML = message;
         } else {
@@ -672,7 +688,7 @@
     async function simulatePayment(transactionId) {
       const status = document.getElementById('paymentStatus');
       status.className = 'payment-status loading';
-      status.innerHTML = '⏳ Simulando confirmação de pagamento...';
+      status.innerHTML = '⏳ Simulando confirmação PIX...';
 
       try {
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
@@ -692,12 +708,13 @@
         if (response.ok && data.status === 'success') {
           status.className = 'payment-status success';
           status.innerHTML = `
-            ✓ Pagamento confirmado com sucesso!<br><br>
-            Seu status VIP foi ativado!<br>
+            ✓ Pagamento PIX confirmado com sucesso!<br><br>
+            <strong>🎉 Seu status VIP foi ativado!</strong><br><br>
+            <small>Você agora tem acesso a todos os recursos premium.</small><br>
             <button onclick="window.location.reload()" class="btn" style="margin-top: 12px;">Recarregar Página</button>
           `;
         } else {
-          throw new Error(data.error || 'Erro ao simular pagamento');
+          throw new Error(data.error || 'Erro ao confirmar pagamento');
         }
       } catch (error) {
         status.className = 'payment-status error';

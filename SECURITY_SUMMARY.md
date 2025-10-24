@@ -105,11 +105,20 @@
 3. Implementar rate limiting para endpoints de pagamento
 4. Configurar logs centralizados para auditoria
 
-### Webhooks (Implementação Futura)
-1. Validar assinaturas de webhooks dos gateways
-2. Implementar idempotência para prevenir processamento duplicado
-3. Usar HTTPS para endpoints de webhook
-4. Implementar timeout e retry com backoff exponencial
+### Webhooks (✅ IMPLEMENTADO)
+1. ✅ **Endpoint webhook implementado**: `/payment/webhook/abacatepay/`
+2. ✅ **Ativação automática de VIP**: Webhook processa confirmações do AbacatePay
+3. ⚠️ **Validar assinaturas**: Implementar verificação de assinatura do AbacatePay (se disponível)
+4. ⚠️ **Idempotência**: Adicionar verificação para prevenir processamento duplicado
+5. ✅ **HTTPS obrigatório**: Usar HTTPS para endpoints de webhook em produção
+6. ⚠️ **Retry com backoff**: Implementar lógica de retry se webhook falhar
+
+#### Configuração do Webhook no AbacatePay
+Para configurar o webhook no painel do AbacatePay:
+- **URL**: `https://seu-dominio.com/payment/webhook/abacatepay/`
+- **Eventos**: Selecionar "Pagamento confirmado" ou equivalente
+- **Método**: POST
+- **Formato**: JSON
 
 ## Conformidade
 

@@ -102,7 +102,14 @@ class PaymentService:
             # Atualizar registro com resposta do gateway
             payment.gateway_payment_id = gateway_response.get('id')
             payment.gateway_response = gateway_response
-            payment.status = 'processing' if gateway_response.get('status') != 'failed' else 'failed'
+            
+            # Para AbacatePay, manter status como 'pending' até webhook confirmar
+            # Para outros gateways, usar status retornado
+            if gateway_name == 'abacatepay':
+                payment.status = 'pending'  # Aguardando pagamento PIX
+            else:
+                payment.status = 'processing' if gateway_response.get('status') != 'failed' else 'failed'
+            
             payment.save()
             
             return payment

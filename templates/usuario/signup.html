@@ -1,12 +1,13 @@
 {% extends 'core/base.html' %}
+{% load i18n %}
 
-{% block title %}Criar Conta — AkkaUi{% endblock %}
+{% block title %}{% trans "Create Account" %} — AkkaUi{% endblock %}
 
 {% block content %}
   <article class="page">
     <header class="page-header">
-      <h1>Criar Conta</h1>
-      <p class="lead">Junte-se à comunidade AkkaUi</p>
+      <h1>{% trans "Create Account" %}</h1>
+      <p class="lead">{% trans "Join the AkkaUi community" %}</p>
     </header>
 
     <div class="page-body">
@@ -25,7 +26,7 @@
           {% csrf_token %}
           
           <div class="form-group">
-            <label for="username">Nome de usuário *</label>
+            <label for="username">{% trans "Username" %} *</label>
             <input 
               type="text" 
               id="username" 
@@ -33,27 +34,27 @@
               value="{{ username|default:'' }}"
               required 
               minlength="3"
-              placeholder="Escolha um nome de usuário"
+              placeholder="{% trans "Choose a username" %}"
               autocomplete="username"
             >
-            <small class="form-help">Mínimo de 3 caracteres</small>
+            <small class="form-help">{% trans "Minimum 3 characters" %}</small>
           </div>
 
           <div class="form-group">
-            <label for="email">Email *</label>
+            <label for="email">{% trans "Email" %} *</label>
             <input 
               type="email" 
               id="email" 
               name="email" 
               value="{{ email|default:'' }}"
               required
-              placeholder="seu@email.com"
+              placeholder="{% trans "your@email.com" %}"
               autocomplete="email"
             >
           </div>
 
           <div class="form-group">
-            <label for="phone">Telefone</label>
+            <label for="phone">{% trans "Phone" %}</label>
             <input 
               type="tel" 
               id="phone" 
@@ -62,40 +63,40 @@
               placeholder="(00) 00000-0000"
               autocomplete="tel"
             >
-            <small class="form-help">Campo opcional</small>
+            <small class="form-help">{% trans "Optional field" %}</small>
           </div>
 
           <div class="form-group">
-            <label for="password">Senha *</label>
+            <label for="password">{% trans "Password" %} *</label>
             <input 
               type="password" 
               id="password" 
               name="password" 
               required
               minlength="6"
-              placeholder="Mínimo de 6 caracteres"
+              placeholder="{% trans "Minimum 6 characters" %}"
               autocomplete="new-password"
             >
           </div>
 
           <div class="form-group">
-            <label for="password_confirm">Confirmar Senha *</label>
+            <label for="password_confirm">{% trans "Confirm Password" %} *</label>
             <input 
               type="password" 
               id="password_confirm" 
               name="password_confirm" 
               required
               minlength="6"
-              placeholder="Digite a senha novamente"
+              placeholder="{% trans "Enter password again" %}"
               autocomplete="new-password"
             >
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block">Criar Conta</button>
+          <button type="submit" class="btn btn-primary btn-block">{% trans "Create Account" %}</button>
         </form>
 
         <div class="auth-footer">
-          <p>Já tem uma conta? <a href="{% url 'usuario:signin' %}">Faça login</a></p>
+          <p>{% trans "Already have an account?" %} <a href="{% url 'usuario:signin' %}">{% trans "Sign in" %}</a></p>
         </div>
       </div>
     </div>

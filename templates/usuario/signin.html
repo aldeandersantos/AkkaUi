@@ -1,12 +1,13 @@
 {% extends 'core/base.html' %}
+{% load i18n %}
 
-{% block title %}Entrar — AkkaUi{% endblock %}
+{% block title %}{% trans "Sign In" %} — AkkaUi{% endblock %}
 
 {% block content %}
   <article class="page">
     <header class="page-header">
-      <h1>Entrar</h1>
-      <p class="lead">Acesse sua conta AkkaUi</p>
+      <h1>{% trans "Sign In" %}</h1>
+      <p class="lead">{% trans "Access your AkkaUi account" %}</p>
     </header>
 
     <div class="page-body">
@@ -25,35 +26,35 @@
           {% csrf_token %}
           
           <div class="form-group">
-            <label for="username">Nome de usuário</label>
+            <label for="username">{% trans "Username" %}</label>
             <input 
               type="text" 
               id="username" 
               name="username" 
               value="{{ username|default:'' }}"
               required
-              placeholder="Seu nome de usuário"
+              placeholder="{% trans "Your username" %}"
               autocomplete="username"
             >
           </div>
 
           <div class="form-group">
-            <label for="password">Senha</label>
+            <label for="password">{% trans "Password" %}</label>
             <input 
               type="password" 
               id="password" 
               name="password" 
               required
-              placeholder="Sua senha"
+              placeholder="{% trans "Your password" %}"
               autocomplete="current-password"
             >
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+          <button type="submit" class="btn btn-primary btn-block">{% trans "Sign In" %}</button>
         </form>
 
         <div class="auth-footer">
-          <p>Não tem uma conta? <a href="{% url 'usuario:signup' %}">Criar conta</a></p>
+          <p>{% trans "Don't have an account?" %} <a href="{% url 'usuario:signup' %}">{% trans "Create account" %}</a></p>
         </div>
       </div>
     </div>

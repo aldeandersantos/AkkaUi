@@ -1,33 +1,34 @@
 {% extends 'core/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Explorar — AkkaUi{% endblock %}
+{% block title %}{% trans "Explore" %} — AkkaUi{% endblock %}
 
 {% block sidebar %}
 {# Sidebar lateral com filtros #}
 <aside class="explore-sidebar">
   <form method="get" action="{% url 'core:explore' %}" class="sidebar-filters-form">
-    <h3 class="sidebar-title">Filtros</h3>
+    <h3 class="sidebar-title">{% trans "Filters" %}</h3>
     
     {# Barra de pesquisa na sidebar #}
     <div class="sidebar-filter-group">
-      <label for="sidebar-search">Pesquisar</label>
+      <label for="sidebar-search">{% trans "Search" %}</label>
       <input 
         type="search" 
         name="q" 
         id="sidebar-search"
         value="{{ search_query }}" 
-        placeholder="Buscar por título..." 
+        placeholder="{% trans "Search by title..." %}" 
         class="sidebar-search-input"
-        aria-label="Pesquisar SVGs por título"
+        aria-label="{% trans "Search SVGs by title" %}"
       >
     </div>
     
     {# Filtro por categoria #}
     <div class="sidebar-filter-group">
-      <label for="sidebar-category">Categoria</label>
+      <label for="sidebar-category">{% trans "Category" %}</label>
       <select name="category" id="sidebar-category" class="sidebar-select" onchange="this.form.submit()">
-        <option value="">Todas</option>
+        <option value="">{% trans "All" %}</option>
         {% for cat in all_categories %}
           <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
         {% endfor %}
@@ -36,9 +37,9 @@
     
     {# Filtro por tag #}
     <div class="sidebar-filter-group">
-      <label for="sidebar-tag">Tag</label>
+      <label for="sidebar-tag">{% trans "Tag" %}</label>
       <select name="tag" id="sidebar-tag" class="sidebar-select" onchange="this.form.submit()">
-        <option value="">Todas</option>
+        <option value="">{% trans "All" %}</option>
         {% for t in all_tags %}
           <option value="{{ t }}" {% if t == selected_tag %}selected{% endif %}>{{ t }}</option>
         {% endfor %}
@@ -47,20 +48,20 @@
     
     {# Ordenação #}
     <div class="sidebar-filter-group">
-      <label for="sidebar-sort">Ordenar</label>
+      <label for="sidebar-sort">{% trans "Sort" %}</label>
       <select name="sort" id="sidebar-sort" class="sidebar-select" onchange="this.form.submit()">
-        <option value="-uploaded_at" {% if selected_sort == '-uploaded_at' %}selected{% endif %}>Mais recentes</option>
-        <option value="uploaded_at" {% if selected_sort == 'uploaded_at' %}selected{% endif %}>Mais antigos</option>
-        <option value="title_name" {% if selected_sort == 'title_name' %}selected{% endif %}>Nome (A-Z)</option>
-        <option value="-title_name" {% if selected_sort == '-title_name' %}selected{% endif %}>Nome (Z-A)</option>
+        <option value="-uploaded_at" {% if selected_sort == '-uploaded_at' %}selected{% endif %}>{% trans "Most recent" %}</option>
+        <option value="uploaded_at" {% if selected_sort == 'uploaded_at' %}selected{% endif %}>{% trans "Oldest" %}</option>
+        <option value="title_name" {% if selected_sort == 'title_name' %}selected{% endif %}>{% trans "Name (A-Z)" %}</option>
+        <option value="-title_name" {% if selected_sort == '-title_name' %}selected{% endif %}>{% trans "Name (Z-A)" %}</option>
       </select>
     </div>
     
     {# Botões #}
     <div class="sidebar-actions">
-      <button type="submit" class="sidebar-btn sidebar-btn-primary">🔍 Buscar</button>
+      <button type="submit" class="sidebar-btn sidebar-btn-primary">🔍 {% trans "Search" %}</button>
       {% if search_query or selected_category or selected_tag or selected_sort != '-uploaded_at' %}
-        <a href="{% url 'core:explore' %}" class="sidebar-btn sidebar-btn-secondary">✕ Limpar</a>
+        <a href="{% url 'core:explore' %}" class="sidebar-btn sidebar-btn-secondary">✕ {% trans "Clear" %}</a>
       {% endif %}
     </div>
   </form>
@@ -70,8 +71,8 @@
 {% block content %}
 <div class="explore-content">
   <header class="explore-header">
-    <h1>Explorar SVGs</h1>
-    <p>Descubra nossa coleção de SVGs salvos no sistema</p>
+    <h1>{% trans "Explore SVGs" %}</h1>
+    <p>{% trans "Discover our collection of SVGs saved in the system" %}</p>
   </header>
 
   <section class="explore-results">
@@ -79,9 +80,9 @@
       {# Contador de resultados #}
       <p class="results-counter">
         {% if search_query or selected_category or selected_tag %}
-          Encontrado{{ svgfiles|length|pluralize }} {{ svgfiles|length }} resultado{{ svgfiles|length|pluralize }}
+          {% blocktrans count counter=svgfiles|length %}Found {{ counter }} result{% plural %}Found {{ counter}} results{% endblocktrans %}
         {% else %}
-          Exibindo {{ svgfiles|length }} SVG{{ svgfiles|length|pluralize }} público{{ svgfiles|length|pluralize }}
+          {% blocktrans count counter=svgfiles|length %}Showing {{ counter }} public SVG{% plural %}Showing {{ counter }} public SVGs{% endblocktrans %}
         {% endif %}
       </p>
       <div class="container-cards">
@@ -92,11 +93,11 @@
     {% else %}
       {% if search_query or selected_category or selected_tag %}
         <p class="no-results">
-          Nenhum resultado encontrado. Tente ajustar os filtros.
+          {% trans "No results found. Try adjusting the filters." %}
         </p>
       {% else %}
         <p class="no-results">
-          Nenhum SVG público disponível ainda. Faça upload do primeiro!
+          {% trans "No public SVGs available yet. Upload the first one!" %}
         </p>
       {% endif %}
     {% endif %}

@@ -115,7 +115,7 @@ class PaymentService:
             return payment
             
         except Exception as e:
-            logger.error(f"Erro ao criar pagamento: {e}")
+            logger.error(f"Erro ao criar pagamento no gateway {gateway_name}: {type(e).__name__}: {e}", exc_info=True)
             payment.status = 'failed'
             payment.error_message = str(e)
             payment.save()

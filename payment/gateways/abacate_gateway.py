@@ -30,6 +30,7 @@ class AbacatePayGateway(PaymentGateway):
         """Cria um pagamento PIX via Abacate Pay - compra real que fica pendente até pagamento"""
         if not self.client:
             # Modo simulado quando o cliente não está configurado
+            logger.warning("AbacatePay client not configured. Using simulated mode.")
             return {
                 "id": f"sim_abacate_{amount}",
                 "status": "pending",
@@ -50,8 +51,12 @@ class AbacatePayGateway(PaymentGateway):
             if metadata:
                 payload.update(metadata)
             
+            logger.info(f"Creating AbacatePay payment with payload: {payload}")
             result = self.client.pixQrCode.create(payload)
+            logger.info(f"AbacatePay raw result: {type(result)}")
+            
             gateway_response = norm_response(result)
+            logger.info(f"AbacatePay normalized response: {gateway_response}")
             
             return {
                 "id": gateway_response.get("id"),
@@ -64,7 +69,7 @@ class AbacatePayGateway(PaymentGateway):
                 "simulated": False
             }
         except Exception as e:
-            logger.error(f"Error creating AbacatePay payment: {e}")
+            logger.error(f"Error creating AbacatePay payment: {type(e).__name__}: {e}", exc_info=True)
             raise
     
     def check_payment_status(self, payment_id: str) -> Dict[str, Any]:

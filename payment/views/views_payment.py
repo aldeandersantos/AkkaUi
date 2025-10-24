@@ -66,10 +66,15 @@ def create_payment(request):
         })
         
     except Exception as e:
-        logger.error(f"Error creating payment: {e}")
+        logger.error(f"Error creating payment for user {request.user.username}: {type(e).__name__}: {e}", exc_info=True)
+        
+        # Em modo DEBUG, fornecer mais detalhes do erro
+        from django.conf import settings
+        error_detail = str(e) if settings.DEBUG else "Failed to create payment"
+        
         return JsonResponse({
             "status": "error",
-            "error": "Failed to create payment"
+            "error": error_detail
         }, status=500)
 
 

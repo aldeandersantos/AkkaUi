@@ -3,14 +3,18 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import JsonResponse
-from abacatepay import AbacatePay
 from ..services.services_abacate import *
+
+try:
+    from abacatepay import AbacatePay
+except ImportError:
+    AbacatePay = None
 
 
 ABACATE_API_TEST_KEY: str = getattr(settings, "ABACATE_API_TEST_KEY", "")
 
 
-client = AbacatePay(api_key=ABACATE_API_TEST_KEY) if AbacatePay is not None else None
+client = AbacatePay(api_key=ABACATE_API_TEST_KEY) if AbacatePay is not None and ABACATE_API_TEST_KEY else None
 
 
 def abacate_status(request):

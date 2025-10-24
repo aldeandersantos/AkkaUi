@@ -296,7 +296,7 @@
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta">Começar Agora</button>
+  <button class="plan-cta" data-plan="pro_month" onclick="openPaymentModal('pro_month', 49)">Começar Agora</button>
   {% else %}
   <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">Começar Agora</a>
   {% endif %}
@@ -341,7 +341,7 @@
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta outline">Contatar Vendas</button>
+  <button class="plan-cta outline" data-plan="enterprise_month" onclick="openPaymentModal('enterprise_month', 199)">Contatar Vendas</button>
   {% else %}
   <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">Contatar Vendas</a>
   {% endif %}
@@ -381,7 +381,192 @@
     <a href="{% url 'core:faq' %}" class="btn">Ver FAQ</a>
   </div>
 
+  <!-- Modal de Seleção de Gateway de Pagamento -->
+  <div id="paymentModal" class="payment-modal" style="display: none;">
+    <div class="modal-overlay" onclick="closePaymentModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Selecione a forma de pagamento</h2>
+        <button class="modal-close" onclick="closePaymentModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="modalPlanInfo" class="plan-info"></div>
+        
+        <div class="payment-methods">
+          <button class="payment-method" onclick="selectGateway('abacatepay')">
+            <div class="method-icon">💳</div>
+            <div class="method-name">PIX via Abacate Pay</div>
+            <div class="method-description">Pagamento instantâneo via PIX</div>
+          </button>
+          
+          <button class="payment-method" onclick="selectGateway('mercadopago')">
+            <div class="method-icon">💰</div>
+            <div class="method-name">Mercado Pago</div>
+            <div class="method-description">Cartão, boleto e mais (em breve)</div>
+          </button>
+          
+          <button class="payment-method" onclick="selectGateway('paypal')">
+            <div class="method-icon">🌐</div>
+            <div class="method-name">PayPal</div>
+            <div class="method-description">Pagamento internacional (em breve)</div>
+          </button>
+        </div>
+        
+        <div id="paymentStatus" class="payment-status" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+  .payment-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-content {
+    position: relative;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1001;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-header h2 {
+    color: var(--text-light);
+    font-size: 24px;
+    margin: 0;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 32px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+  }
+
+  .modal-close:hover {
+    color: var(--text-light);
+  }
+
+  .modal-body {
+    padding: 24px;
+  }
+
+  .plan-info {
+    background: rgba(116, 96, 243, 0.1);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+    color: var(--text-light);
+  }
+
+  .payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .payment-method {
+    background: var(--bg-darker);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    width: 100%;
+  }
+
+  .payment-method:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  .method-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .method-name {
+    color: var(--text-light);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .method-description {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .payment-status {
+    margin-top: 24px;
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .payment-status.loading {
+    background: rgba(116, 96, 243, 0.1);
+    border: 1px solid var(--primary);
+    color: var(--text-light);
+  }
+
+  .payment-status.success {
+    background: rgba(46, 213, 115, 0.1);
+    border: 1px solid #2ed573;
+    color: #2ed573;
+  }
+
+  .payment-status.error {
+    background: rgba(255, 71, 87, 0.1);
+    border: 1px solid #ff4757;
+    color: #ff4757;
+  }
+  </style>
+
   <script>
+    let currentPlan = null;
+    let currentAmount = null;
+
     // Toggle pricing functionality
     const toggleBtns = document.querySelectorAll('.toggle-btn');
     toggleBtns.forEach(btn => {
@@ -390,6 +575,125 @@
         btn.classList.add('active');
       });
     });
+
+    function openPaymentModal(plan, amount) {
+      currentPlan = plan;
+      currentAmount = amount;
+      
+      const modal = document.getElementById('paymentModal');
+      const planInfo = document.getElementById('modalPlanInfo');
+      
+      const planNames = {
+        'pro_month': 'Plano Pro Mensal',
+        'pro_year': 'Plano Pro Anual',
+        'enterprise_month': 'Plano Enterprise Mensal',
+        'enterprise_year': 'Plano Enterprise Anual'
+      };
+      
+      planInfo.innerHTML = `
+        <strong>${planNames[plan] || plan}</strong><br>
+        Valor: R$ ${amount.toFixed(2)}
+      `;
+      
+      modal.style.display = 'flex';
+    }
+
+    function closePaymentModal() {
+      const modal = document.getElementById('paymentModal');
+      modal.style.display = 'none';
+      
+      // Reset status
+      const status = document.getElementById('paymentStatus');
+      status.style.display = 'none';
+      status.className = 'payment-status';
+      status.innerHTML = '';
+    }
+
+    async function selectGateway(gateway) {
+      const status = document.getElementById('paymentStatus');
+      status.style.display = 'block';
+      status.className = 'payment-status loading';
+      status.innerHTML = '⏳ Processando pagamento...';
+
+      try {
+        const response = await fetch('/payment/create/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            gateway: gateway,
+            plan: currentPlan,
+            currency: 'BRL'
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === 'success') {
+          status.className = 'payment-status success';
+          
+          const payment = data.payment;
+          let message = `✓ Pagamento criado com sucesso!<br><br>`;
+          message += `ID da transação: ${payment.transaction_id}<br>`;
+          message += `Gateway: ${payment.gateway}<br>`;
+          message += `Status: ${payment.status}<br>`;
+          
+          if (payment.gateway_response && payment.gateway_response.qr_code) {
+            message += `<br><strong>QR Code PIX disponível!</strong><br>`;
+            message += `<small>Use seu app de banco para pagar</small>`;
+          }
+          
+          if (payment.gateway_response && payment.gateway_response.payment_url) {
+            message += `<br><a href="${payment.gateway_response.payment_url}" target="_blank" class="btn" style="margin-top: 12px;">Ir para pagamento</a>`;
+          }
+          
+          // Para ambiente de teste, mostrar botão de simular pagamento
+          message += `<br><br><button onclick="simulatePayment('${payment.transaction_id}')" class="btn" style="margin-top: 12px; background: #ffa502;">🧪 Simular Pagamento (Teste)</button>`;
+          
+          status.innerHTML = message;
+        } else {
+          throw new Error(data.error || 'Erro ao criar pagamento');
+        }
+      } catch (error) {
+        status.className = 'payment-status error';
+        status.innerHTML = `✗ Erro: ${error.message}`;
+      }
+    }
+
+    async function simulatePayment(transactionId) {
+      const status = document.getElementById('paymentStatus');
+      status.className = 'payment-status loading';
+      status.innerHTML = '⏳ Simulando confirmação de pagamento...';
+
+      try {
+        const response = await fetch('/payment/simulate/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            transaction_id: transactionId
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === 'success') {
+          status.className = 'payment-status success';
+          status.innerHTML = `
+            ✓ Pagamento confirmado com sucesso!<br><br>
+            Seu status VIP foi ativado!<br>
+            <button onclick="window.location.reload()" class="btn" style="margin-top: 12px;">Recarregar Página</button>
+          `;
+        } else {
+          throw new Error(data.error || 'Erro ao simular pagamento');
+        }
+      } catch (error) {
+        status.className = 'payment-status error';
+        status.innerHTML = `✗ Erro: ${error.message}`;
+      }
+    }
   </script>
 </article>
 {% endblock %}

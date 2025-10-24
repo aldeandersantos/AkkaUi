@@ -137,6 +137,15 @@
   margin-bottom: 24px;
 }
 
+/* Make anchors with .plan-cta behave visually like buttons (no underline, full width) */
+.plan-cta,
+.plan-cta:link,
+.plan-cta:visited {
+  display: block; /* allows width:100% to apply */
+  text-decoration: none; /* remove underline */
+  text-align: center; /* center link text like button */
+}
+
 .plan-cta:hover {
   background: #5d4ed1;
   transform: translateY(-2px);
@@ -240,7 +249,11 @@
         <span class="price-period">/mês</span>
       </div>
 
-      <button class="plan-cta outline">Começar Grátis</button>
+  {% if user.is_authenticated %}
+  <button class="plan-cta outline">Começar Grátis</button>
+  {% else %}
+  <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">Começar Grátis</a>
+  {% endif %}
 
       <ul class="plan-features">
         <li>
@@ -282,7 +295,11 @@
         <span class="price-period">/mês</span>
       </div>
 
-      <button class="plan-cta">Começar Agora</button>
+  {% if user.is_authenticated %}
+  <button class="plan-cta">Começar Agora</button>
+  {% else %}
+  <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">Começar Agora</a>
+  {% endif %}
 
       <ul class="plan-features">
         <li>
@@ -323,7 +340,11 @@
         <span class="price-period">/mês</span>
       </div>
 
-      <button class="plan-cta outline">Contatar Vendas</button>
+  {% if user.is_authenticated %}
+  <button class="plan-cta outline">Contatar Vendas</button>
+  {% else %}
+  <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">Contatar Vendas</a>
+  {% endif %}
 
       <ul class="plan-features">
         <li>

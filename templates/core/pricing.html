@@ -4,6 +4,7 @@
 {% block title %}Pricing — AkkaUi{% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <style>
 .pricing-hero {
   text-align: center;
@@ -590,10 +591,15 @@
         'enterprise_year': 'Plano Enterprise Anual'
       };
       
-      planInfo.innerHTML = `
-        <strong>${planNames[plan] || plan}</strong><br>
-        Valor: R$ ${amount.toFixed(2)}
-      `;
+      const planName = planNames[plan] || 'Plano';
+      const amountFormatted = amount.toFixed(2);
+      planInfo.textContent = '';
+      
+      const strong = document.createElement('strong');
+      strong.textContent = planName;
+      planInfo.appendChild(strong);
+      planInfo.appendChild(document.createElement('br'));
+      planInfo.appendChild(document.createTextNode(`Valor: R$ ${amountFormatted}`));
       
       modal.style.display = 'flex';
     }
@@ -616,10 +622,12 @@
       status.innerHTML = '⏳ Processando pagamento...';
 
       try {
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
         const response = await fetch('/payment/create/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
           },
           body: JSON.stringify({
             gateway: gateway,
@@ -667,10 +675,12 @@
       status.innerHTML = '⏳ Simulando confirmação de pagamento...';
 
       try {
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
         const response = await fetch('/payment/simulate/', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
           },
           body: JSON.stringify({
             transaction_id: transactionId

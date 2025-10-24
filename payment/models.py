@@ -33,7 +33,7 @@ class Payment(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     # IDs do gateway de pagamento
-    gateway_payment_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    gateway_payment_id = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     transaction_id = models.CharField(max_length=64, unique=True, editable=False)
     
     # Metadados

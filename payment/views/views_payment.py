@@ -33,15 +33,13 @@ def create_payment(request):
     # Validar gateway suportado
     if gateway not in PaymentService.GATEWAY_MAP:
         return JsonResponse({
-            "error": "unsupported_gateway",
-            "supported_gateways": list(PaymentService.GATEWAY_MAP.keys())
+            "error": "unsupported_gateway"
         }, status=400)
     
     # Validar plano
     if plan not in PaymentService.PLAN_PRICES:
         return JsonResponse({
-            "error": "invalid_plan",
-            "available_plans": list(PaymentService.PLAN_PRICES.keys())
+            "error": "invalid_plan"
         }, status=400)
     
     try:
@@ -58,7 +56,7 @@ def create_payment(request):
                 "transaction_id": payment.transaction_id,
                 "gateway": payment.gateway,
                 "plan": payment.plan,
-                "amount": str(payment.amount),
+                "amount": f"{payment.amount:.2f}",
                 "currency": payment.currency,
                 "status": payment.status,
                 "gateway_payment_id": payment.gateway_payment_id,

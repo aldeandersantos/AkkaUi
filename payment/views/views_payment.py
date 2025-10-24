@@ -69,7 +69,7 @@ def create_payment(request):
         logger.error(f"Error creating payment: {e}")
         return JsonResponse({
             "status": "error",
-            "error": str(e)
+            "error": "Failed to create payment"
         }, status=500)
 
 
@@ -122,7 +122,7 @@ def check_payment_status_view(request):
         logger.error(f"Error checking payment status: {e}")
         return JsonResponse({
             "status": "error",
-            "error": str(e)
+            "error": "Failed to check payment status"
         }, status=500)
 
 
@@ -172,7 +172,7 @@ def simulate_payment_view(request):
         logger.error(f"Error simulating payment: {e}")
         return JsonResponse({
             "status": "error",
-            "error": str(e)
+            "error": "Failed to simulate payment"
         }, status=500)
 
 

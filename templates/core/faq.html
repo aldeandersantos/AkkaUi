@@ -1,7 +1,8 @@
 {% extends 'core/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}FAQ — AkkaUi{% endblock %}
+{% block title %}{% trans "FAQ" %} — AkkaUi{% endblock %}
 
 {% block content %}
 <style>
@@ -196,166 +197,166 @@
 
 <article class="page">
   <div class="faq-hero">
-    <h1>Perguntas Frequentes</h1>
-    <p>Encontre respostas para as dúvidas mais comuns</p>
+    <h1>{% trans "Frequently Asked Questions" %}</h1>
+    <p>{% trans "Find answers to the most common questions" %}</p>
   </div>
 
   <div class="faq-search">
-    <input type="search" placeholder="Buscar por uma pergunta..." id="faqSearch">
+    <input type="search" placeholder="{% trans "Search for a question..." %}" id="faqSearch">
   </div>
 
   <div class="faq-categories">
-    <button class="category-btn active">Todas</button>
-    <button class="category-btn">Geral</button>
-    <button class="category-btn">Preços</button>
-    <button class="category-btn">Técnico</button>
-    <button class="category-btn">Conta</button>
+    <button class="category-btn active">{% trans "All" %}</button>
+    <button class="category-btn">{% trans "General" %}</button>
+    <button class="category-btn">{% trans "Pricing" %}</button>
+    <button class="category-btn">{% trans "Technical" %}</button>
+    <button class="category-btn">{% trans "Account" %}</button>
   </div>
 
   <div class="faq-list">
-    <div class="faq-item" data-category="geral">
+    <div class="faq-item" data-category="{% trans "general" %}">
       <button class="faq-question">
-        <span>O que é o AkkaUi?</span>
+        <span>{% trans "What is AkkaUi?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>AkkaUi é uma plataforma moderna de recursos de design UI que oferece componentes, templates e ferramentas para desenvolvedores e designers criarem interfaces elegantes e funcionais. Nossa biblioteca inclui centenas de componentes prontos para uso com tema escuro moderno.</p>
+        <p>{% trans "AkkaUi is a modern UI design resources platform that offers components, templates and tools for developers and designers to create elegant and functional interfaces. Our library includes hundreds of ready-to-use components with modern dark theme." %}</p>
       </div>
     </div>
 
-    <div class="faq-item" data-category="geral">
+    <div class="faq-item" data-category="{% trans "general" %}">
       <button class="faq-question">
-        <span>Como posso começar a usar o AkkaUi?</span>
+        <span>{% trans "How can I start using AkkaUi?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Começar é simples:</p>
+        <p>{% trans "Getting started is simple:" %}</p>
         <ul>
-          <li>Crie uma conta gratuita</li>
-          <li>Explore nossa biblioteca de componentes</li>
-          <li>Escolha os componentes que deseja usar</li>
-          <li>Copie o código e integre em seu projeto</li>
+          <li>{% trans "Create a free account" %}</li>
+          <li>{% trans "Browse our component library" %}</li>
+          <li>{% trans "Choose the components you want to use" %}</li>
+          <li>{% trans "Copy the code and integrate into your project" %}</li>
         </ul>
       </div>
     </div>
 
-    <div class="faq-item" data-category="preços">
+    <div class="faq-item" data-category="{% trans "pricing" %}">
       <button class="faq-question">
-        <span>Existe um plano gratuito?</span>
+        <span>{% trans "Is there a free plan?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Sim! Oferecemos um plano gratuito que inclui acesso a componentes básicos, até 5 projetos e suporte por email. É perfeito para começar e experimentar nossa plataforma antes de fazer upgrade para um plano pago.</p>
+        <p>{% trans "Yes! We offer a free plan that includes access to basic components, up to 5 projects and email support. It's perfect to start and try our platform before upgrading to a paid plan." %}</p>
       </div>
     </div>
 
-    <div class="faq-item" data-category="preços">
+    <div class="faq-item" data-category="{% trans "pricing" %}">
       <button class="faq-question">
-        <span>Posso mudar de plano a qualquer momento?</span>
+        <span>{% trans "Can I change plans at any time?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Com certeza! Você pode fazer upgrade ou downgrade do seu plano a qualquer momento. Ao fazer upgrade, você terá acesso imediato aos recursos adicionais. Ao fazer downgrade, as alterações entrarão em vigor no próximo ciclo de cobrança.</p>
+        <p>{% trans "Absolutely! You can upgrade or downgrade your plan at any time. When upgrading, you'll have immediate access to additional features. When downgrading, changes will take effect in the next billing cycle." %}</p>
       </div>
     </div>
 
-    <div class="faq-item" data-category="técnico">
+    <div class="faq-item" data-category="{% trans "technical" %}">
       <button class="faq-question">
-        <span>Quais tecnologias são suportadas?</span>
+        <span>{% trans "What technologies are supported?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>AkkaUi é compatível com as principais tecnologias web:</p>
+        <p>{% trans "AkkaUi is compatible with major web technologies:" %}</p>
         <ul>
-          <li>HTML5 e CSS3 puro</li>
-          <li>React, Vue e Angular</li>
-          <li>Tailwind CSS e Bootstrap</li>
-          <li>Django, Flask e outros frameworks Python</li>
-          <li>Node.js e Express</li>
+          <li>{% trans "Pure HTML5 and CSS3" %}</li>
+          <li>{% trans "React, Vue and Angular" %}</li>
+          <li>{% trans "Tailwind CSS and Bootstrap" %}</li>
+          <li>{% trans "Django, Flask and other Python frameworks" %}</li>
+          <li>{% trans "Node.js and Express" %}</li>
         </ul>
       </div>
     </div>
 
-    <div class="faq-item" data-category="técnico">
+    <div class="faq-item" data-category="{% trans "technical" %}">
       <button class="faq-question">
-        <span>Os componentes são responsivos?</span>
+        <span>{% trans "Are the components responsive?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Absolutamente! Todos os nossos componentes são desenvolvidos com mobile-first design e são totalmente responsivos. Eles funcionam perfeitamente em dispositivos móveis, tablets e desktops, adaptando-se automaticamente ao tamanho da tela.</p>
+        <p>{% trans "Absolutely! All our components are developed with mobile-first design and are fully responsive. They work perfectly on mobile devices, tablets and desktops, automatically adapting to screen size." %}</p>
       </div>
     </div>
 
-    <div class="faq-item" data-category="técnico">
+    <div class="faq-item" data-category="{% trans "technical" %}">
       <button class="faq-question">
-        <span>Posso customizar os componentes?</span>
+        <span>{% trans "Can I customize the components?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Sim! Todos os componentes são totalmente customizáveis. Você pode modificar cores, espaçamentos, tamanhos e qualquer outro aspecto visual através de CSS. Também fornecemos variáveis CSS para facilitar a customização em escala.</p>
+        <p>{% trans "Yes! All components are fully customizable. You can modify colors, spacing, sizes and any other visual aspect through CSS. We also provide CSS variables to make customization easier at scale." %}</p>
       </div>
     </div>
 
-    <div class="faq-item" data-category="conta">
+    <div class="faq-item" data-category="{% trans "account" %}">
       <button class="faq-question">
-        <span>Como faço para cancelar minha conta?</span>
+        <span>{% trans "How do I cancel my account?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Você pode cancelar sua conta a qualquer momento através das configurações da conta. Se você tiver um plano pago, o acesso aos recursos premium continuará até o final do período de cobrança atual. Seus dados serão mantidos por 30 dias caso você queira reativar sua conta.</p>
+        <p>{% trans "You can cancel your account at any time through account settings. If you have a paid plan, access to premium features will continue until the end of the current billing period. Your data will be kept for 30 days in case you want to reactivate your account." %}</p>
       </div>
     </div>
 
-    <div class="faq-item" data-category="geral">
+    <div class="faq-item" data-category="{% trans "general" %}">
       <button class="faq-question">
-        <span>Vocês oferecem suporte?</span>
+        <span>{% trans "Do you offer support?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Sim! Oferecemos diferentes níveis de suporte dependendo do seu plano:</p>
+        <p>{% trans "Yes! We offer different support levels depending on your plan:" %}</p>
         <ul>
-          <li><strong>Free:</strong> Suporte por email com resposta em até 48h</li>
-          <li><strong>Pro:</strong> Suporte prioritário com resposta em até 24h</li>
-          <li><strong>Enterprise:</strong> Suporte 24/7 com resposta em até 4h</li>
+          <li><strong>{% trans "Free" %}:</strong> {% trans "Email support with response within 48h" %}</li>
+          <li><strong>{% trans "Pro" %}:</strong> {% trans "Priority support with response within 24h" %}</li>
+          <li><strong>{% trans "Enterprise" %}:</strong> {% trans "24/7 support with response within 4h" %}</li>
         </ul>
       </div>
     </div>
 
-    <div class="faq-item" data-category="preços">
+    <div class="faq-item" data-category="{% trans "pricing" %}">
       <button class="faq-question">
-        <span>Há desconto para pagamento anual?</span>
+        <span>{% trans "Is there a discount for annual payment?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Sim! Ao optar pelo pagamento anual, você economiza 20% em comparação com o pagamento mensal. Isso significa que você paga por 10 meses e ganha 2 meses grátis.</p>
+        <p>{% trans "Yes! When choosing annual payment, you save 20% compared to monthly payment. This means you pay for 10 months and get 2 months free." %}</p>
       </div>
     </div>
 
-    <div class="faq-item" data-category="técnico">
+    <div class="faq-item" data-category="{% trans "technical" %}">
       <button class="faq-question">
-        <span>Os componentes funcionam em navegadores antigos?</span>
+        <span>{% trans "Do components work in older browsers?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Nossos componentes são otimizados para navegadores modernos (Chrome, Firefox, Safari, Edge). Suportamos as duas últimas versões principais de cada navegador. Para navegadores mais antigos, alguns recursos visuais podem não funcionar perfeitamente.</p>
+        <p>{% trans "Our components are optimized for modern browsers (Chrome, Firefox, Safari, Edge). We support the last two major versions of each browser. For older browsers, some visual features may not work perfectly." %}</p>
       </div>
     </div>
 
-    <div class="faq-item" data-category="geral">
+    <div class="faq-item" data-category="{% trans "general" %}">
       <button class="faq-question">
-        <span>Vocês têm documentação?</span>
+        <span>{% trans "Do you have documentation?" %}</span>
         <span class="faq-icon">+</span>
       </button>
       <div class="faq-answer">
-        <p>Sim! Temos uma documentação completa e detalhada para cada componente, incluindo exemplos de código, guias de uso e melhores práticas. Você pode acessá-la através da página de cada componente.</p>
+        <p>{% trans "Yes! We have complete and detailed documentation for each component, including code examples, usage guides and best practices. You can access it through each component's page." %}</p>
       </div>
     </div>
   </div>
 
   <div class="faq-contact">
-    <h2>Não encontrou sua resposta?</h2>
-    <p>Nossa equipe está pronta para ajudar você com qualquer dúvida</p>
-    <a href="mailto:suporte@akkaui.com" class="btn">Entrar em Contato</a>
+    <h2>{% trans "Didn't find your answer?" %}</h2>
+    <p>{% trans "Our team is ready to help you with any questions" %}</p>
+    <a href="mailto:suporte@akkaui.com" class="btn">{% trans "Get in Touch" %}</a>
   </div>
 
   <script>

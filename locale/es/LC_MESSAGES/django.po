@@ -1,0 +1,760 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-24 11:46-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n == 1 ? 0 : n != 0 && n % 1000000 == 0 ? "
+"1 : 2;\n"
+
+#: templates/core/base.html:32 templates/core/home.html:4
+msgid "Home"
+msgstr "Inicio"
+
+#: templates/core/base.html:33 templates/core/base.html:109
+#: templates/core/explore.html:5
+msgid "Explore"
+msgstr "Explorar"
+
+#: templates/core/base.html:34 templates/core/base.html:110
+#: templates/core/faq.html:211 templates/core/pricing.html:5
+msgid "Pricing"
+msgstr "Precios"
+
+#: templates/core/base.html:37
+msgid "Manage SVG"
+msgstr "Gestionar SVG"
+
+#: templates/core/base.html:40 templates/usuario/profile.html:4
+msgid "Profile"
+msgstr "Perfil"
+
+#: templates/core/base.html:41 templates/core/base.html:50
+#: templates/usuario/profile.html:57
+msgid "Sign Out"
+msgstr "Cerrar sesión"
+
+#: templates/core/base.html:43 templates/core/base.html:52
+#: templates/usuario/signin.html:4 templates/usuario/signin.html:9
+#: templates/usuario/signin.html:53
+msgid "Sign In"
+msgstr "Iniciar sesión"
+
+#: templates/core/base.html:44 templates/core/base.html:53
+msgid "Sign Up"
+msgstr "Registrarse"
+
+#: templates/core/base.html:81
+msgid "Search..."
+msgstr "Buscar..."
+
+#: templates/core/base.html:81
+msgid "Search components"
+msgstr "Buscar componentes"
+
+#: templates/core/base.html:104
+msgid "Your complete catalog of modern and responsive UI design resources."
+msgstr "Su catálogo completo de recursos de diseño UI modernos y responsivos."
+
+#: templates/core/base.html:107
+msgid "Product"
+msgstr "Producto"
+
+#: templates/core/base.html:115
+msgid "Resources"
+msgstr "Recursos"
+
+#: templates/core/base.html:117
+msgid "Documentation"
+msgstr "Documentación"
+
+#: templates/core/base.html:118
+msgid "Tutorials"
+msgstr "Tutoriales"
+
+#: templates/core/base.html:119
+msgid "Blog"
+msgstr "Blog"
+
+#: templates/core/base.html:123
+msgid "Company"
+msgstr "Empresa"
+
+#: templates/core/base.html:125
+msgid "About"
+msgstr "Acerca de"
+
+#: templates/core/base.html:126
+msgid "Contact"
+msgstr "Contacto"
+
+#: templates/core/base.html:127
+msgid "Terms"
+msgstr "Términos"
+
+#: templates/core/base.html:132
+msgid "All rights reserved."
+msgstr "Todos los derechos reservados."
+
+#: templates/core/explore.html:11
+msgid "Filters"
+msgstr "Filtros"
+
+#: templates/core/explore.html:15 templates/core/explore.html:62
+#, fuzzy
+#| msgid "Search..."
+msgid "Search"
+msgstr "Buscar..."
+
+#: templates/core/explore.html:21
+#, fuzzy
+#| msgid "Search..."
+msgid "Search by title..."
+msgstr "Buscar..."
+
+#: templates/core/explore.html:23
+msgid "Search SVGs by title"
+msgstr "Buscar SVGs por título"
+
+#: templates/core/explore.html:29
+msgid "Category"
+msgstr "Categoría"
+
+#: templates/core/explore.html:31 templates/core/explore.html:42
+#: templates/core/faq.html:209
+msgid "All"
+msgstr "Todas"
+
+#: templates/core/explore.html:40
+msgid "Tag"
+msgstr "Etiqueta"
+
+#: templates/core/explore.html:51
+msgid "Sort"
+msgstr "Ordenar"
+
+#: templates/core/explore.html:53
+msgid "Most recent"
+msgstr "Más recientes"
+
+#: templates/core/explore.html:54
+msgid "Oldest"
+msgstr "Más antiguos"
+
+#: templates/core/explore.html:55
+msgid "Name (A-Z)"
+msgstr "Nombre (A-Z)"
+
+#: templates/core/explore.html:56
+msgid "Name (Z-A)"
+msgstr "Nombre (Z-A)"
+
+#: templates/core/explore.html:64
+msgid "Clear"
+msgstr "Limpiar"
+
+#: templates/core/explore.html:74
+#, fuzzy
+#| msgid "Explore"
+msgid "Explore SVGs"
+msgstr "Explorar"
+
+#: templates/core/explore.html:75
+msgid "Discover our collection of SVGs saved in the system"
+msgstr "Descubre nuestra colección de SVGs guardados en el sistema"
+
+#: templates/core/explore.html:83
+#, python-format
+msgid "Found %(counter)s result"
+msgid_plural "Found %(counter)s results"
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+
+#: templates/core/explore.html:85 templates/core/home.html:18
+#, python-format
+msgid "Showing %(counter)s public SVG"
+msgid_plural "Showing %(counter)s public SVGs"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/core/explore.html:96
+msgid "No results found. Try adjusting the filters."
+msgstr "No se encontraron resultados. Intenta ajustar los filtros."
+
+#: templates/core/explore.html:100
+msgid "No public SVGs available yet. Upload the first one!"
+msgstr "Aún no hay SVGs públicos disponibles. ¡Sube el primero!"
+
+#: templates/core/faq.html:5
+msgid "FAQ"
+msgstr "FAQ"
+
+#: templates/core/faq.html:200
+msgid "Frequently Asked Questions"
+msgstr "Preguntas Frecuentes"
+
+#: templates/core/faq.html:201
+msgid "Find answers to the most common questions"
+msgstr "Encuentra respuestas a las preguntas más comunes"
+
+#: templates/core/faq.html:205
+msgid "Search for a question..."
+msgstr "Buscar una pregunta..."
+
+#: templates/core/faq.html:210
+msgid "General"
+msgstr "General"
+
+#: templates/core/faq.html:212
+msgid "Technical"
+msgstr "Técnico"
+
+#: templates/core/faq.html:213
+msgid "Account"
+msgstr "Cuenta"
+
+#: templates/core/faq.html:217 templates/core/faq.html:227
+#: templates/core/faq.html:310 templates/core/faq.html:345
+msgid "general"
+msgstr "general"
+
+#: templates/core/faq.html:219
+msgid "What is AkkaUi?"
+msgstr "¿Qué es AkkaUi?"
+
+#: templates/core/faq.html:223
+msgid ""
+"AkkaUi is a modern UI design resources platform that offers components, "
+"templates and tools for developers and designers to create elegant and "
+"functional interfaces. Our library includes hundreds of ready-to-use "
+"components with modern dark theme."
+msgstr ""
+
+#: templates/core/faq.html:229
+msgid "How can I start using AkkaUi?"
+msgstr "¿Cómo puedo empezar a usar AkkaUi?"
+
+#: templates/core/faq.html:233
+#, fuzzy
+#| msgid "Getting Started"
+msgid "Getting started is simple:"
+msgstr "Comenzando"
+
+#: templates/core/faq.html:235
+msgid "Create a free account"
+msgstr "Crea una cuenta gratuita"
+
+#: templates/core/faq.html:236
+msgid "Browse our component library"
+msgstr "Explora nuestra biblioteca de componentes"
+
+#: templates/core/faq.html:237
+msgid "Choose the components you want to use"
+msgstr "Elige los componentes que quieras usar"
+
+#: templates/core/faq.html:238
+msgid "Copy the code and integrate into your project"
+msgstr "Copia el código e integra en tu proyecto"
+
+#: templates/core/faq.html:243 templates/core/faq.html:253
+#: templates/core/faq.html:325
+#, fuzzy
+#| msgid "Pricing"
+msgid "pricing"
+msgstr "Precios"
+
+#: templates/core/faq.html:245
+msgid "Is there a free plan?"
+msgstr "¿Hay un plan gratuito?"
+
+#: templates/core/faq.html:249
+msgid ""
+"Yes! We offer a free plan that includes access to basic components, up to 5 "
+"projects and email support. It's perfect to start and try our platform "
+"before upgrading to a paid plan."
+msgstr ""
+
+#: templates/core/faq.html:255
+msgid "Can I change plans at any time?"
+msgstr "¿Puedo cambiar de plan en cualquier momento?"
+
+#: templates/core/faq.html:259
+msgid ""
+"Absolutely! You can upgrade or downgrade your plan at any time. When "
+"upgrading, you'll have immediate access to additional features. When "
+"downgrading, changes will take effect in the next billing cycle."
+msgstr ""
+
+#: templates/core/faq.html:263 templates/core/faq.html:280
+#: templates/core/faq.html:290 templates/core/faq.html:335
+msgid "technical"
+msgstr "técnico"
+
+#: templates/core/faq.html:265
+msgid "What technologies are supported?"
+msgstr "¿Qué tecnologías son compatibles?"
+
+#: templates/core/faq.html:269
+msgid "AkkaUi is compatible with major web technologies:"
+msgstr "AkkaUi es compatible con las principales tecnologías web:"
+
+#: templates/core/faq.html:271
+msgid "Pure HTML5 and CSS3"
+msgstr "HTML5 y CSS3 puros"
+
+#: templates/core/faq.html:272
+msgid "React, Vue and Angular"
+msgstr "React, Vue y Angular"
+
+#: templates/core/faq.html:273
+msgid "Tailwind CSS and Bootstrap"
+msgstr "Tailwind CSS y Bootstrap"
+
+#: templates/core/faq.html:274
+msgid "Django, Flask and other Python frameworks"
+msgstr "Django, Flask y otros frameworks Python"
+
+#: templates/core/faq.html:275
+msgid "Node.js and Express"
+msgstr "Node.js y Express"
+
+#: templates/core/faq.html:282
+msgid "Are the components responsive?"
+msgstr "¿Los componentes son responsivos?"
+
+#: templates/core/faq.html:286
+msgid ""
+"Absolutely! All our components are developed with mobile-first design and "
+"are fully responsive. They work perfectly on mobile devices, tablets and "
+"desktops, automatically adapting to screen size."
+msgstr ""
+
+#: templates/core/faq.html:292
+msgid "Can I customize the components?"
+msgstr "¿Puedo personalizar los componentes?"
+
+#: templates/core/faq.html:296
+msgid ""
+"Yes! All components are fully customizable. You can modify colors, spacing, "
+"sizes and any other visual aspect through CSS. We also provide CSS variables "
+"to make customization easier at scale."
+msgstr ""
+
+#: templates/core/faq.html:300
+msgid "account"
+msgstr "cuenta"
+
+#: templates/core/faq.html:302
+msgid "How do I cancel my account?"
+msgstr "¿Cómo cancelo mi cuenta?"
+
+#: templates/core/faq.html:306
+msgid ""
+"You can cancel your account at any time through account settings. If you "
+"have a paid plan, access to premium features will continue until the end of "
+"the current billing period. Your data will be kept for 30 days in case you "
+"want to reactivate your account."
+msgstr ""
+
+#: templates/core/faq.html:312
+msgid "Do you offer support?"
+msgstr "¿Ofrecéis soporte?"
+
+#: templates/core/faq.html:316
+msgid "Yes! We offer different support levels depending on your plan:"
+msgstr "¡Sí! Ofrecemos diferentes niveles de soporte según tu plan:"
+
+#: templates/core/faq.html:318 templates/core/pricing.html:244
+msgid "Free"
+msgstr "Gratis"
+
+#: templates/core/faq.html:318
+msgid "Email support with response within 48h"
+msgstr "Soporte por email con respuesta en 48h"
+
+#: templates/core/faq.html:319 templates/core/pricing.html:290
+#, fuzzy
+#| msgid "Profile"
+msgid "Pro"
+msgstr "Perfil"
+
+#: templates/core/faq.html:319
+msgid "Priority support with response within 24h"
+msgstr "Soporte prioritario con respuesta en 24h"
+
+#: templates/core/faq.html:320 templates/core/pricing.html:335
+msgid "Enterprise"
+msgstr "Enterprise"
+
+#: templates/core/faq.html:320
+msgid "24/7 support with response within 4h"
+msgstr "Soporte 24/7 con respuesta en 4h"
+
+#: templates/core/faq.html:327
+msgid "Is there a discount for annual payment?"
+msgstr "¿Hay descuento para pago anual?"
+
+#: templates/core/faq.html:331
+#, python-format
+msgid ""
+"Yes! When choosing annual payment, you save 20%% compared to monthly "
+"payment. This means you pay for 10 months and get 2 months free."
+msgstr ""
+
+#: templates/core/faq.html:337
+msgid "Do components work in older browsers?"
+msgstr "¿Los componentes funcionan en navegadores antiguos?"
+
+#: templates/core/faq.html:341
+msgid ""
+"Our components are optimized for modern browsers (Chrome, Firefox, Safari, "
+"Edge). We support the last two major versions of each browser. For older "
+"browsers, some visual features may not work perfectly."
+msgstr ""
+
+#: templates/core/faq.html:347
+#, fuzzy
+#| msgid "Documentation"
+msgid "Do you have documentation?"
+msgstr "Documentación"
+
+#: templates/core/faq.html:351
+msgid ""
+"Yes! We have complete and detailed documentation for each component, "
+"including code examples, usage guides and best practices. You can access it "
+"through each component's page."
+msgstr ""
+
+#: templates/core/faq.html:357
+msgid "Didn't find your answer?"
+msgstr "¿No encontraste tu respuesta?"
+
+#: templates/core/faq.html:358
+msgid "Our team is ready to help you with any questions"
+msgstr "Nuestro equipo está listo para ayudarte con cualquier pregunta"
+
+#: templates/core/faq.html:359
+msgid "Get in Touch"
+msgstr "Contactar"
+
+#: templates/core/home.html:9
+msgid "Welcome to AkkaUi"
+msgstr "Bienvenido a AkkaUi"
+
+#: templates/core/home.html:10
+msgid ""
+"Your complete catalog of modern and responsive UI design resources with dark "
+"theme."
+msgstr ""
+
+#: templates/core/home.html:14
+msgid "Recently saved SVGs"
+msgstr "SVGs guardados recientemente"
+
+#: templates/core/home.html:26
+msgid "No SVGs saved yet. Save your first one using the form above."
+msgstr ""
+"Aún no hay SVGs guardados. Guarde el primero usando el formulario anterior."
+
+#: templates/core/home.html:34
+msgid "Getting Started"
+msgstr "Comenzando"
+
+#: templates/core/home.html:35
+msgid ""
+"Explore our collection of components, patterns and design resources. Browse "
+"through categories, see examples and find inspiration for your projects."
+msgstr ""
+
+#: templates/core/home.html:39
+msgid "Features"
+msgstr "Características"
+
+#: templates/core/home.html:41
+msgid "Modern dark theme with customizable color palette"
+msgstr "Tema oscuro moderno con paleta de colores personalizable"
+
+#: templates/core/home.html:42
+msgid "Fully responsive design"
+msgstr "Diseño totalmente responsivo"
+
+#: templates/core/home.html:43
+msgid "Optimized performance"
+msgstr "Rendimiento optimizado"
+
+#: templates/core/home.html:44
+msgid "Fast and intuitive search"
+msgstr "Búsqueda rápida e intuitiva"
+
+#: templates/core/home.html:45
+msgid "Clean and professional interface"
+msgstr "Interfaz limpia y profesional"
+
+#: templates/core/home.html:50
+msgid "About AkkaUi"
+msgstr "Acerca de AkkaUi"
+
+#: templates/core/home.html:51
+msgid ""
+"AkkaUi is a modern platform inspired by uiwiki.co, focused on content "
+"presentation and reading with elegant dark theme. We use colors #7460F3 "
+"(primary), #e7e7e7 (text), #7b7b7b (muted) and #0c0c0c (background) to "
+"create a unique visual experience."
+msgstr ""
+
+#: templates/core/home.html:55
+msgid "Explore Components"
+msgstr "Explorar Componentes"
+
+#: templates/core/pricing.html:232
+msgid "Plans and Pricing"
+msgstr "Planes y Precios"
+
+#: templates/core/pricing.html:233
+msgid "Choose the perfect plan for your needs"
+msgstr "Elige el plan perfecto para tus necesidades"
+
+#: templates/core/pricing.html:237
+msgid "Monthly"
+msgstr "Mensual"
+
+#: templates/core/pricing.html:238
+#, python-format
+msgid "Annual (20%% off)"
+msgstr ""
+
+#: templates/core/pricing.html:245
+msgid "Perfect to start and explore"
+msgstr "Perfecto para empezar y explorar"
+
+#: templates/core/pricing.html:250 templates/core/pricing.html:296
+#: templates/core/pricing.html:341
+msgid "month"
+msgstr "mes"
+
+#: templates/core/pricing.html:254 templates/core/pricing.html:256
+msgid "Start Free"
+msgstr "Empezar Gratis"
+
+#: templates/core/pricing.html:262
+#, fuzzy
+#| msgid "Search components"
+msgid "Access to basic components"
+msgstr "Buscar componentes"
+
+#: templates/core/pricing.html:266
+msgid "Up to 5 projects"
+msgstr "Hasta 5 proyectos"
+
+#: templates/core/pricing.html:270
+msgid "Email support"
+msgstr "Soporte por email"
+
+#: templates/core/pricing.html:274
+#, fuzzy
+#| msgid "Search components"
+msgid "Premium components"
+msgstr "Buscar componentes"
+
+#: templates/core/pricing.html:278 templates/core/pricing.html:316
+msgid "Code export"
+msgstr "Exportación de código"
+
+#: templates/core/pricing.html:282 templates/core/pricing.html:324
+msgid "Priority support"
+msgstr "Soporte prioritario"
+
+#: templates/core/pricing.html:289
+msgid "Most Popular"
+msgstr "Más Popular"
+
+#: templates/core/pricing.html:291
+msgid "For professionals and small teams"
+msgstr "Para profesionales y equipos pequeños"
+
+#: templates/core/pricing.html:300 templates/core/pricing.html:302
+msgid "Start Now"
+msgstr "Empezar Ahora"
+
+#: templates/core/pricing.html:308
+#, fuzzy
+#| msgid "Search components"
+msgid "All components"
+msgstr "Buscar componentes"
+
+#: templates/core/pricing.html:312
+msgid "Unlimited projects"
+msgstr "Proyectos ilimitados"
+
+#: templates/core/pricing.html:320
+msgid "Premium templates"
+msgstr "Plantillas premium"
+
+#: templates/core/pricing.html:328 templates/core/pricing.html:361
+msgid "Integration API"
+msgstr "API de integración"
+
+#: templates/core/pricing.html:336
+msgid "For large teams and companies"
+msgstr "Para grandes equipos y empresas"
+
+#: templates/core/pricing.html:345 templates/core/pricing.html:347
+#, fuzzy
+#| msgid "Contact"
+msgid "Contact Sales"
+msgstr "Contacto"
+
+#: templates/core/pricing.html:353
+msgid "Everything in Pro"
+msgstr "Todo del plan Pro"
+
+#: templates/core/pricing.html:357
+msgid "Unlimited users"
+msgstr "Usuarios ilimitados"
+
+#: templates/core/pricing.html:365
+msgid "Advanced customization"
+msgstr "Personalización avanzada"
+
+#: templates/core/pricing.html:369
+msgid "24/7 Support"
+msgstr "Soporte 24/7"
+
+#: templates/core/pricing.html:373
+msgid "Guaranteed SLA"
+msgstr "SLA garantizado"
+
+#: templates/core/pricing.html:380
+msgid "Have questions?"
+msgstr "¿Tienes preguntas?"
+
+#: templates/core/pricing.html:381
+msgid "Check our FAQ page for more information"
+msgstr "Consulta nuestra página de preguntas frecuentes para más información"
+
+#: templates/core/pricing.html:382
+msgid "View FAQ"
+msgstr "Ver FAQ"
+
+#: templates/usuario/profile.html:9
+#, fuzzy
+#| msgid "Profile"
+msgid "My Profile"
+msgstr "Perfil"
+
+#: templates/usuario/profile.html:10
+msgid "Manage your personal information"
+msgstr "Gestiona tu información personal"
+
+#: templates/usuario/profile.html:27 templates/usuario/signin.html:29
+#: templates/usuario/signup.html:29
+msgid "Username"
+msgstr "Nombre de usuario"
+
+#: templates/usuario/profile.html:32 templates/usuario/signup.html:44
+msgid "Email"
+msgstr "Email"
+
+#: templates/usuario/profile.html:38 templates/usuario/signup.html:57
+msgid "Phone"
+msgstr "Teléfono"
+
+#: templates/usuario/profile.html:44
+msgid "Member since"
+msgstr "Miembro desde"
+
+#: templates/usuario/profile.html:50
+msgid "Status"
+msgstr "Estado"
+
+#: templates/usuario/profile.html:51
+msgid "Subscriber"
+msgstr "Suscriptor"
+
+#: templates/usuario/profile.html:51
+msgid "until"
+msgstr "hasta"
+
+#: templates/usuario/signin.html:10
+msgid "Access your AkkaUi account"
+msgstr "Accede a tu cuenta AkkaUi"
+
+#: templates/usuario/signin.html:36
+msgid "Your username"
+msgstr "Tu nombre de usuario"
+
+#: templates/usuario/signin.html:42 templates/usuario/signup.html:70
+msgid "Password"
+msgstr "Contraseña"
+
+#: templates/usuario/signin.html:48
+msgid "Your password"
+msgstr "Tu contraseña"
+
+#: templates/usuario/signin.html:57
+msgid "Don't have an account?"
+msgstr "¿No tienes una cuenta?"
+
+#: templates/usuario/signin.html:57
+msgid "Create account"
+msgstr "Crear cuenta"
+
+#: templates/usuario/signup.html:4 templates/usuario/signup.html:9
+#: templates/usuario/signup.html:95
+msgid "Create Account"
+msgstr "Crear Cuenta"
+
+#: templates/usuario/signup.html:10
+msgid "Join the AkkaUi community"
+msgstr "Únete a la comunidad AkkaUi"
+
+#: templates/usuario/signup.html:37
+msgid "Choose a username"
+msgstr "Elige un nombre de usuario"
+
+#: templates/usuario/signup.html:40
+msgid "Minimum 3 characters"
+msgstr "Mínimo 3 caracteres"
+
+#: templates/usuario/signup.html:51
+msgid "your@email.com"
+msgstr "tu@email.com"
+
+#: templates/usuario/signup.html:66
+msgid "Optional field"
+msgstr "Campo opcional"
+
+#: templates/usuario/signup.html:77
+msgid "Minimum 6 characters"
+msgstr "Mínimo 6 caracteres"
+
+#: templates/usuario/signup.html:83
+msgid "Confirm Password"
+msgstr "Confirmar Contraseña"
+
+#: templates/usuario/signup.html:90
+msgid "Enter password again"
+msgstr "Ingresa la contraseña nuevamente"
+
+#: templates/usuario/signup.html:99
+msgid "Already have an account?"
+msgstr "¿Ya tienes una cuenta?"
+
+#: templates/usuario/signup.html:99
+#, fuzzy
+#| msgid "Sign In"
+msgid "Sign in"
+msgstr "Iniciar sesión"

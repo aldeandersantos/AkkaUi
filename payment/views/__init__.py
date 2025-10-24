@@ -14,6 +14,7 @@ except ImportError:
     AbacatePay = None
 
 
+
 ABACATE_API_TEST_KEY: str = getattr(settings, "ABACATE_API_TEST_KEY", "")
 
 

@@ -1,7 +1,8 @@
 {% extends 'core/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Pricing — AkkaUi{% endblock %}
+{% block title %}{% trans "Pricing" %} — AkkaUi{% endblock %}
 
 {% block content %}
 {% csrf_token %}
@@ -229,157 +230,157 @@
 
 <article class="page">
   <div class="pricing-hero">
-    <h1>Planos e Preços</h1>
-    <p>Escolha o plano perfeito para suas necessidades</p>
+    <h1>{% trans "Plans and Pricing" %}</h1>
+    <p>{% trans "Choose the perfect plan for your needs" %}</p>
   </div>
 
   <div class="pricing-toggle">
-    <button class="toggle-btn active">Mensal</button>
-    <button class="toggle-btn">Anual (20% off)</button>
+    <button class="toggle-btn active">{% trans "Monthly" %}</button>
+    <button class="toggle-btn">{% trans "Annual (20% off)" %}</button>
   </div>
 
   <div class="pricing-cards">
     <!-- Free Plan -->
     <div class="pricing-card">
-      <h3 class="plan-name">Free</h3>
-      <p class="plan-description">Perfeito para começar e explorar</p>
+      <h3 class="plan-name">{% trans "Free" %}</h3>
+      <p class="plan-description">{% trans "Perfect to start and explore" %}</p>
       
       <div class="plan-price">
         <span class="price-currency">R$</span>
         <span class="price-amount">0</span>
-        <span class="price-period">/mês</span>
+        <span class="price-period">/{% trans "month" %}</span>
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta outline">Começar Grátis</button>
+  <button class="plan-cta outline">{% trans "Start Free" %}</button>
   {% else %}
-  <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">Começar Grátis</a>
+  <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Free" %}</a>
   {% endif %}
 
       <ul class="plan-features">
         <li>
           <span class="feature-icon">✓</span>
-          <span>Acesso a componentes básicos</span>
+          <span>{% trans "Access to basic components" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Até 5 projetos</span>
+          <span>{% trans "Up to 5 projects" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Suporte por email</span>
+          <span>{% trans "Email support" %}</span>
         </li>
         <li>
           <span class="feature-icon disabled">✗</span>
-          <span>Componentes premium</span>
+          <span>{% trans "Premium components" %}</span>
         </li>
         <li>
           <span class="feature-icon disabled">✗</span>
-          <span>Exportação de código</span>
+          <span>{% trans "Code export" %}</span>
         </li>
         <li>
           <span class="feature-icon disabled">✗</span>
-          <span>Suporte prioritário</span>
+          <span>{% trans "Priority support" %}</span>
         </li>
       </ul>
     </div>
 
     <!-- Pro Plan -->
     <div class="pricing-card featured">
-      <span class="popular-badge">Mais Popular</span>
-      <h3 class="plan-name">Pro</h3>
-      <p class="plan-description">Para profissionais e equipes pequenas</p>
+      <span class="popular-badge">{% trans "Most Popular" %}</span>
+      <h3 class="plan-name">{% trans "Pro" %}</h3>
+      <p class="plan-description">{% trans "For professionals and small teams" %}</p>
       
       <div class="plan-price">
         <span class="price-currency">R$</span>
         <span class="price-amount">49</span>
-        <span class="price-period">/mês</span>
+        <span class="price-period">/{% trans "month" %}</span>
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta" data-plan="pro_month" onclick="openPaymentModal('pro_month', 49)">Começar Agora</button>
+  <button class="plan-cta">{% trans "Start Now" %}</button>
   {% else %}
-  <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">Começar Agora</a>
+  <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Now" %}</a>
   {% endif %}
 
       <ul class="plan-features">
         <li>
           <span class="feature-icon">✓</span>
-          <span>Todos os componentes</span>
+          <span>{% trans "All components" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Projetos ilimitados</span>
+          <span>{% trans "Unlimited projects" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Exportação de código</span>
+          <span>{% trans "Code export" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Templates premium</span>
+          <span>{% trans "Premium templates" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Suporte prioritário</span>
+          <span>{% trans "Priority support" %}</span>
         </li>
         <li>
           <span class="feature-icon disabled">✗</span>
-          <span>API de integração</span>
+          <span>{% trans "Integration API" %}</span>
         </li>
       </ul>
     </div>
 
     <!-- Enterprise Plan -->
     <div class="pricing-card">
-      <h3 class="plan-name">Enterprise</h3>
-      <p class="plan-description">Para grandes equipes e empresas</p>
+      <h3 class="plan-name">{% trans "Enterprise" %}</h3>
+      <p class="plan-description">{% trans "For large teams and companies" %}</p>
       
       <div class="plan-price">
         <span class="price-currency">R$</span>
         <span class="price-amount">199</span>
-        <span class="price-period">/mês</span>
+        <span class="price-period">/{% trans "month" %}</span>
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta outline" data-plan="enterprise_month" onclick="openPaymentModal('enterprise_month', 199)">Contatar Vendas</button>
+  <button class="plan-cta outline">{% trans "Contact Sales" %}</button>
   {% else %}
-  <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">Contatar Vendas</a>
+  <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Contact Sales" %}</a>
   {% endif %}
 
       <ul class="plan-features">
         <li>
           <span class="feature-icon">✓</span>
-          <span>Tudo do plano Pro</span>
+          <span>{% trans "Everything in Pro" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Usuários ilimitados</span>
+          <span>{% trans "Unlimited users" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>API de integração</span>
+          <span>{% trans "Integration API" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Customização avançada</span>
+          <span>{% trans "Advanced customization" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Suporte 24/7</span>
+          <span>{% trans "24/7 Support" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>SLA garantido</span>
+          <span>{% trans "Guaranteed SLA" %}</span>
         </li>
       </ul>
     </div>
   </div>
 
   <div class="pricing-faq">
-    <h2>Tem dúvidas?</h2>
-    <p>Confira nossa página de perguntas frequentes para mais informações</p>
-    <a href="{% url 'core:faq' %}" class="btn">Ver FAQ</a>
+    <h2>{% trans "Have questions?" %}</h2>
+    <p>{% trans "Check our FAQ page for more information" %}</p>
+    <a href="{% url 'core:faq' %}" class="btn">{% trans "View FAQ" %}</a>
   </div>
 
   <!-- Modal de Seleção de Gateway de Pagamento -->

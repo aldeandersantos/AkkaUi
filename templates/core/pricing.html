@@ -569,6 +569,13 @@
     let currentPlan = null;
     let currentAmount = null;
 
+    // Obter o prefixo de idioma da URL atual para construir URLs corretas
+    const getLanguagePrefix = () => {
+      const path = window.location.pathname;
+      const match = path.match(/^\/(en|pt-br|es|it|zh-hans)\//);
+      return match ? match[0] : '/en/';
+    };
+
     // Toggle pricing functionality
     const toggleBtns = document.querySelectorAll('.toggle-btn');
     toggleBtns.forEach(btn => {
@@ -640,7 +647,8 @@
 
       try {
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-        const response = await fetch('/payment/create/', {
+        const languagePrefix = getLanguagePrefix();
+        const response = await fetch(`${languagePrefix}payment/create/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -709,7 +717,8 @@
 
       try {
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
-        const response = await fetch('/payment/simulate/', {
+        const languagePrefix = getLanguagePrefix();
+        const response = await fetch(`${languagePrefix}payment/simulate/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

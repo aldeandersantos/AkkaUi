@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.core.exceptions import RequestDataTooBig
-from usuario.views import admin_required
+from usuario.views.views_usuario import admin_required
 from .services import *
 
 from .models import SvgFile
@@ -14,9 +14,7 @@ def home(request):
     Home page with introduction to AkkaUi.
     """
     svgfiles = SvgFile.objects.filter(is_public=True).order_by("-uploaded_at")
-    print("debug")
     for svg in svgfiles:
-        print(f"SVG File: {svg.title_name}, Uploaded at: {svg.uploaded_at}")
     return render(request, "core/home.html", {"svgfiles": svgfiles})
 
 def explore(request):

@@ -5,6 +5,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from abacatepay import AbacatePay
 from ..services.services_abacate import *
+from message.views import notify_discord
 
 
 ABACATE_API_TEST_KEY: str = getattr(settings, "ABACATE_API_TEST_KEY", "")
@@ -76,6 +77,7 @@ def simulate_confirmation(request):
         try:
             result = client.pixQrCode.simulate(id=payment_id)
             gateway_response = norm_response(result)
+            notify_discord(payment_id, status, gateway_response)
             return JsonResponse({"status": status, "gateway_response": gateway_response})
         except Exception as exc:
             msg = str(exc)

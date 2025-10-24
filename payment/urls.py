@@ -1,5 +1,5 @@
 from django.urls import path
-from payment.views import *
+from payment.views.views_abacate import *
 
 app_name = "payment"
 

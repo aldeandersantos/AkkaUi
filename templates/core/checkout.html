@@ -1,0 +1,230 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Checkout" %} — AkkaUi{% endblock %}
+
+{% block content %}
+  <article class="page">
+    <header class="page-header">
+      <h1>💳 {% trans "Checkout" %}</h1>
+      <p class="lead">{% trans "Complete your purchase" %}</p>
+    </header>
+
+    <div class="page-body">
+      <div id="checkout-container" style="max-width: 800px; margin: 0 auto;">
+        
+        <!-- Order Summary -->
+        <div id="order-summary" style="margin-bottom: 2rem; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;">
+          <h3>{% trans "Order Summary" %}</h3>
+          <div id="checkout-items" style="margin-top: 1rem;">
+            <!-- Items will be rendered here -->
+          </div>
+          <hr style="border-color: var(--border); margin: 1.5rem 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 1.3rem; font-weight: 700;">
+            <span>{% trans "Total" %}:</span>
+            <span style="color: var(--accent);">R$ <span id="checkout-total">0.00</span></span>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div id="payment-method" style="margin-bottom: 2rem; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;">
+          <h3>{% trans "Payment Method" %}</h3>
+          <p class="muted" style="margin-bottom: 1rem;">{% trans "Select your preferred payment gateway" %}</p>
+          
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <label style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+              <input type="radio" name="gateway" value="abacatepay" checked style="width: 20px; height: 20px; cursor: pointer;">
+              <div>
+                <div style="font-weight: 600; color: var(--text-light);">Abacate Pay</div>
+                <div class="muted" style="font-size: 0.85rem;">Pagamento via PIX</div>
+              </div>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+              <input type="radio" name="gateway" value="mercadopago" style="width: 20px; height: 20px; cursor: pointer;">
+              <div>
+                <div style="font-weight: 600; color: var(--text-light);">Mercado Pago</div>
+                <div class="muted" style="font-size: 0.85rem;">Cartão, PIX, Boleto</div>
+              </div>
+            </label>
+            
+            <label style="display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+              <input type="radio" name="gateway" value="paypal" style="width: 20px; height: 20px; cursor: pointer;">
+              <div>
+                <div style="font-weight: 600; color: var(--text-light);">PayPal</div>
+                <div class="muted" style="font-size: 0.85rem;">Pagamento internacional</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="display: flex; gap: 1rem;">
+          <a href="{% url 'core:cart' %}" class="btn btn-outline" style="flex: 1; text-align: center; text-decoration: none;">
+            ← {% trans "Back to Cart" %}
+          </a>
+          <button onclick="processPayment()" id="pay-button" class="btn btn-primary" style="flex: 2;">
+            {% trans "Complete Purchase" %}
+          </button>
+        </div>
+
+        <div id="payment-status" style="margin-top: 1.5rem; display: none; padding: 1rem; border-radius: 8px; text-align: center;"></div>
+      </div>
+    </div>
+  </article>
+
+  <script>
+    function getCart() {
+      try {
+        return JSON.parse(localStorage.getItem('akka_cart') || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function renderCheckout() {
+      const cart = getCart();
+      if (cart.length === 0) {
+        window.location.href = '{% url "core:cart" %}';
+        return;
+      }
+
+      const container = document.getElementById('checkout-items');
+      const totalSpan = document.getElementById('checkout-total');
+
+      let total = 0;
+      container.innerHTML = cart.map(item => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        
+        return `
+          <div style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
+            <div>
+              <div style="font-weight: 600;">${escapeHtml(item.name)}</div>
+              <div class="muted" style="font-size: 0.85rem;">R$ ${item.price.toFixed(2)} × ${item.quantity}</div>
+            </div>
+            <div style="font-weight: 600; color: var(--accent);">
+              R$ ${itemTotal.toFixed(2)}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      totalSpan.textContent = total.toFixed(2);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function showStatus(message, isError = false) {
+      const statusDiv = document.getElementById('payment-status');
+      statusDiv.style.display = 'block';
+      statusDiv.style.background = isError ? 'rgba(255, 75, 75, 0.2)' : 'rgba(123, 255, 176, 0.2)';
+      statusDiv.style.color = isError ? '#ff7b7b' : '#7bffb0';
+      statusDiv.textContent = message;
+    }
+
+    async function processPayment() {
+      const cart = getCart();
+      if (cart.length === 0) {
+        showStatus('{% trans "Cart is empty" %}', true);
+        return;
+      }
+
+      const gateway = document.querySelector('input[name="gateway"]:checked')?.value;
+      if (!gateway) {
+        showStatus('{% trans "Please select a payment method" %}', true);
+        return;
+      }
+
+      const payButton = document.getElementById('pay-button');
+      const originalText = payButton.textContent;
+      payButton.disabled = true;
+      payButton.textContent = '{% trans "Processing..." %}';
+
+      try {
+        // Convert cart items to API format
+        const items = cart.map(item => ({
+          type: item.type || 'svg',
+          id: item.id,
+          quantity: item.quantity
+        }));
+
+        const response = await fetch('{% url "payment:create_payment" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+            gateway: gateway,
+            items: items,
+            currency: 'BRL'
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === 'success') {
+          showStatus('{% trans "Payment created successfully!" %}');
+          
+          // Clear cart
+          localStorage.removeItem('akka_cart');
+          
+          // Show payment details
+          setTimeout(() => {
+            alert(`{% trans "Payment ID" %}: ${data.payment.transaction_id}\n{% trans "Amount" %}: R$ ${data.payment.amount}\n\n{% trans "Please complete the payment through your selected gateway." %}`);
+            window.location.href = '{% url "core:home" %}';
+          }, 1000);
+        } else {
+          showStatus(`{% trans "Error" %}: ${data.error || 'Unknown error'}`, true);
+          payButton.disabled = false;
+          payButton.textContent = originalText;
+        }
+      } catch (error) {
+        console.error('Payment error:', error);
+        showStatus(`{% trans "Error processing payment" %}: ${error.message}`, true);
+        payButton.disabled = false;
+        payButton.textContent = originalText;
+      }
+    }
+
+    // Highlight selected payment method
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCheckout();
+      
+      const radios = document.querySelectorAll('input[name="gateway"]');
+      radios.forEach(radio => {
+        radio.addEventListener('change', () => {
+          document.querySelectorAll('label').forEach(label => {
+            label.style.borderColor = 'var(--border)';
+            label.style.background = 'transparent';
+          });
+          radio.closest('label').style.borderColor = 'var(--accent)';
+          radio.closest('label').style.background = 'rgba(116, 96, 243, 0.1)';
+        });
+      });
+      
+      // Trigger initial selection
+      document.querySelector('input[name="gateway"]:checked')?.dispatchEvent(new Event('change'));
+    });
+  </script>
+{% endblock %}

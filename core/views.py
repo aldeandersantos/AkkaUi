@@ -2,6 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 import json
 from django.core.exceptions import RequestDataTooBig
 from usuario.views.views_usuario import admin_required
@@ -232,6 +233,7 @@ def admin_create_svg(request):
         category = payload.get("category", "")
         is_public = payload.get("is_public", False)
         license_required = payload.get("license_required", False)
+        price = payload.get("price", "0")
 
     # form-data / urlencoded
     elif ctype.startswith("application/x-www-form-urlencoded") or ctype.startswith("multipart/form-data"):
@@ -242,12 +244,22 @@ def admin_create_svg(request):
         category = request.POST.get("category", "")
         is_public = request.POST.get("is_public") == "on" or request.POST.get("is_public") == "true"
         license_required = request.POST.get("license_required") == "on" or request.POST.get("license_required") == "true"
+        price = request.POST.get("price", "0")
 
     else:
         return HttpResponseBadRequest(json.dumps({"error": "unsupported content-type"}), content_type="application/json")
 
     if not svg_text:
         return HttpResponseBadRequest(json.dumps({"error": "svg_text or content is required"}), content_type="application/json")
+
+    # Parse price to Decimal
+    from decimal import Decimal, InvalidOperation
+    try:
+        price_decimal = Decimal(str(price)) if price else Decimal("0.00")
+        if price_decimal < 0:
+            price_decimal = Decimal("0.00")
+    except (InvalidOperation, ValueError):
+        price_decimal = Decimal("0.00")
 
     thumbnail = request.FILES.get("thumbnail") if request.FILES.get("thumbnail") else None
 
@@ -261,6 +273,7 @@ def admin_create_svg(request):
         is_public=is_public,
         license_required=license_required,
         thumbnail=thumbnail,
+        price=price_decimal,
     )
 
     return JsonResponse({"id": svg_file.pk, "title_name": svg_file.title_name, "success": True})
@@ -308,3 +321,15 @@ def search_svg(request):
         'count': svgfiles.count(),
         'results': serializer.data
     })
+
+
+@login_required
+def cart(request):
+    """Shopping cart page"""
+    return render(request, "core/cart.html")
+
+
+@login_required
+def checkout(request):
+    """Checkout page"""
+    return render(request, "core/checkout.html")

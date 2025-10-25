@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 @csrf_exempt
 @login_required
 def create_payment(request):
-    """Cria um novo pagamento"""
+    """Cria um novo pagamento (suporta plano único ou carrinho com múltiplos itens)"""
     if request.method != "POST":
         return JsonResponse({"error": "invalid_method"}, status=405)
     
@@ -23,12 +23,10 @@ def create_payment(request):
     
     gateway = data.get("gateway")
     plan = data.get("plan")
+    items = data.get("items")
     
     if not gateway:
         return JsonResponse({"error": "missing_gateway"}, status=400)
-    
-    if not plan:
-        return JsonResponse({"error": "missing_plan"}, status=400)
     
     # Validar gateway suportado
     if gateway not in PaymentService.GATEWAY_MAP:
@@ -36,19 +34,48 @@ def create_payment(request):
             "error": "unsupported_gateway"
         }, status=400)
     
-    # Validar plano
-    if plan not in PaymentService.PLAN_PRICES:
-        return JsonResponse({
-            "error": "invalid_plan"
-        }, status=400)
-    
     try:
-        payment = PaymentService.create_payment(
-            user=request.user,
-            gateway_name=gateway,
-            plan=plan,
-            currency=data.get("currency", "BRL")
-        )
+        # Se 'items' está presente, usar API de carrinho
+        if items:
+            if not isinstance(items, list) or len(items) == 0:
+                return JsonResponse({"error": "items_must_be_non_empty_list"}, status=400)
+            
+            payment = PaymentService.create_payment_with_items(
+                user=request.user,
+                gateway_name=gateway,
+                items=items,
+                currency=data.get("currency", "BRL")
+            )
+        else:
+            # Modo legado: pagamento de plano único
+            if not plan:
+                return JsonResponse({"error": "missing_plan"}, status=400)
+            
+            if plan not in PaymentService.PLAN_PRICES:
+                return JsonResponse({
+                    "error": "invalid_plan"
+                }, status=400)
+            
+            payment = PaymentService.create_payment(
+                user=request.user,
+                gateway_name=gateway,
+                plan=plan,
+                currency=data.get("currency", "BRL")
+            )
+        
+        # Incluir itens na resposta se existirem
+        payment_items = []
+        if hasattr(payment, 'items'):
+            payment_items = [
+                {
+                    "type": item.item_type,
+                    "name": item.item_name,
+                    "quantity": item.quantity,
+                    "unit_price": str(item.unit_price),
+                    "total_price": str(item.total_price),
+                }
+                for item in payment.items.all()
+            ]
         
         return JsonResponse({
             "status": "success",
@@ -61,6 +88,7 @@ def create_payment(request):
                 "status": payment.status,
                 "gateway_payment_id": payment.gateway_payment_id,
                 "gateway_response": payment.gateway_response,
+                "items": payment_items,
                 "created_at": payment.created_at.isoformat(),
             }
         })
@@ -184,7 +212,7 @@ def simulate_payment_view(request):
 @login_required
 def list_user_payments(request):
     """Lista todos os pagamentos do usuário"""
-    payments = Payment.objects.filter(user=request.user).order_by('-created_at')[:20]
+    payments = Payment.objects.filter(user=request.user).prefetch_related('items').order_by('-created_at')[:20]
     
     return JsonResponse({
         "status": "success",
@@ -196,6 +224,16 @@ def list_user_payments(request):
                 "amount": str(p.amount),
                 "currency": p.currency,
                 "status": p.status,
+                "items": [
+                    {
+                        "type": item.item_type,
+                        "name": item.item_name,
+                        "quantity": item.quantity,
+                        "unit_price": str(item.unit_price),
+                        "total_price": str(item.total_price),
+                    }
+                    for item in p.items.all()
+                ],
                 "created_at": p.created_at.isoformat(),
                 "completed_at": p.completed_at.isoformat() if p.completed_at else None,
             }

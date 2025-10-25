@@ -68,9 +68,9 @@ def abacatepay_webhook(request):
                 logger.info(f"VIP ativado para usuário {payment.user.username} via webhook AbacatePay")
                 # Determina se é mensal ou anual e reaplica VIP usando função reutilizável
                 try:
-                    if plan == 'Pro Mensal':
+                    if plan == 'pro_month':
                         success, msg = add_vip_to_user_by_hash(payment.user.hash_id, addition_type='month')
-                    elif plan == 'Pro Anual':
+                    elif plan == 'pro_year':
                         success, msg = add_vip_to_user_by_hash(payment.user.hash_id, addition_type='year')
                     else:
                         success, msg = False, 'Plano não mapeado para VIP automático.'

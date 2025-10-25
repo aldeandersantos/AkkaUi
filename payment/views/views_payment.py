@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from ..models import Payment
 from ..services.payment_service import PaymentService
+from message.views import notify_discord
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ def create_payment(request):
             plan=plan,
             currency=data.get("currency", "BRL")
         )
-        
+        notify_discord(request.user, "generated_buy", payment.amount, "created")
         return JsonResponse({
             "status": "success",
             "payment": {

@@ -7,6 +7,7 @@ from ..gateways import PaymentGateway
 from ..gateways.abacate_gateway import AbacatePayGateway
 from ..gateways.mercadopago_gateway import MercadoPagoGateway
 from ..gateways.paypal_gateway import PayPalGateway
+from message.views import notify_discord
 
 logger = logging.getLogger(__name__)
 
@@ -148,6 +149,7 @@ class PaymentService:
             
             # Se foi completado agora, registrar timestamp
             if payment.status == 'completed' and old_status != 'completed':
+                notify_discord(payment.user.username, "confirmed_payment", payment.amount, payment.status)
                 payment.completed_at = timezone.now()
                 cls._apply_vip_to_user(payment)
             

@@ -8,6 +8,7 @@ from django.core import signing
 from django.core.signing import BadSignature, SignatureExpired
 from django.views.decorators.csrf import csrf_exempt
 from core.utils.date_utils import datefield_now, one_month_more, one_year_more
+from message.views import notify_discord
 
 
 
@@ -36,15 +37,17 @@ def add_vip_to_user_by_hash(hash_id: str, addition_type: str = "month"):
 
     user.is_vip = True
     expiration_date = user.vip_expiration if user.vip_expiration else datefield_now()
-
+    username = user.username
     if addition_type == "year":
         new_expiration_date = one_year_more(expiration_date)
+        notify_discord(username, "vip", 12, "added")
     else:
         new_expiration_date = one_month_more(expiration_date)
+        notify_discord(username, "vip", 1, "added")
 
     user.vip_expiration = new_expiration_date
     user.save()
-    return True, f"VIP status added to {user.username} until {new_expiration_date}."
+    return True, f"VIP status added to {username} until {new_expiration_date}."
 
 def vip_status_all(request):
     users = CustomUser.objects.filter(is_vip=True)

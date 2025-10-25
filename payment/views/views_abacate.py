@@ -81,7 +81,7 @@ def simulate_confirmation(request):
         try:
             result = client.pixQrCode.simulate(id=payment_id)
             gateway_response = norm_response(result)
-            notify_discord(payment_id, status, gateway_response)
+            notify_discord(payment_id, "confirmed_payment", gateway_response.get("amount", 0), status)
             return JsonResponse({"status": status, "gateway_response": gateway_response})
         except Exception as exc:
             msg = str(exc)

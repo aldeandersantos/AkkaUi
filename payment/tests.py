@@ -170,9 +170,10 @@ class PurchasedSvgsViewTests(TestCase):
 		"""Testa criação de compra via API"""
 		self.client.login(username='testuser', password='test123')
 		
+		import json
 		response = self.client.post(
 			reverse('payment:create_purchase'),
-			data={'svg_id': self.svg1.id, 'price': 10.00, 'payment_method': 'PIX'},
+			data=json.dumps({'svg_id': self.svg1.id, 'price': 10.00, 'payment_method': 'PIX'}),
 			content_type='application/json'
 		)
 		self.assertEqual(response.status_code, 201)
@@ -192,12 +193,12 @@ class PurchasedSvgsViewTests(TestCase):
 		)
 		
 		# Tentar comprar novamente
+		import json
 		response = self.client.post(
 			reverse('payment:create_purchase'),
-			data={'svg_id': self.svg1.id, 'price': 10.00},
+			data=json.dumps({'svg_id': self.svg1.id, 'price': 10.00}),
 			content_type='application/json'
 		)
 		self.assertEqual(response.status_code, 409)
-		import json
 		data = json.loads(response.content)
 		self.assertIn('duplicate_purchase', data.get('error', ''))

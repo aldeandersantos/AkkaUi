@@ -14,7 +14,6 @@ def home(request):
     Home page with introduction to AkkaUi.
     """
     svgfiles = SvgFile.objects.filter(is_public=True).order_by("-uploaded_at")
-    for svg in svgfiles:
     return render(request, "core/home.html", {"svgfiles": svgfiles})
 
 def explore(request):

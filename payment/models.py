@@ -27,7 +27,7 @@ class Payment(models.Model):
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='payments')
     gateway = models.CharField(max_length=20, choices=GATEWAY_CHOICES)
-    plan = models.CharField(max_length=30, choices=PLAN_CHOICES)
+    plan = models.CharField(max_length=30, choices=PLAN_CHOICES, blank=True, null=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='BRL')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
@@ -57,3 +57,34 @@ class Payment(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Pagamento'
         verbose_name_plural = 'Pagamentos'
+
+
+class PaymentItem(models.Model):
+    ITEM_TYPE_CHOICES = [
+        ('plan', 'Plano'),
+        ('svg', 'Arquivo SVG'),
+    ]
+    
+    payment = models.ForeignKey(Payment, on_delete=models.CASCADE, related_name='items')
+    item_type = models.CharField(max_length=10, choices=ITEM_TYPE_CHOICES)
+    item_id = models.IntegerField(help_text="ID do item (plan_id ou svg_id)")
+    quantity = models.PositiveIntegerField(default=1)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    # Metadados do item
+    item_name = models.CharField(max_length=255)
+    item_metadata = models.JSONField(blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        self.total_price = self.unit_price * self.quantity
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.item_name} x{self.quantity} - {self.total_price}"
+    
+    class Meta:
+        verbose_name = 'Item de Pagamento'
+        verbose_name_plural = 'Itens de Pagamento'

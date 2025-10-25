@@ -22,6 +22,7 @@ class SvgFile(models.Model):
     )
     is_public = models.BooleanField(default=False)
     license_required = models.BooleanField(default=False)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Preço para venda do SVG (0 = gratuito)")
     hash_value = models.CharField(max_length=64, unique=True, blank=True)
 
     def __str__(self):

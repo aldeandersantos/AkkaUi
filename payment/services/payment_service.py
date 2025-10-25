@@ -1,5 +1,6 @@
 import logging
 from typing import Dict, Any, Optional, List
+from decimal import Decimal
 from django.utils import timezone
 from django.db import transaction
 from core.utils.date_utils import datefield_now, one_month_more, one_year_more
@@ -218,7 +219,7 @@ class PaymentService:
         if not items:
             raise ValueError("Lista de itens não pode estar vazia")
         
-        total_amount = 0
+        total_amount = Decimal('0.00')
         processed_items = []
         
         # Processar cada item e calcular o total
@@ -229,7 +230,7 @@ class PaymentService:
             
             if item_type == 'plan':
                 # Item de plano
-                price = cls.get_plan_price(item_id)
+                price = Decimal(str(cls.get_plan_price(item_id)))
                 processed_items.append({
                     'type': 'plan',
                     'id': 0,  # plans não têm ID numérico

@@ -36,7 +36,7 @@ def create_payment(request):
     
     try:
         # Se 'items' está presente, usar API de carrinho
-        if items:
+        if items is not None:
             if not isinstance(items, list) or len(items) == 0:
                 return JsonResponse({"error": "items_must_be_non_empty_list"}, status=400)
             

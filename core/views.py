@@ -14,6 +14,14 @@ def home(request):
     Home page with introduction to AkkaUi.
     """
     svgfiles = SvgFile.objects.filter(is_public=True).order_by("-uploaded_at")
+    
+    # Adiciona informação sobre compras para usuários autenticados
+    if request.user.is_authenticated:
+        from payment.models import Purchase
+        purchased_ids = set(Purchase.objects.filter(user=request.user).values_list('svg_id', flat=True))
+        for svg in svgfiles:
+            svg.purchased_by_user = svg.id in purchased_ids or request.user.is_vip
+    
     return render(request, "core/home.html", {"svgfiles": svgfiles})
 
 def explore(request):
@@ -44,6 +52,13 @@ def explore(request):
         svgfiles = svgfiles.order_by(sort_by)
     else:
         svgfiles = svgfiles.order_by('-uploaded_at')
+    
+    # Adiciona informação sobre compras para usuários autenticados
+    if request.user.is_authenticated:
+        from payment.models import Purchase
+        purchased_ids = set(Purchase.objects.filter(user=request.user).values_list('svg_id', flat=True))
+        for svg in svgfiles:
+            svg.purchased_by_user = svg.id in purchased_ids or request.user.is_vip
     
     # Obter categorias e tags únicas para os filtros
     all_categories = SvgFile.objects.filter(is_public=True).exclude(category='').values_list('category', flat=True).distinct()

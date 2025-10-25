@@ -42,9 +42,18 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   </div>
 
   {# Informações do card #}
-  <h3 class="card-title" title="{{ item.title_name|default:item.filename }}">
-    {{ item.title_name|default:item.filename|default:"SVG sem nome" }}
-  </h3>
+  <div style="position: relative;">
+    <h3 class="card-title" title="{{ item.title_name|default:item.filename }}">
+      {{ item.title_name|default:item.filename|default:"SVG sem nome" }}
+    </h3>
+    
+    {# Badge de comprado #}
+    {% if item.purchased_by_user or purchased %}
+      <span style="position: absolute; top: -8px; right: 0; background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">
+        ✓ Comprado
+      </span>
+    {% endif %}
+  </div>
   
   {% if item.description %}
     <p class="card-description" title="{{ item.description }}">
@@ -140,11 +149,14 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
           btn.textContent = originalText;
         });
       "
-      class="btn btn-secondary"
+      class="btn {% if item.purchased_by_user or purchased %}btn-primary{% else %}btn-secondary{% endif %}"
       type="button"
       aria-label="Copiar SVG {{ item.title_name|default:item.filename }}"
+      {% if item.purchased_by_user or purchased %}
+        title="Você já comprou este SVG"
+      {% endif %}
     >
-      📋 Copiar
+      📋 Copiar{% if item.purchased_by_user or purchased %} (Comprado){% endif %}
     </button>
   </div>
 

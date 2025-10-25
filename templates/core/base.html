@@ -36,6 +36,7 @@
             <a href="{% url 'core:admin_svg' %}" {% if 'manage/svg' in request.path %}class="active"{% endif %}>Gerenciar SVG</a>
           {% endif %}
           {% if user.is_authenticated %}
+            <a href="{% url 'payment:purchased_svgs' %}" {% if 'meus-svgs' in request.path %}class="active"{% endif %} class="mobile-only">Meus SVGs</a>
             <a href="{% url 'usuario:profile' %}" class="mobile-only">Perfil</a>
             <a href="{% url 'usuario:signout' %}" class="mobile-only">Sair</a>
           {% else %}
@@ -45,6 +46,7 @@
         </nav>
         <div class="auth-buttons">
           {% if user.is_authenticated %}
+            <a href="{% url 'payment:purchased_svgs' %}" class="btn btn-accent" {% if 'meus-svgs' in request.path %}style="background: var(--accent-dark);"{% endif %}>Meus SVGs</a>
             <a href="{% url 'usuario:profile' %}" class="btn btn-secondary">{{ user.username }}</a>
             <a href="{% url 'usuario:signout' %}" class="btn btn-outline">Sair</a>
           {% else %}

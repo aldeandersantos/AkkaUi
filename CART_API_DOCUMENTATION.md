@@ -47,6 +47,8 @@ Cria um novo pagamento. Suporta dois modos:
 }
 ```
 
+**Nota:** No modo legado, o campo `items` é uma lista vazia, pois o item é representado diretamente no campo `plan`.
+
 #### Modo Carrinho (Múltiplos Itens)
 
 **Request:**
@@ -103,6 +105,8 @@ Cria um novo pagamento. Suporta dois modos:
 }
 ```
 
+**Nota:** No modo carrinho, `plan` é `null` indicando que é um pagamento baseado em carrinho com múltiplos itens. Os detalhes de cada item estão no array `items`.
+
 ## Estrutura de Items
 
 Cada item no carrinho deve ter:
@@ -110,8 +114,12 @@ Cada item no carrinho deve ter:
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `type` | string | Tipo do item: `"plan"` ou `"svg"` |
-| `id` | int/string | ID do item (ID numérico para SVG, nome do plano para plan) |
-| `quantity` | int | Quantidade (opcional, padrão: 1) |
+| `id` | int ou string | Para SVG: ID numérico (ex: `123`). Para plan: string com nome (ex: `"pro_month"`) |
+| `quantity` | int | Quantidade (opcional, padrão: 1). Para planos, sempre será 1 independente do valor enviado |
+
+**Importante:** O tipo do campo `id` varia conforme o tipo do item:
+- SVG: integer (ex: `1`, `42`, `123`)
+- Plan: string (ex: `"pro_month"`, `"pro_year"`)
 
 ### Tipos de Item
 
@@ -119,16 +127,17 @@ Cada item no carrinho deve ter:
 ```json
 {"type": "svg", "id": 123, "quantity": 2}
 ```
-- `id`: ID do SvgFile no banco de dados
+- `id`: **Integer** - ID do SvgFile no banco de dados
 - O SVG deve ter `price > 0` para ser vendável
 - O preço é obtido do campo `price` do modelo SvgFile
+- Quantity pode ser qualquer valor positivo
 
 #### Plano
 ```json
 {"type": "plan", "id": "pro_month", "quantity": 1}
 ```
-- `id`: Nome do plano (pro_month, pro_year, enterprise_month, enterprise_year)
-- Quantidade sempre será 1 para planos
+- `id`: **String** - Nome do plano (pro_month, pro_year, enterprise_month, enterprise_year)
+- **Quantidade sempre será 1 para planos** (valor enviado é ignorado)
 - Preço é obtido da configuração `PaymentService.PLAN_PRICES`
 
 ## Validações
@@ -139,6 +148,7 @@ O sistema valida:
 - ✓ SVG existe no banco de dados
 - ✓ SVG tem preço > 0 (vendável)
 - ✓ Plano é válido
+- ✓ **Para planos: quantidade é sempre fixada em 1** (não é possível comprar múltiplos planos na mesma transação)
 
 ## Erros
 

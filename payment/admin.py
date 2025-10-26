@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Payment, PaymentItem
+from .models import Payment, PaymentItem, Purchase
 
 
 class PaymentItemInline(admin.TabularInline):
@@ -43,3 +43,21 @@ class PaymentItemAdmin(admin.ModelAdmin):
     search_fields = ('item_name', 'payment__transaction_id')
     readonly_fields = ('total_price', 'created_at')
     ordering = ('-created_at',)
+
+
+@admin.register(Purchase)
+class PurchaseAdmin(admin.ModelAdmin):
+    list_display = ('user', 'svg', 'price', 'payment_method', 'purchased_at')
+    list_filter = ('payment_method', 'purchased_at')
+    search_fields = ('user__username', 'user__email', 'svg__title_name')
+    readonly_fields = ('purchased_at',)
+    ordering = ('-purchased_at',)
+    
+    fieldsets = (
+        ('Informações da Compra', {
+            'fields': ('user', 'svg', 'price', 'payment_method')
+        }),
+        ('Timestamp', {
+            'fields': ('purchased_at',)
+        }),
+    )

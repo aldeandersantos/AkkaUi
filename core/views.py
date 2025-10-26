@@ -16,12 +16,12 @@ def home(request):
     """
     svgfiles = SvgFile.objects.filter(is_public=True).order_by("-uploaded_at")
     
-    # Adicionar informação se o usuário comprou cada SVG
+    # Adicionar informação de acesso para cada SVG
     if request.user.is_authenticated:
-        from payment.models import Purchase
-        purchased_svg_ids = set(Purchase.objects.filter(user=request.user).values_list('svg_id', flat=True))
         for svg in svgfiles:
-            svg.purchased_by_user = svg.id in purchased_svg_ids or request.user.is_vip
+            access_type = svg.user_access_type(request.user)
+            svg.purchased_by_user = access_type == 'owned'
+            svg.vip_access = access_type == 'vip'
     
     return render(request, "core/home.html", {"svgfiles": svgfiles})
 
@@ -68,12 +68,12 @@ def explore(request):
                     all_tags.add(tag_clean)
     all_tags = sorted(all_tags)
     
-    # Adicionar informação se o usuário comprou cada SVG
+    # Adicionar informação de acesso para cada SVG
     if request.user.is_authenticated:
-        from payment.models import Purchase
-        purchased_svg_ids = set(Purchase.objects.filter(user=request.user).values_list('svg_id', flat=True))
         for svg in svgfiles:
-            svg.purchased_by_user = svg.id in purchased_svg_ids or request.user.is_vip
+            access_type = svg.user_access_type(request.user)
+            svg.purchased_by_user = access_type == 'owned'
+            svg.vip_access = access_type == 'vip'
     
     context = {
         'svgfiles': svgfiles,
@@ -348,3 +348,38 @@ def cart(request):
 def checkout(request):
     """Checkout page"""
     return render(request, "core/checkout.html")
+
+
+@login_required
+def minha_biblioteca(request):
+    """
+    Página da biblioteca do usuário - mostra SVGs que o usuário comprou
+    e SVGs aos quais tem acesso por ser VIP.
+    """
+    user = request.user
+    
+    # Obter todos os SVGs públicos
+    all_svgs = SvgFile.objects.filter(is_public=True).order_by("-uploaded_at")
+    
+    # Organizar SVGs por tipo de acesso
+    owned_svgs = []
+    vip_svgs = []
+    free_svgs = []
+    
+    for svg in all_svgs:
+        access_type = svg.user_access_type(user)
+        if access_type == 'owned':
+            owned_svgs.append(svg)
+        elif access_type == 'vip':
+            vip_svgs.append(svg)
+        elif access_type == 'free':
+            free_svgs.append(svg)
+    
+    context = {
+        'owned_svgs': owned_svgs,
+        'vip_svgs': vip_svgs,
+        'free_svgs': free_svgs,
+        'is_vip': hasattr(user, 'is_vip') and user.is_vip,
+    }
+    
+    return render(request, "core/minha_biblioteca.html", context)

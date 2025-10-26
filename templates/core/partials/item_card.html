@@ -47,10 +47,14 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       {{ item.title_name|default:item.filename|default:"SVG sem nome" }}
     </h3>
     
-    {# Badge de comprado #}
-    {% if item.purchased_by_user or purchased %}
+    {# Badge de comprado ou acesso VIP #}
+    {% if vip_access %}
+      <span style="position: absolute; top: -8px; right: 0; background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">
+        👑 Acesso VIP
+      </span>
+    {% elif item.purchased_by_user or purchased %}
       <span style="position: absolute; top: -8px; right: 0; background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: bold;">
-        ✓ Comprado
+        ✅ Comprado
       </span>
     {% endif %}
   </div>
@@ -88,8 +92,8 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       👁️ Visualizar
     </button>
     
-    {% if item.purchased_by_user or purchased %}
-      {# Botão Copiar - para SVGs já comprados #}
+    {% if item.purchased_by_user or purchased or vip_access %}
+      {# Botão Copiar - para SVGs já comprados ou com acesso VIP #}
       <button
         onclick="
           const btn = this;
@@ -162,9 +166,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         class="btn btn-primary"
         type="button"
         aria-label="Copiar SVG {{ item.title_name|default:item.filename }}"
-        title="Você já comprou este SVG"
+        title="{% if vip_access %}Acesso VIP{% else %}Você já comprou este SVG{% endif %}"
       >
-        📋 Copiar (Comprado)
+        {% if vip_access %}👑 Copiar (VIP){% else %}📋 Copiar (Comprado){% endif %}
       </button>
     {% elif item.price and item.price > 0 %}
       {# Botão Adicionar ao Carrinho - para SVGs pagos #}

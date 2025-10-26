@@ -35,6 +35,7 @@
           <a href="{% url 'core:pricing' %}" {% if 'pricing' in request.path %}class="active"{% endif %}>{% trans "Pricing" %}</a>
           <a href="{% url 'core:faq' %}" {% if 'faq' in request.path %}class="active"{% endif %}>FAQ</a>
           {% if user.is_authenticated %}
+            <a href="{% url 'core:minha_biblioteca' %}" {% if 'minha-biblioteca' in request.path %}class="active"{% endif %}>📚 {% trans "Library" %}</a>
             <a href="{% url 'core:cart' %}" {% if 'cart' in request.path %}class="active"{% endif %}>🛒 {% trans "Cart" %}</a>
           {% endif %}
           {% if user.is_authenticated and user.admin %}

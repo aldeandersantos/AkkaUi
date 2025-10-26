@@ -65,22 +65,7 @@ def abacatepay_webhook(request):
             logger.info(f"Pagamento {payment_id} atualizado: {old_status} -> {payment.status}")
 
             if payment.status == 'completed' and old_status != 'completed':
-                logger.info(f"VIP ativado para usuário {payment.user.username} via webhook AbacatePay")
-                # Determina se é mensal ou anual e reaplica VIP usando função reutilizável
-                try:
-                    if plan == 'pro_month':
-                        success, msg = add_vip_to_user_by_hash(payment.user.hash_id, addition_type='month')
-                    elif plan == 'pro_year':
-                        success, msg = add_vip_to_user_by_hash(payment.user.hash_id, addition_type='year')
-                    else:
-                        success, msg = False, 'Plano não mapeado para VIP automático.'
-
-                    if success:
-                        logger.info(f"VIP atualizado para {payment.user.username}: {msg}")
-                    else:
-                        logger.warning(f"Não foi possível ativar VIP para {payment.user.username}: {msg}")
-                except Exception as e:
-                    logger.error(f"Erro ao ativar VIP via webhook para {payment.user.username}: {e}", exc_info=True)
+                logger.info(f"Pagamento {payment_id} completado — VIP aplicado por PaymentService para usuário {payment.user.username}")
         else:
             # Para outros status, apenas atualizar
             payment.gateway_response = data

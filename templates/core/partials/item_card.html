@@ -56,6 +56,17 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
     </p>
   {% endif %}
 
+  {# Price display #}
+  {% if item.price and item.price > 0 %}
+    <div style="margin: 0.5rem 0; padding: 0.5rem; background: rgba(116, 96, 243, 0.1); border-radius: 6px; text-align: center;">
+      <span style="font-size: 1.2rem; font-weight: 700; color: var(--accent);">R$ {{ item.price }}</span>
+    </div>
+  {% else %}
+    <div style="margin: 0.5rem 0; padding: 0.5rem; text-align: center;">
+      <span style="font-size: 0.9rem; color: #7bffb0; font-weight: 600;">✓ Gratuito</span>
+    </div>
+  {% endif %}
+
   {# Ações #}
   <div class="card-actions">
     {# Botão Visualizar - abre modal com Alpine.js #}
@@ -68,84 +79,96 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       👁️ Visualizar
     </button>
     
-    {# Botão Copiar - usa fetch com fallback para clipboard #}
-    <button
-      onclick="
-        const btn = this;
-        const originalText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = 'Copiando...';
-        
-        // Função para copiar com fallback
-        function copyToClipboard(text) {
-          // Tentar usar a Clipboard API moderna
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            return navigator.clipboard.writeText(text);
+    {% if item.price and item.price > 0 %}
+      {# Botão Adicionar ao Carrinho - para SVGs pagos #}
+      <button
+        onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price }})"
+        class="btn btn-primary"
+        type="button"
+        aria-label="Adicionar {{ item.title_name|default:item.filename }} ao carrinho"
+      >
+        🛒 Adicionar
+      </button>
+    {% else %}
+      {# Botão Copiar - para SVGs gratuitos #}
+      <button
+        onclick="
+          const btn = this;
+          const originalText = btn.textContent;
+          btn.disabled = true;
+          btn.textContent = 'Copiando...';
+          
+          // Função para copiar com fallback
+          function copyToClipboard(text) {
+            // Tentar usar a Clipboard API moderna
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              return navigator.clipboard.writeText(text);
+            }
+            
+            // Fallback para navegadores mais antigos ou HTTP
+            return new Promise((resolve, reject) => {
+              const textarea = document.createElement('textarea');
+              textarea.value = text;
+              textarea.style.position = 'fixed';
+              textarea.style.left = '-999999px';
+              textarea.style.top = '-999999px';
+              document.body.appendChild(textarea);
+              textarea.focus();
+              textarea.select();
+              
+              try {
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                if (successful) {
+                  resolve();
+                } else {
+                  reject(new Error('execCommand falhou'));
+                }
+              } catch (err) {
+                document.body.removeChild(textarea);
+                reject(err);
+              }
+            });
           }
           
-          // Fallback para navegadores mais antigos ou HTTP
-          return new Promise((resolve, reject) => {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.left = '-999999px';
-            textarea.style.top = '-999999px';
-            document.body.appendChild(textarea);
-            textarea.focus();
-            textarea.select();
-            
-            try {
-              const successful = document.execCommand('copy');
-              document.body.removeChild(textarea);
-              if (successful) {
-                resolve();
-              } else {
-                reject(new Error('execCommand falhou'));
-              }
-            } catch (err) {
-              document.body.removeChild(textarea);
-              reject(err);
+          fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Erro HTTP: ' + response.status);
             }
-          });
-        }
-        
-        fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', {
-          method: 'GET',
-          headers: { 'Accept': 'application/json' }
-        })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Erro HTTP: ' + response.status);
-          }
-          return response.json();
-        })
-        .then(data => {
-          if (data.svg_text) {
-            return copyToClipboard(data.svg_text);
-          } else {
-            throw new Error('SVG não encontrado na resposta');
-          }
-        })
-        .then(() => {
-          btn.textContent = '✓ Copiado!';
-          setTimeout(() => {
+            return response.json();
+          })
+          .then(data => {
+            if (data.svg_text) {
+              return copyToClipboard(data.svg_text);
+            } else {
+              throw new Error('SVG não encontrado na resposta');
+            }
+          })
+          .then(() => {
+            btn.textContent = '✓ Copiado!';
+            setTimeout(() => {
+              btn.disabled = false;
+              btn.textContent = originalText;
+            }, 2000);
+          })
+          .catch(error => {
+            console.error('Erro ao copiar:', error);
+            alert('Erro ao copiar SVG: ' + error.message);
             btn.disabled = false;
             btn.textContent = originalText;
-          }, 2000);
-        })
-        .catch(error => {
-          console.error('Erro ao copiar:', error);
-          alert('Erro ao copiar SVG: ' + error.message);
-          btn.disabled = false;
-          btn.textContent = originalText;
-        });
-      "
-      class="btn btn-secondary"
-      type="button"
-      aria-label="Copiar SVG {{ item.title_name|default:item.filename }}"
-    >
-      📋 Copiar
-    </button>
+          });
+        "
+        class="btn btn-secondary"
+        type="button"
+        aria-label="Copiar SVG {{ item.title_name|default:item.filename }}"
+      >
+        📋 Copiar
+      </button>
+    {% endif %}
   </div>
 
   {# Modal de Preview - Alpine.js #}

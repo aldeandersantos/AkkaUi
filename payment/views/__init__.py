@@ -1,16 +1,24 @@
 import json
+import logging
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import JsonResponse
-from abacatepay import AbacatePay
-from .services.services_abacate import *
+from ..services.services_abacate import *
+
+logger = logging.getLogger(__name__)
+
+try:
+    from abacatepay import AbacatePay
+except ImportError:
+    AbacatePay = None
+
 
 
 ABACATE_API_TEST_KEY: str = getattr(settings, "ABACATE_API_TEST_KEY", "")
 
 
-client = AbacatePay(api_key=ABACATE_API_TEST_KEY) if AbacatePay is not None else None
+client = AbacatePay(api_key=ABACATE_API_TEST_KEY) if AbacatePay is not None and ABACATE_API_TEST_KEY else None
 
 
 def abacate_status(request):
@@ -48,7 +56,8 @@ def simulate_sale(request):
             gateway_response = norm_response(result)
             return JsonResponse({"status": "created", "gateway_response": gateway_response})
         except Exception as exc:
-            return JsonResponse({"status": "error", "detail": str(exc)}, status=502)
+            logger.error(f"Error creating Abacate Pay payment: {exc}")
+            return JsonResponse({"status": "error", "detail": "Payment creation failed"}, status=502)
 
     simulated = {"id": "sim_tx_123", "amount": amount, "currency": currency, "status": "created"}
     return JsonResponse({"status": "created", "gateway_response": simulated})
@@ -78,10 +87,11 @@ def simulate_confirmation(request):
             gateway_response = norm_response(result)
             return JsonResponse({"status": status, "gateway_response": gateway_response})
         except Exception as exc:
+            logger.error(f"Error simulating Abacate Pay payment: {exc}")
             msg = str(exc)
             if "not found" in msg.lower() or "not_found" in msg.lower():
-                return JsonResponse({"error": "payment_not_found", "detail": msg}, status=404)
-            return JsonResponse({"status": "error", "detail": msg}, status=502)
+                return JsonResponse({"error": "payment_not_found"}, status=404)
+            return JsonResponse({"status": "error", "detail": "Payment simulation failed"}, status=502)
 
     simulated_confirmation = {"id": payment_id, "status": status}
     return JsonResponse({"status": status, "gateway_response": simulated_confirmation})

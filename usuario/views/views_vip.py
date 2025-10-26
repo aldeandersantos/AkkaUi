@@ -8,19 +8,46 @@ from django.core import signing
 from django.core.signing import BadSignature, SignatureExpired
 from django.views.decorators.csrf import csrf_exempt
 from core.utils.date_utils import datefield_now, one_month_more, one_year_more
+from message.views import notify_discord
 
 
 
-
+@csrf_exempt
 def vip_status(request):
-    """View to display VIP status information."""
-    #user = request.user
-    user = CustomUser.objects.filter().first()
+    data = json.loads(request.body)
+    hash_id = data.get("hash")
+    user = CustomUser.objects.get(hash_id=hash_id)
     context = {
         'is_vip': user.is_vip,
         'vip_expiration': user.vip_expiration,
     }
     return JsonResponse({'vip_status': context})
+
+
+def add_vip_to_user_by_hash(hash_id: str, addition_type: str = "month"):
+    """Adiciona VIP ao usuário identificado por hash_id.
+
+    Retorna uma tupla (success: bool, message: str).
+    Esta função encapsula a lógica usada por `vip_status_add` para reaproveitamento.
+    """
+    try:
+        user = CustomUser.objects.get(hash_id=hash_id)
+    except CustomUser.DoesNotExist:
+        return False, "User not found"
+
+    user.is_vip = True
+    expiration_date = user.vip_expiration if user.vip_expiration else datefield_now()
+    username = user.username
+    if addition_type == "year":
+        new_expiration_date = one_year_more(expiration_date)
+        notify_discord(username, "vip", 12, "added")
+    else:
+        new_expiration_date = one_month_more(expiration_date)
+        notify_discord(username, "vip", 1, "added")
+
+    user.vip_expiration = new_expiration_date
+    user.save()
+    return True, f"VIP status added to {username} until {new_expiration_date}."
 
 def vip_status_all(request):
     users = CustomUser.objects.filter(is_vip=True)
@@ -90,21 +117,10 @@ def vip_status_add(request):
         if not hash_id:
             return JsonResponse({'status': 'error', 'message': 'hash ausente no corpo da requisição.'}, status=400)
         adition_type = data.get("type", "month")
-        try:
-            user = CustomUser.objects.get(hash_id=hash_id)
-        except CustomUser.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'User not found.'}, status=404)
-        user.is_vip = True
-        if not user.vip_expiration:
-            expiration_date = datefield_now()
-        else:
-            expiration_date = user.vip_expiration
-        if adition_type == "year":
-            new_expiration_date = one_year_more(expiration_date)
-        else:
-            new_expiration_date = one_month_more(expiration_date)
-        user.vip_expiration = new_expiration_date
-        user.save()
-        return JsonResponse({'status': 'success', 'message': f'VIP status added to {user.username} until {new_expiration_date}.'})
+        # Reutiliza a função utilitária para evitar duplicação
+        success, message = add_vip_to_user_by_hash(hash_id, addition_type=adition_type)
+        if not success:
+            return JsonResponse({'status': 'error', 'message': message}, status=404)
+        return JsonResponse({'status': 'success', 'message': message})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

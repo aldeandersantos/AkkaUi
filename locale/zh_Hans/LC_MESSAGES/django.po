@@ -1,0 +1,756 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-24 11:46-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: templates/core/base.html:32 templates/core/home.html:4
+msgid "Home"
+msgstr "首页"
+
+#: templates/core/base.html:33 templates/core/base.html:109
+#: templates/core/explore.html:5
+msgid "Explore"
+msgstr "探索"
+
+#: templates/core/base.html:34 templates/core/base.html:110
+#: templates/core/faq.html:211 templates/core/pricing.html:5
+msgid "Pricing"
+msgstr "定价"
+
+#: templates/core/base.html:37
+msgid "Manage SVG"
+msgstr "管理SVG"
+
+#: templates/core/base.html:40 templates/usuario/profile.html:4
+msgid "Profile"
+msgstr "个人资料"
+
+#: templates/core/base.html:41 templates/core/base.html:50
+#: templates/usuario/profile.html:57
+msgid "Sign Out"
+msgstr "退出"
+
+#: templates/core/base.html:43 templates/core/base.html:52
+#: templates/usuario/signin.html:4 templates/usuario/signin.html:9
+#: templates/usuario/signin.html:53
+msgid "Sign In"
+msgstr "登录"
+
+#: templates/core/base.html:44 templates/core/base.html:53
+msgid "Sign Up"
+msgstr "注册"
+
+#: templates/core/base.html:81
+msgid "Search..."
+msgstr "搜索..."
+
+#: templates/core/base.html:81
+msgid "Search components"
+msgstr "搜索组件"
+
+#: templates/core/base.html:104
+msgid "Your complete catalog of modern and responsive UI design resources."
+msgstr "您完整的现代响应式UI设计资源目录。"
+
+#: templates/core/base.html:107
+msgid "Product"
+msgstr "产品"
+
+#: templates/core/base.html:115
+msgid "Resources"
+msgstr "资源"
+
+#: templates/core/base.html:117
+msgid "Documentation"
+msgstr "文档"
+
+#: templates/core/base.html:118
+msgid "Tutorials"
+msgstr "教程"
+
+#: templates/core/base.html:119
+msgid "Blog"
+msgstr "博客"
+
+#: templates/core/base.html:123
+msgid "Company"
+msgstr "公司"
+
+#: templates/core/base.html:125
+msgid "About"
+msgstr "关于"
+
+#: templates/core/base.html:126
+msgid "Contact"
+msgstr "联系"
+
+#: templates/core/base.html:127
+msgid "Terms"
+msgstr "条款"
+
+#: templates/core/base.html:132
+msgid "All rights reserved."
+msgstr "版权所有。"
+
+#: templates/core/explore.html:11
+msgid "Filters"
+msgstr "筛选"
+
+#: templates/core/explore.html:15 templates/core/explore.html:62
+#, fuzzy
+#| msgid "Search..."
+msgid "Search"
+msgstr "搜索..."
+
+#: templates/core/explore.html:21
+#, fuzzy
+#| msgid "Search..."
+msgid "Search by title..."
+msgstr "搜索..."
+
+#: templates/core/explore.html:23
+msgid "Search SVGs by title"
+msgstr "按标题搜索SVG"
+
+#: templates/core/explore.html:29
+msgid "Category"
+msgstr "类别"
+
+#: templates/core/explore.html:31 templates/core/explore.html:42
+#: templates/core/faq.html:209
+msgid "All"
+msgstr "全部"
+
+#: templates/core/explore.html:40
+msgid "Tag"
+msgstr "标签"
+
+#: templates/core/explore.html:51
+msgid "Sort"
+msgstr "排序"
+
+#: templates/core/explore.html:53
+msgid "Most recent"
+msgstr "最近"
+
+#: templates/core/explore.html:54
+msgid "Oldest"
+msgstr "最旧"
+
+#: templates/core/explore.html:55
+msgid "Name (A-Z)"
+msgstr "名称（A-Z）"
+
+#: templates/core/explore.html:56
+msgid "Name (Z-A)"
+msgstr "名称（Z-A）"
+
+#: templates/core/explore.html:64
+msgid "Clear"
+msgstr "清除"
+
+#: templates/core/explore.html:74
+#, fuzzy
+#| msgid "Explore"
+msgid "Explore SVGs"
+msgstr "探索"
+
+#: templates/core/explore.html:75
+msgid "Discover our collection of SVGs saved in the system"
+msgstr "发现我们保存在系统中的SVG集合"
+
+#: templates/core/explore.html:83
+#, python-format
+msgid "Found %(counter)s result"
+msgid_plural "Found %(counter)s results"
+msgstr[0] ""
+
+#: templates/core/explore.html:85 templates/core/home.html:18
+#, python-format
+msgid "Showing %(counter)s public SVG"
+msgid_plural "Showing %(counter)s public SVGs"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/core/explore.html:96
+msgid "No results found. Try adjusting the filters."
+msgstr "未找到结果。请尝试调整筛选条件。"
+
+#: templates/core/explore.html:100
+msgid "No public SVGs available yet. Upload the first one!"
+msgstr "还没有公共SVG。上传第一个！"
+
+#: templates/core/faq.html:5
+msgid "FAQ"
+msgstr "常见问题"
+
+#: templates/core/faq.html:200
+msgid "Frequently Asked Questions"
+msgstr "常见问题"
+
+#: templates/core/faq.html:201
+msgid "Find answers to the most common questions"
+msgstr "查找最常见问题的答案"
+
+#: templates/core/faq.html:205
+msgid "Search for a question..."
+msgstr "搜索问题..."
+
+#: templates/core/faq.html:210
+msgid "General"
+msgstr "常规"
+
+#: templates/core/faq.html:212
+msgid "Technical"
+msgstr "技术"
+
+#: templates/core/faq.html:213
+msgid "Account"
+msgstr "账户"
+
+#: templates/core/faq.html:217 templates/core/faq.html:227
+#: templates/core/faq.html:310 templates/core/faq.html:345
+msgid "general"
+msgstr "常规"
+
+#: templates/core/faq.html:219
+msgid "What is AkkaUi?"
+msgstr "什么是AkkaUi？"
+
+#: templates/core/faq.html:223
+msgid ""
+"AkkaUi is a modern UI design resources platform that offers components, "
+"templates and tools for developers and designers to create elegant and "
+"functional interfaces. Our library includes hundreds of ready-to-use "
+"components with modern dark theme."
+msgstr ""
+
+#: templates/core/faq.html:229
+msgid "How can I start using AkkaUi?"
+msgstr "如何开始使用AkkaUi？"
+
+#: templates/core/faq.html:233
+#, fuzzy
+#| msgid "Getting Started"
+msgid "Getting started is simple:"
+msgstr "开始使用"
+
+#: templates/core/faq.html:235
+msgid "Create a free account"
+msgstr "创建免费账户"
+
+#: templates/core/faq.html:236
+msgid "Browse our component library"
+msgstr "浏览我们的组件库"
+
+#: templates/core/faq.html:237
+msgid "Choose the components you want to use"
+msgstr "选择您想使用的组件"
+
+#: templates/core/faq.html:238
+msgid "Copy the code and integrate into your project"
+msgstr "复制代码并集成到您的项目中"
+
+#: templates/core/faq.html:243 templates/core/faq.html:253
+#: templates/core/faq.html:325
+#, fuzzy
+#| msgid "Pricing"
+msgid "pricing"
+msgstr "定价"
+
+#: templates/core/faq.html:245
+msgid "Is there a free plan?"
+msgstr "有免费计划吗？"
+
+#: templates/core/faq.html:249
+msgid ""
+"Yes! We offer a free plan that includes access to basic components, up to 5 "
+"projects and email support. It's perfect to start and try our platform "
+"before upgrading to a paid plan."
+msgstr ""
+
+#: templates/core/faq.html:255
+msgid "Can I change plans at any time?"
+msgstr "我可以随时更改计划吗？"
+
+#: templates/core/faq.html:259
+msgid ""
+"Absolutely! You can upgrade or downgrade your plan at any time. When "
+"upgrading, you'll have immediate access to additional features. When "
+"downgrading, changes will take effect in the next billing cycle."
+msgstr ""
+
+#: templates/core/faq.html:263 templates/core/faq.html:280
+#: templates/core/faq.html:290 templates/core/faq.html:335
+msgid "technical"
+msgstr "技术"
+
+#: templates/core/faq.html:265
+msgid "What technologies are supported?"
+msgstr "支持哪些技术？"
+
+#: templates/core/faq.html:269
+msgid "AkkaUi is compatible with major web technologies:"
+msgstr "AkkaUi与主要Web技术兼容："
+
+#: templates/core/faq.html:271
+msgid "Pure HTML5 and CSS3"
+msgstr "纯HTML5和CSS3"
+
+#: templates/core/faq.html:272
+msgid "React, Vue and Angular"
+msgstr "React、Vue和Angular"
+
+#: templates/core/faq.html:273
+msgid "Tailwind CSS and Bootstrap"
+msgstr "Tailwind CSS和Bootstrap"
+
+#: templates/core/faq.html:274
+msgid "Django, Flask and other Python frameworks"
+msgstr "Django、Flask和其他Python框架"
+
+#: templates/core/faq.html:275
+msgid "Node.js and Express"
+msgstr "Node.js和Express"
+
+#: templates/core/faq.html:282
+msgid "Are the components responsive?"
+msgstr "组件是响应式的吗？"
+
+#: templates/core/faq.html:286
+msgid ""
+"Absolutely! All our components are developed with mobile-first design and "
+"are fully responsive. They work perfectly on mobile devices, tablets and "
+"desktops, automatically adapting to screen size."
+msgstr ""
+
+#: templates/core/faq.html:292
+msgid "Can I customize the components?"
+msgstr "我可以自定义组件吗？"
+
+#: templates/core/faq.html:296
+msgid ""
+"Yes! All components are fully customizable. You can modify colors, spacing, "
+"sizes and any other visual aspect through CSS. We also provide CSS variables "
+"to make customization easier at scale."
+msgstr ""
+
+#: templates/core/faq.html:300
+msgid "account"
+msgstr "账户"
+
+#: templates/core/faq.html:302
+msgid "How do I cancel my account?"
+msgstr "如何取消我的账户？"
+
+#: templates/core/faq.html:306
+msgid ""
+"You can cancel your account at any time through account settings. If you "
+"have a paid plan, access to premium features will continue until the end of "
+"the current billing period. Your data will be kept for 30 days in case you "
+"want to reactivate your account."
+msgstr ""
+
+#: templates/core/faq.html:312
+msgid "Do you offer support?"
+msgstr "你们提供支持吗？"
+
+#: templates/core/faq.html:316
+msgid "Yes! We offer different support levels depending on your plan:"
+msgstr "是的！我们根据您的计划提供不同的支持级别："
+
+#: templates/core/faq.html:318 templates/core/pricing.html:244
+msgid "Free"
+msgstr "免费"
+
+#: templates/core/faq.html:318
+msgid "Email support with response within 48h"
+msgstr "48小时内回复的电子邮件支持"
+
+#: templates/core/faq.html:319 templates/core/pricing.html:290
+#, fuzzy
+#| msgid "Profile"
+msgid "Pro"
+msgstr "个人资料"
+
+#: templates/core/faq.html:319
+msgid "Priority support with response within 24h"
+msgstr "24小时内回复的优先支持"
+
+#: templates/core/faq.html:320 templates/core/pricing.html:335
+msgid "Enterprise"
+msgstr "企业版"
+
+#: templates/core/faq.html:320
+msgid "24/7 support with response within 4h"
+msgstr "4小时内回复的24/7支持"
+
+#: templates/core/faq.html:327
+msgid "Is there a discount for annual payment?"
+msgstr "年度付款有折扣吗？"
+
+#: templates/core/faq.html:331
+#, python-format
+msgid ""
+"Yes! When choosing annual payment, you save 20%% compared to monthly "
+"payment. This means you pay for 10 months and get 2 months free."
+msgstr ""
+
+#: templates/core/faq.html:337
+msgid "Do components work in older browsers?"
+msgstr "组件在旧浏览器中有效吗？"
+
+#: templates/core/faq.html:341
+msgid ""
+"Our components are optimized for modern browsers (Chrome, Firefox, Safari, "
+"Edge). We support the last two major versions of each browser. For older "
+"browsers, some visual features may not work perfectly."
+msgstr ""
+
+#: templates/core/faq.html:347
+#, fuzzy
+#| msgid "Documentation"
+msgid "Do you have documentation?"
+msgstr "文档"
+
+#: templates/core/faq.html:351
+msgid ""
+"Yes! We have complete and detailed documentation for each component, "
+"including code examples, usage guides and best practices. You can access it "
+"through each component's page."
+msgstr ""
+
+#: templates/core/faq.html:357
+msgid "Didn't find your answer?"
+msgstr "没有找到您的答案？"
+
+#: templates/core/faq.html:358
+msgid "Our team is ready to help you with any questions"
+msgstr "我们的团队随时准备帮助您解决任何问题"
+
+#: templates/core/faq.html:359
+msgid "Get in Touch"
+msgstr "联系我们"
+
+#: templates/core/home.html:9
+msgid "Welcome to AkkaUi"
+msgstr "欢迎使用AkkaUi"
+
+#: templates/core/home.html:10
+msgid ""
+"Your complete catalog of modern and responsive UI design resources with dark "
+"theme."
+msgstr ""
+
+#: templates/core/home.html:14
+msgid "Recently saved SVGs"
+msgstr "最近保存的SVG"
+
+#: templates/core/home.html:26
+msgid "No SVGs saved yet. Save your first one using the form above."
+msgstr "尚未保存任何SVG。使用上面的表单保存您的第一个。"
+
+#: templates/core/home.html:34
+msgid "Getting Started"
+msgstr "开始使用"
+
+#: templates/core/home.html:35
+msgid ""
+"Explore our collection of components, patterns and design resources. Browse "
+"through categories, see examples and find inspiration for your projects."
+msgstr ""
+
+#: templates/core/home.html:39
+msgid "Features"
+msgstr "特性"
+
+#: templates/core/home.html:41
+msgid "Modern dark theme with customizable color palette"
+msgstr "具有可自定义调色板的现代深色主题"
+
+#: templates/core/home.html:42
+msgid "Fully responsive design"
+msgstr "完全响应式设计"
+
+#: templates/core/home.html:43
+msgid "Optimized performance"
+msgstr "优化的性能"
+
+#: templates/core/home.html:44
+msgid "Fast and intuitive search"
+msgstr "快速直观的搜索"
+
+#: templates/core/home.html:45
+msgid "Clean and professional interface"
+msgstr "简洁专业的界面"
+
+#: templates/core/home.html:50
+msgid "About AkkaUi"
+msgstr "关于AkkaUi"
+
+#: templates/core/home.html:51
+msgid ""
+"AkkaUi is a modern platform inspired by uiwiki.co, focused on content "
+"presentation and reading with elegant dark theme. We use colors #7460F3 "
+"(primary), #e7e7e7 (text), #7b7b7b (muted) and #0c0c0c (background) to "
+"create a unique visual experience."
+msgstr ""
+
+#: templates/core/home.html:55
+msgid "Explore Components"
+msgstr "探索组件"
+
+#: templates/core/pricing.html:232
+msgid "Plans and Pricing"
+msgstr "计划和价格"
+
+#: templates/core/pricing.html:233
+msgid "Choose the perfect plan for your needs"
+msgstr "选择适合您需求的完美计划"
+
+#: templates/core/pricing.html:237
+msgid "Monthly"
+msgstr "每月"
+
+#: templates/core/pricing.html:238
+#, python-format
+msgid "Annual (20%% off)"
+msgstr ""
+
+#: templates/core/pricing.html:245
+msgid "Perfect to start and explore"
+msgstr "完美的开始和探索"
+
+#: templates/core/pricing.html:250 templates/core/pricing.html:296
+#: templates/core/pricing.html:341
+msgid "month"
+msgstr "月"
+
+#: templates/core/pricing.html:254 templates/core/pricing.html:256
+msgid "Start Free"
+msgstr "免费开始"
+
+#: templates/core/pricing.html:262
+#, fuzzy
+#| msgid "Search components"
+msgid "Access to basic components"
+msgstr "搜索组件"
+
+#: templates/core/pricing.html:266
+msgid "Up to 5 projects"
+msgstr "最多5个项目"
+
+#: templates/core/pricing.html:270
+msgid "Email support"
+msgstr "电子邮件支持"
+
+#: templates/core/pricing.html:274
+#, fuzzy
+#| msgid "Search components"
+msgid "Premium components"
+msgstr "搜索组件"
+
+#: templates/core/pricing.html:278 templates/core/pricing.html:316
+msgid "Code export"
+msgstr "代码导出"
+
+#: templates/core/pricing.html:282 templates/core/pricing.html:324
+msgid "Priority support"
+msgstr "优先支持"
+
+#: templates/core/pricing.html:289
+msgid "Most Popular"
+msgstr "最受欢迎"
+
+#: templates/core/pricing.html:291
+msgid "For professionals and small teams"
+msgstr "适用于专业人士和小团队"
+
+#: templates/core/pricing.html:300 templates/core/pricing.html:302
+msgid "Start Now"
+msgstr "立即开始"
+
+#: templates/core/pricing.html:308
+#, fuzzy
+#| msgid "Search components"
+msgid "All components"
+msgstr "搜索组件"
+
+#: templates/core/pricing.html:312
+msgid "Unlimited projects"
+msgstr "无限项目"
+
+#: templates/core/pricing.html:320
+msgid "Premium templates"
+msgstr "高级模板"
+
+#: templates/core/pricing.html:328 templates/core/pricing.html:361
+msgid "Integration API"
+msgstr "集成API"
+
+#: templates/core/pricing.html:336
+msgid "For large teams and companies"
+msgstr "适用于大型团队和公司"
+
+#: templates/core/pricing.html:345 templates/core/pricing.html:347
+#, fuzzy
+#| msgid "Contact"
+msgid "Contact Sales"
+msgstr "联系"
+
+#: templates/core/pricing.html:353
+msgid "Everything in Pro"
+msgstr "专业版的所有功能"
+
+#: templates/core/pricing.html:357
+msgid "Unlimited users"
+msgstr "无限用户"
+
+#: templates/core/pricing.html:365
+msgid "Advanced customization"
+msgstr "高级定制"
+
+#: templates/core/pricing.html:369
+msgid "24/7 Support"
+msgstr "24/7支持"
+
+#: templates/core/pricing.html:373
+msgid "Guaranteed SLA"
+msgstr "保证SLA"
+
+#: templates/core/pricing.html:380
+msgid "Have questions?"
+msgstr "有问题吗？"
+
+#: templates/core/pricing.html:381
+msgid "Check our FAQ page for more information"
+msgstr "查看我们的常见问题页面了解更多信息"
+
+#: templates/core/pricing.html:382
+msgid "View FAQ"
+msgstr "查看常见问题"
+
+#: templates/usuario/profile.html:9
+#, fuzzy
+#| msgid "Profile"
+msgid "My Profile"
+msgstr "个人资料"
+
+#: templates/usuario/profile.html:10
+msgid "Manage your personal information"
+msgstr "管理您的个人信息"
+
+#: templates/usuario/profile.html:27 templates/usuario/signin.html:29
+#: templates/usuario/signup.html:29
+msgid "Username"
+msgstr "用户名"
+
+#: templates/usuario/profile.html:32 templates/usuario/signup.html:44
+msgid "Email"
+msgstr "电子邮件"
+
+#: templates/usuario/profile.html:38 templates/usuario/signup.html:57
+msgid "Phone"
+msgstr "电话"
+
+#: templates/usuario/profile.html:44
+msgid "Member since"
+msgstr "会员自"
+
+#: templates/usuario/profile.html:50
+msgid "Status"
+msgstr "状态"
+
+#: templates/usuario/profile.html:51
+msgid "Subscriber"
+msgstr "订阅者"
+
+#: templates/usuario/profile.html:51
+msgid "until"
+msgstr "直到"
+
+#: templates/usuario/signin.html:10
+msgid "Access your AkkaUi account"
+msgstr "访问您的AkkaUi账户"
+
+#: templates/usuario/signin.html:36
+msgid "Your username"
+msgstr "您的用户名"
+
+#: templates/usuario/signin.html:42 templates/usuario/signup.html:70
+msgid "Password"
+msgstr "密码"
+
+#: templates/usuario/signin.html:48
+msgid "Your password"
+msgstr "您的密码"
+
+#: templates/usuario/signin.html:57
+msgid "Don't have an account?"
+msgstr "还没有账户？"
+
+#: templates/usuario/signin.html:57
+msgid "Create account"
+msgstr "创建账户"
+
+#: templates/usuario/signup.html:4 templates/usuario/signup.html:9
+#: templates/usuario/signup.html:95
+msgid "Create Account"
+msgstr "创建账户"
+
+#: templates/usuario/signup.html:10
+msgid "Join the AkkaUi community"
+msgstr "加入AkkaUi社区"
+
+#: templates/usuario/signup.html:37
+msgid "Choose a username"
+msgstr "选择用户名"
+
+#: templates/usuario/signup.html:40
+msgid "Minimum 3 characters"
+msgstr "最少3个字符"
+
+#: templates/usuario/signup.html:51
+msgid "your@email.com"
+msgstr "your@email.com"
+
+#: templates/usuario/signup.html:66
+msgid "Optional field"
+msgstr "可选字段"
+
+#: templates/usuario/signup.html:77
+msgid "Minimum 6 characters"
+msgstr "最少6个字符"
+
+#: templates/usuario/signup.html:83
+msgid "Confirm Password"
+msgstr "确认密码"
+
+#: templates/usuario/signup.html:90
+msgid "Enter password again"
+msgstr "再次输入密码"
+
+#: templates/usuario/signup.html:99
+msgid "Already have an account?"
+msgstr "已有账户？"
+
+#: templates/usuario/signup.html:99
+#, fuzzy
+#| msgid "Sign In"
+msgid "Sign in"
+msgstr "登录"

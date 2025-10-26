@@ -1,12 +1,13 @@
 {% extends 'core/base.html' %}
+{% load i18n %}
 
-{% block title %}Perfil — AkkaUi{% endblock %}
+{% block title %}{% trans "Profile" %} — AkkaUi{% endblock %}
 
 {% block content %}
   <article class="page">
     <header class="page-header">
-      <h1>Meu Perfil</h1>
-      <p class="lead">Gerencie suas informações pessoais</p>
+      <h1>{% trans "My Profile" %}</h1>
+      <p class="lead">{% trans "Manage your personal information" %}</p>
     </header>
 
     <div class="page-body">
@@ -23,37 +24,37 @@
 
         <div class="profile-info">
           <div class="profile-field">
-            <label>Nome de usuário</label>
+            <label>{% trans "Username" %}</label>
             <p>{{ user.username }}</p>
           </div>
 
           <div class="profile-field">
-            <label>Email</label>
+            <label>{% trans "Email" %}</label>
             <p>{{ user.email }}</p>
           </div>
 
           {% if user.phone %}
           <div class="profile-field">
-            <label>Telefone</label>
+            <label>{% trans "Phone" %}</label>
             <p>{{ user.phone }}</p>
           </div>
           {% endif %}
 
           <div class="profile-field">
-            <label>Membro desde</label>
+            <label>{% trans "Member since" %}</label>
             <p>{{ user.date_joined|date:"d/m/Y" }}</p>
           </div>
 
           {% if user.is_vip %}
           <div class="profile-field profile-vip">
-            <label>Status</label>
-            <p class="vip-badge">Assinante{% if user.vip_expiration %} — até {{ user.vip_expiration|date:"d/m/Y" }}{% endif %}</p>
+            <label>{% trans "Status" %}</label>
+            <p class="vip-badge">{% trans "Subscriber" %}{% if user.vip_expiration %} — {% trans "until" %} {{ user.vip_expiration|date:"d/m/Y" }}{% endif %}</p>
           </div>
           {% endif %}
         </div>
 
         <div class="profile-actions">
-          <a href="{% url 'usuario:signout' %}" class="btn btn-secondary">Sair da Conta</a>
+          <a href="{% url 'usuario:signout' %}" class="btn btn-secondary">{% trans "Sign Out" %}</a>
         </div>
       </div>
     </div>

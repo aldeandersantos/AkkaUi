@@ -1,0 +1,166 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Shopping Cart" %} — AkkaUi{% endblock %}
+
+{% block content %}
+  <article class="page">
+    <header class="page-header">
+      <h1>🛒 {% trans "Shopping Cart" %}</h1>
+      <p class="lead">{% trans "Review your items before checkout" %}</p>
+    </header>
+
+    <div class="page-body">
+      <div id="cart-container" style="max-width: 900px; margin: 0 auto;">
+        <!-- Cart items will be rendered here by JavaScript -->
+        <div id="cart-items"></div>
+        
+        <div id="cart-empty" style="display: none; text-align: center; padding: 3rem 1rem;">
+          <p class="muted" style="font-size: 1.2rem; margin-bottom: 1.5rem;">
+            {% trans "Your cart is empty" %}
+          </p>
+          <a href="{% url 'core:explore' %}" class="btn btn-primary">
+            {% trans "Browse SVGs" %}
+          </a>
+        </div>
+
+        <div id="cart-summary" style="display: none; margin-top: 2rem; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">{% trans "Order Summary" %}</h3>
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">
+              R$ <span id="cart-total">0.00</span>
+            </div>
+          </div>
+          
+          <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+            <button onclick="clearCart()" class="btn btn-outline" style="flex: 1;">
+              {% trans "Clear Cart" %}
+            </button>
+            <button onclick="checkout()" class="btn btn-primary" style="flex: 2;">
+              {% trans "Proceed to Checkout" %} →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <script>
+    // Cart management
+    function getCart() {
+      try {
+        return JSON.parse(localStorage.getItem('akka_cart') || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function saveCart(cart) {
+      localStorage.setItem('akka_cart', JSON.stringify(cart));
+      renderCart();
+    }
+
+    function removeFromCart(id) {
+      const cart = getCart();
+      const newCart = cart.filter(item => item.id !== id);
+      saveCart(newCart);
+    }
+
+    function updateQuantity(id, change) {
+      const cart = getCart();
+      const item = cart.find(i => i.id === id);
+      if (item) {
+        item.quantity = Math.max(1, item.quantity + change);
+        saveCart(cart);
+      }
+    }
+
+    function clearCart() {
+      if (confirm('{% trans "Are you sure you want to clear your cart?" %}')) {
+        localStorage.removeItem('akka_cart');
+        renderCart();
+      }
+    }
+
+    function checkout() {
+      window.location.href = '{% url "core:checkout" %}';
+    }
+
+    function renderCart() {
+      const cart = getCart();
+      const container = document.getElementById('cart-items');
+      const emptyDiv = document.getElementById('cart-empty');
+      const summaryDiv = document.getElementById('cart-summary');
+      const totalSpan = document.getElementById('cart-total');
+
+      if (cart.length === 0) {
+        container.innerHTML = '';
+        emptyDiv.style.display = 'block';
+        summaryDiv.style.display = 'none';
+        return;
+      }
+
+      emptyDiv.style.display = 'none';
+      summaryDiv.style.display = 'block';
+
+      let total = 0;
+      container.innerHTML = cart.map(item => {
+        const itemTotal = item.price * item.quantity;
+        total += itemTotal;
+        
+        return `
+          <div class="cart-item" style="display: flex; gap: 1.5rem; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1rem; align-items: center;">
+            <div style="flex: 1;">
+              <h3 style="margin: 0 0 0.5rem; color: var(--text-light);">${escapeHtml(item.name)}</h3>
+              <p class="muted" style="margin: 0; font-size: 0.9rem;">{% trans "Unit Price" %}: R$ ${item.price.toFixed(2)}</p>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <button 
+                onclick="updateQuantity(${item.id}, -1)" 
+                class="btn btn-secondary"
+                style="padding: 0.5rem 0.75rem; min-width: 40px;"
+              >
+                −
+              </button>
+              <span style="min-width: 40px; text-align: center; font-weight: 600; font-size: 1.1rem;">
+                ${item.quantity}
+              </span>
+              <button 
+                onclick="updateQuantity(${item.id}, 1)" 
+                class="btn btn-secondary"
+                style="padding: 0.5rem 0.75rem; min-width: 40px;"
+              >
+                +
+              </button>
+            </div>
+            
+            <div style="text-align: right; min-width: 100px;">
+              <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem;">
+                R$ ${itemTotal.toFixed(2)}
+              </div>
+              <button 
+                onclick="removeFromCart(${item.id})" 
+                class="btn btn-danger"
+                style="padding: 0.5rem 1rem; font-size: 0.85rem;"
+              >
+                {% trans "Remove" %}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      totalSpan.textContent = total.toFixed(2);
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', renderCart);
+  </script>
+{% endblock %}

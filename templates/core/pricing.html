@@ -1,9 +1,11 @@
 {% extends 'core/base.html' %}
 {% load static %}
+{% load i18n %}
 
-{% block title %}Pricing — AkkaUi{% endblock %}
+{% block title %}{% trans "Pricing" %} — AkkaUi{% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <style>
 .pricing-hero {
   text-align: center;
@@ -137,6 +139,15 @@
   margin-bottom: 24px;
 }
 
+/* Make anchors with .plan-cta behave visually like buttons (no underline, full width) */
+.plan-cta,
+.plan-cta:link,
+.plan-cta:visited {
+  display: block; /* allows width:100% to apply */
+  text-decoration: none; /* remove underline */
+  text-align: center; /* center link text like button */
+}
+
 .plan-cta:hover {
   background: #5d4ed1;
   transform: translateY(-2px);
@@ -219,148 +230,352 @@
 
 <article class="page">
   <div class="pricing-hero">
-    <h1>Planos e Preços</h1>
-    <p>Escolha o plano perfeito para suas necessidades</p>
+    <h1>{% trans "Plans and Pricing" %}</h1>
+    <p>{% trans "Choose the perfect plan for your needs" %}</p>
   </div>
 
   <div class="pricing-toggle">
-    <button class="toggle-btn active">Mensal</button>
-    <button class="toggle-btn">Anual (20% off)</button>
+    <button class="toggle-btn active">{% trans "Monthly" %}</button>
+    <button class="toggle-btn">{% trans "Annual (20% off)" %}</button>
   </div>
 
   <div class="pricing-cards">
     <!-- Free Plan -->
     <div class="pricing-card">
-      <h3 class="plan-name">Free</h3>
-      <p class="plan-description">Perfeito para começar e explorar</p>
+      <h3 class="plan-name">{% trans "Free" %}</h3>
+      <p class="plan-description">{% trans "Perfect to start and explore" %}</p>
       
       <div class="plan-price">
         <span class="price-currency">R$</span>
         <span class="price-amount">0</span>
-        <span class="price-period">/mês</span>
+        <span class="price-period">/{% trans "month" %}</span>
       </div>
 
-      <button class="plan-cta outline">Começar Grátis</button>
+  {% if user.is_authenticated %}
+  <button class="plan-cta outline">{% trans "Start Free" %}</button>
+  {% else %}
+  <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Free" %}</a>
+  {% endif %}
 
       <ul class="plan-features">
         <li>
           <span class="feature-icon">✓</span>
-          <span>Acesso a componentes básicos</span>
+          <span>{% trans "Access to basic components" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Até 5 projetos</span>
+          <span>{% trans "Up to 5 projects" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Suporte por email</span>
+          <span>{% trans "Email support" %}</span>
         </li>
         <li>
           <span class="feature-icon disabled">✗</span>
-          <span>Componentes premium</span>
+          <span>{% trans "Premium components" %}</span>
         </li>
         <li>
           <span class="feature-icon disabled">✗</span>
-          <span>Exportação de código</span>
+          <span>{% trans "Code export" %}</span>
         </li>
         <li>
           <span class="feature-icon disabled">✗</span>
-          <span>Suporte prioritário</span>
+          <span>{% trans "Priority support" %}</span>
         </li>
       </ul>
     </div>
 
     <!-- Pro Plan -->
     <div class="pricing-card featured">
-      <span class="popular-badge">Mais Popular</span>
-      <h3 class="plan-name">Pro</h3>
-      <p class="plan-description">Para profissionais e equipes pequenas</p>
+      <span class="popular-badge">{% trans "Most Popular" %}</span>
+      <h3 class="plan-name">{% trans "Pro" %}</h3>
+      <p class="plan-description">{% trans "For professionals and small teams" %}</p>
       
       <div class="plan-price">
         <span class="price-currency">R$</span>
-        <span class="price-amount">49</span>
-        <span class="price-period">/mês</span>
+        <span class="price-amount">9.90</span>
+        <span class="price-period">/{% trans "month" %}</span>
       </div>
 
-      <button class="plan-cta">Começar Agora</button>
+  {% if user.is_authenticated %}
+  <button class="plan-cta" data-plan="pro" data-month="9.90" data-year="99.90">{% trans "Start Now" %}</button>
+  {% else %}
+  <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Now" %}</a>
+  {% endif %}
 
       <ul class="plan-features">
         <li>
           <span class="feature-icon">✓</span>
-          <span>Todos os componentes</span>
+          <span>{% trans "All components" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Projetos ilimitados</span>
+          <span>{% trans "Unlimited projects" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Exportação de código</span>
+          <span>{% trans "Code export" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Templates premium</span>
+          <span>{% trans "Premium templates" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Suporte prioritário</span>
+          <span>{% trans "Priority support" %}</span>
         </li>
         <li>
           <span class="feature-icon disabled">✗</span>
-          <span>API de integração</span>
+          <span>{% trans "Integration API" %}</span>
         </li>
       </ul>
     </div>
 
     <!-- Enterprise Plan -->
     <div class="pricing-card">
-      <h3 class="plan-name">Enterprise</h3>
-      <p class="plan-description">Para grandes equipes e empresas</p>
+      <h3 class="plan-name">{% trans "Enterprise" %}</h3>
+      <p class="plan-description">{% trans "For large teams and companies" %}</p>
       
       <div class="plan-price">
         <span class="price-currency">R$</span>
         <span class="price-amount">199</span>
-        <span class="price-period">/mês</span>
+        <span class="price-period">/{% trans "month" %}</span>
       </div>
 
-      <button class="plan-cta outline">Contatar Vendas</button>
+  {% if user.is_authenticated %}
+  <button class="plan-cta outline">{% trans "Contact Sales" %}</button>
+  {% else %}
+  <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Contact Sales" %}</a>
+  {% endif %}
 
       <ul class="plan-features">
         <li>
           <span class="feature-icon">✓</span>
-          <span>Tudo do plano Pro</span>
+          <span>{% trans "Everything in Pro" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Usuários ilimitados</span>
+          <span>{% trans "Unlimited users" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>API de integração</span>
+          <span>{% trans "Integration API" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Customização avançada</span>
+          <span>{% trans "Advanced customization" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>Suporte 24/7</span>
+          <span>{% trans "24/7 Support" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>SLA garantido</span>
+          <span>{% trans "Guaranteed SLA" %}</span>
         </li>
       </ul>
     </div>
   </div>
 
   <div class="pricing-faq">
-    <h2>Tem dúvidas?</h2>
-    <p>Confira nossa página de perguntas frequentes para mais informações</p>
-    <a href="{% url 'core:faq' %}" class="btn">Ver FAQ</a>
+    <h2>{% trans "Have questions?" %}</h2>
+    <p>{% trans "Check our FAQ page for more information" %}</p>
+    <a href="{% url 'core:faq' %}" class="btn">{% trans "View FAQ" %}</a>
   </div>
 
+  <!-- Modal de Seleção de Gateway de Pagamento -->
+  <div id="paymentModal" class="payment-modal" style="display: none;">
+    <div class="modal-overlay" onclick="closePaymentModal()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Selecione a forma de pagamento</h2>
+        <button class="modal-close" onclick="closePaymentModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="modalPlanInfo" class="plan-info"></div>
+        
+        <div class="payment-methods">
+          <button class="payment-method" onclick="selectGateway('abacatepay')">
+            <div class="method-icon">💳</div>
+            <div class="method-name">PIX via Abacate Pay</div>
+            <div class="method-description">Pagamento instantâneo via PIX</div>
+          </button>
+          
+          <button class="payment-method" onclick="selectGateway('mercadopago')">
+            <div class="method-icon">💰</div>
+            <div class="method-name">Mercado Pago</div>
+            <div class="method-description">Cartão, boleto e mais (em breve)</div>
+          </button>
+          
+          <button class="payment-method" onclick="selectGateway('paypal')">
+            <div class="method-icon">🌐</div>
+            <div class="method-name">PayPal</div>
+            <div class="method-description">Pagamento internacional (em breve)</div>
+          </button>
+        </div>
+        
+        <div id="paymentStatus" class="payment-status" style="display: none;"></div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+  .payment-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-content {
+    position: relative;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    z-index: 1001;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-header h2 {
+    color: var(--text-light);
+    font-size: 24px;
+    margin: 0;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 32px;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+  }
+
+  .modal-close:hover {
+    color: var(--text-light);
+  }
+
+  .modal-body {
+    padding: 24px;
+  }
+
+  .plan-info {
+    background: rgba(116, 96, 243, 0.1);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+    color: var(--text-light);
+  }
+
+  .payment-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .payment-method {
+    background: var(--bg-darker);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    width: 100%;
+  }
+
+  .payment-method:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+
+  .method-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .method-name {
+    color: var(--text-light);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .method-description {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .payment-status {
+    margin-top: 24px;
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .payment-status.loading {
+    background: rgba(116, 96, 243, 0.1);
+    border: 1px solid var(--primary);
+    color: var(--text-light);
+  }
+
+  .payment-status.success {
+    background: rgba(46, 213, 115, 0.1);
+    border: 1px solid #2ed573;
+    color: #2ed573;
+  }
+
+  .payment-status.error {
+    background: rgba(255, 71, 87, 0.1);
+    border: 1px solid #ff4757;
+    color: #ff4757;
+  }
+  </style>
+
   <script>
+    let currentPlan = null;
+    let currentAmount = null;
+
+    // Get language prefix from current URL to build correct API URLs
+    const getLanguagePrefix = () => {
+      const path = window.location.pathname;
+      const match = path.match(/^\/(en|pt-br|es|it|zh-hans)\//);
+      return match ? match[0] : '/en/';
+    };
+
     // Toggle pricing functionality
     const toggleBtns = document.querySelectorAll('.toggle-btn');
     toggleBtns.forEach(btn => {
@@ -369,6 +584,169 @@
         btn.classList.add('active');
       });
     });
+
+    // Conectar botões de compra ao modal, respeitando Monthly/Annual
+    const planCtas = document.querySelectorAll('.plan-cta');
+    planCtas.forEach(btn => {
+      // apenas para botões (não anchors) que tenham dataset.plan
+      if (btn.tagName.toLowerCase() === 'button' && btn.dataset && btn.dataset.plan) {
+        btn.addEventListener('click', (e) => {
+          const planBase = btn.dataset.plan; // ex: 'pro'
+          const isAnnual = toggleBtns[1] && toggleBtns[1].classList.contains('active');
+          const period = isAnnual ? 'year' : 'month';
+          const planKey = `${planBase}_${period}`; // ex: 'pro_month'
+          const amount = parseFloat(isAnnual ? btn.dataset.year : btn.dataset.month);
+          openPaymentModal(planKey, amount);
+        });
+      }
+    });
+
+    function openPaymentModal(plan, amount) {
+      currentPlan = plan;
+      currentAmount = amount;
+      
+      const modal = document.getElementById('paymentModal');
+      const planInfo = document.getElementById('modalPlanInfo');
+      
+      const planNames = {
+        'pro_month': 'Plano Pro Mensal',
+        'pro_year': 'Plano Pro Anual',
+        'enterprise_month': 'Plano Enterprise Mensal',
+        'enterprise_year': 'Plano Enterprise Anual'
+      };
+      
+      const planName = planNames[plan] || 'Plano';
+      const amountFormatted = amount.toFixed(2);
+      planInfo.textContent = '';
+      
+      const strong = document.createElement('strong');
+      strong.textContent = planName;
+      planInfo.appendChild(strong);
+      planInfo.appendChild(document.createElement('br'));
+      planInfo.appendChild(document.createTextNode(`Valor: R$ ${amountFormatted}`));
+      
+      modal.style.display = 'flex';
+    }
+
+    function closePaymentModal() {
+      const modal = document.getElementById('paymentModal');
+      modal.style.display = 'none';
+      
+      // Reset status
+      const status = document.getElementById('paymentStatus');
+      status.style.display = 'none';
+      status.className = 'payment-status';
+      status.innerHTML = '';
+    }
+
+    async function selectGateway(gateway) {
+      const status = document.getElementById('paymentStatus');
+      status.style.display = 'block';
+      status.className = 'payment-status loading';
+      status.innerHTML = '⏳ Processando pagamento...';
+
+      try {
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+        const languagePrefix = getLanguagePrefix();
+        const response = await fetch(`${languagePrefix}payment/create/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+          },
+          body: JSON.stringify({
+            gateway: gateway,
+            plan: currentPlan,
+            currency: 'BRL'
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === 'success') {
+          status.className = 'payment-status success';
+          
+          const payment = data.payment;
+          let message = '';
+          
+          // Mensagem específica para AbacatePay/PIX
+          if (payment.gateway === 'abacatepay') {
+            message = `✓ Pagamento PIX criado com sucesso!<br><br>`;
+            message += `<strong>Aguardando pagamento</strong><br>`;
+            message += `Valor: R$ ${parseFloat(payment.amount).toFixed(2)}<br>`;
+            message += `ID da transação: ${payment.transaction_id}<br><br>`;
+            
+            if (payment.gateway_response && payment.gateway_response.qr_code) {
+              message += `<div style="padding: 16px; background: rgba(116, 96, 243, 0.1); border-radius: 8px; margin: 12px 0;">`;
+              message += `<strong>📱 Pague com PIX:</strong><br>`;
+              message += `1. Abra o app do seu banco<br>`;
+              message += `2. Escaneie o QR Code ou copie o código PIX<br>`;
+              message += `3. Confirme o pagamento<br><br>`;
+              message += `<small>Seu VIP será ativado automaticamente após a confirmação do pagamento.</small>`;
+              message += `</div>`;
+            }
+            
+            // Para ambiente de teste, mostrar botão de simular pagamento
+            message += `<br><button onclick="simulatePayment('${payment.transaction_id}')" class="btn" style="margin-top: 12px; background: #ffa502;">🧪 Simular Confirmação PIX (Teste)</button>`;
+          } else {
+            // Mensagem genérica para outros gateways
+            message = `✓ Pagamento criado com sucesso!<br><br>`;
+            message += `ID da transação: ${payment.transaction_id}<br>`;
+            message += `Gateway: ${payment.gateway}<br>`;
+            message += `Status: ${payment.status}<br>`;
+            
+            if (payment.gateway_response && payment.gateway_response.payment_url) {
+              message += `<br><a href="${payment.gateway_response.payment_url}" target="_blank" class="btn" style="margin-top: 12px;">Ir para pagamento</a>`;
+            }
+          }
+          
+          status.innerHTML = message;
+        } else {
+          throw new Error(data.error || 'Erro ao criar pagamento');
+        }
+      } catch (error) {
+        status.className = 'payment-status error';
+        status.innerHTML = `✗ Erro: ${error.message}`;
+      }
+    }
+
+    async function simulatePayment(transactionId) {
+      const status = document.getElementById('paymentStatus');
+      status.className = 'payment-status loading';
+      status.innerHTML = '⏳ Simulando confirmação PIX...';
+
+      try {
+        const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+        const languagePrefix = getLanguagePrefix();
+        const response = await fetch(`${languagePrefix}payment/simulate/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,
+          },
+          body: JSON.stringify({
+            transaction_id: transactionId
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.status === 'success') {
+          status.className = 'payment-status success';
+          status.innerHTML = `
+            ✓ Pagamento PIX confirmado com sucesso!<br><br>
+            <strong>🎉 Seu status VIP foi ativado!</strong><br><br>
+            <small>Você agora tem acesso a todos os recursos premium.</small><br>
+            <button onclick="window.location.reload()" class="btn" style="margin-top: 12px;">Recarregar Página</button>
+          `;
+        } else {
+          throw new Error(data.error || 'Erro ao confirmar pagamento');
+        }
+      } catch (error) {
+        status.className = 'payment-status error';
+        status.innerHTML = `✗ Erro: ${error.message}`;
+      }
+    }
   </script>
 </article>
 {% endblock %}

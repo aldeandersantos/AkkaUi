@@ -1,20 +1,21 @@
 {% extends 'core/base.html' %}
+{% load i18n %}
 
-{% block title %}Início — AkkaUi{% endblock %}
+{% block title %}{% trans "Home" %} — AkkaUi{% endblock %}
 
 {% block content %}
   <div style="width: 100%; background: var(--bg-dark);">
     <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
-      <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Bem-vindo ao AkkaUi</h1>
-      <p class="lead" style="font-size: 20px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">Seu catálogo completo de recursos de design UI modernos e responsivos com tema escuro.</p>
+      <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{% trans "Welcome to AkkaUi" %}</h1>
+      <p class="lead" style="font-size: 20px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">{% trans "Your complete catalog of modern and responsive UI design resources with dark theme." %}</p>
     </header>
 
     <section id="svg-tools" style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
-      <h3 style="margin-bottom: 16px; font-size: 28px;">SVGs salvos recentemente</h3>
+      <h3 style="margin-bottom: 16px; font-size: 28px;">{% trans "Recently saved SVGs" %}</h3>
       {% if svgfiles %}
         {# Debug: mostrar quantos SVGs estão sendo renderizados #}
         <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">
-          Exibindo {{ svgfiles|length }} SVG{{ svgfiles|length|pluralize }} público{{ svgfiles|length|pluralize }}
+          {% blocktrans count counter=svgfiles|length %}Showing {{ counter }} public SVG{% plural %}Showing {{ counter }} public SVGs{% endblocktrans %}
         </p>
         <div class="container-cards">
           {% for item in svgfiles %}
@@ -22,7 +23,7 @@
           {% endfor %}
         </div>
       {% else %}
-        <p class="muted">Nenhum SVG salvo ainda. Salve o primeiro usando o formulário acima.</p>
+        <p class="muted">{% trans "No SVGs saved yet. Save your first one using the form above." %}</p>
       {% endif %}
     </section>
 
@@ -30,28 +31,28 @@
       <section id="getting-started">
 
       <section id="getting-started">
-        <h2>Começando</h2>
-        <p>Explore nossa coleção de componentes, patterns e recursos de design. Navegue pelas categorias, veja exemplos e encontre inspiração para seus projetos.</p>
+        <h2>{% trans "Getting Started" %}</h2>
+        <p>{% trans "Explore our collection of components, patterns and design resources. Browse through categories, see examples and find inspiration for your projects." %}</p>
       </section>
 
       <section id="features">
-        <h2>Recursos</h2>
+        <h2>{% trans "Features" %}</h2>
         <ul>
-          <li>🎨 Tema escuro moderno com paleta de cores personalizável</li>
-          <li>📱 Design totalmente responsivo</li>
-          <li>⚡ Performance otimizada</li>
-          <li>🔍 Pesquisa rápida e intuitiva</li>
-          <li>🎯 Interface limpa e profissional</li>
+          <li>🎨 {% trans "Modern dark theme with customizable color palette" %}</li>
+          <li>📱 {% trans "Fully responsive design" %}</li>
+          <li>⚡ {% trans "Optimized performance" %}</li>
+          <li>🔍 {% trans "Fast and intuitive search" %}</li>
+          <li>🎯 {% trans "Clean and professional interface" %}</li>
         </ul>
       </section>
 
       <section id="about">
-        <h2>Sobre o AkkaUi</h2>
-        <p>AkkaUi é uma plataforma moderna inspirada em uiwiki.co, focada em apresentação de conteúdo e leitura com tema escuro elegante. Utilizamos as cores #7460F3 (primary), #e7e7e7 (text), #7b7b7b (muted) e #0c0c0c (background) para criar uma experiência visual única.</p>
+        <h2>{% trans "About AkkaUi" %}</h2>
+        <p>{% trans "AkkaUi is a modern platform inspired by uiwiki.co, focused on content presentation and reading with elegant dark theme. We use colors #7460F3 (primary), #e7e7e7 (text), #7b7b7b (muted) and #0c0c0c (background) to create a unique visual experience." %}</p>
       </section>
 
       <footer class="page-footer">
-        <a class="btn" href="{% url 'core:explore' %}">Explorar Componentes</a>
+        <a class="btn" href="{% url 'core:explore' %}">{% trans "Explore Components" %}</a>
       </footer>
     </article>
   </div>

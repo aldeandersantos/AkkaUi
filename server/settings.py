@@ -42,6 +42,8 @@ if raw_allowed:
 else:
     ALLOWED_HOSTS = []
 
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+
 
 # Application definition
 
@@ -60,6 +62,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -81,6 +84,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.i18n',
             ],
         },
     },
@@ -122,11 +126,25 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'pt-br'
+LANGUAGE_CODE = 'en'
+
+LANGUAGES = [
+    ('en', 'English'),
+    ('pt-br', 'Português (Brasil)'),
+    ('es', 'Español'),
+    ('it', 'Italiano'),
+    ('zh-hans', '中文 (简体)'),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
+
+USE_L10N = True
 
 USE_TZ = True
 
@@ -179,3 +197,11 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('FILE_UPLOAD_MAX_MEMORY_SIZE', str(5
 # Environment-specific API keys
 ABACATE_API_TEST_KEY = os.getenv('ABACATE_API_TEST_KEY')
 ABACATE_API_PROD_KEY = os.getenv('ABACATE_API_PROD_KEY')
+
+
+# Discord Webhook URLs
+DISCORD_WEBHOOK_GEROU_COMPRA = os.getenv('WEBHOOK_DISCORD_GEROU_COMPRA')
+DISCORD_WEBHOOK_CONFIRMOU_PAGAMENTO = os.getenv('WEBHOOK_DISCORD_CONFIRMOU_PAGAMENTO')
+DISCORD_WEBHOOK_ENTROU_PRECO = os.getenv('WEBHOOK_DISCORD_ENTROU_PRECO')
+DISCORD_WEBHOOK_CRIOU_CONTA = os.getenv('WEBHOOK_DISCORD_CRIOU_CONTA')
+DISCORD_WEBHOOK_ADQUIRIU_ASSINATURA = os.getenv('WEBHOOK_DISCORD_ADQUIRIU_ASSINATURA')

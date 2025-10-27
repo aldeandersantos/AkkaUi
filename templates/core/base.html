@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}AkkaUi{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'core/modern-design.css' %}">
+    <link rel="stylesheet" href="{% static 'css/toast.css' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'Favicon.ico' %}">
     
     <!-- Lucide Icons via CDN -->
@@ -33,9 +34,10 @@
               <i data-lucide="book-open" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
               {% trans "Library" %}
             </a>
-            <a href="{% url 'core:cart' %}" {% if 'cart' in request.path %}class="active"{% endif %}>
+            <a href="{% url 'core:cart' %}" {% if 'cart' in request.path %}class="active"{% endif %} style="position: relative;">
               <i data-lucide="shopping-cart" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
               {% trans "Cart" %}
+              <span id="cart-badge" class="cart-badge" style="display: none; position: absolute; top: -8px; right: -8px; background: var(--primary); color: var(--color-black); border-radius: 50%; width: 20px; height: 20px; font-size: 0.75rem; font-weight: 700; align-items: center; justify-content: center;">0</span>
             </a>
           {% endif %}
         </nav>
@@ -169,58 +171,13 @@
       }
       
       function toggleSearch() {
-        // TODO: Implement search modal/dropdown
-        alert('Search feature - to be implemented');
+        showToast('Funcionalidade de busca em desenvolvimento', 'info');
       }
-      
-      // Shopping Cart Functions
-      function getCart() {
-        try {
-          return JSON.parse(localStorage.getItem('akka_cart') || '[]');
-        } catch {
-          return [];
-        }
-      }
-      
-      function saveCart(cart) {
-        localStorage.setItem('akka_cart', JSON.stringify(cart));
-        updateCartCount();
-      }
-      
-      function addToCart(id, name, price) {
-        const cart = getCart();
-        const existing = cart.find(item => item.id === id);
-        
-        if (existing) {
-          existing.quantity += 1;
-        } else {
-          cart.push({
-            id: id,
-            name: name,
-            price: parseFloat(price),
-            quantity: 1
-          });
-        }
-        
-        saveCart(cart);
-        
-        // Show notification
-        alert('{% trans "Item added to cart!" %}');
-      }
-      
-      function updateCartCount() {
-        const cart = getCart();
-        const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-        const badge = document.querySelector('.cart-badge');
-        if (badge) {
-          badge.textContent = count;
-          badge.style.display = count > 0 ? 'flex' : 'none';
-        }
-      }
-      
-      // Update cart count on page load
-      updateCartCount();
     </script>
+    
+    <!-- Toast and Cart Management -->
+    <script src="{% static 'js/toast.js' %}"></script>
+    <script src="{% static 'js/cart.js' %}"></script>
     
     {% block extra_js %}{% endblock %}
   </body>

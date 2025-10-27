@@ -158,7 +158,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
           })
           .catch(error => {
             console.error('Erro ao copiar:', error);
-            alert('Erro ao copiar SVG: ' + error.message);
+            if (typeof showToast === 'function') {
+              showToast('Erro ao copiar SVG: ' + error.message, 'error');
+            }
             btn.disabled = false;
             btn.textContent = originalText;
           });
@@ -248,7 +250,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
           })
           .catch(error => {
             console.error('Erro ao copiar:', error);
-            alert('Erro ao copiar SVG: ' + error.message);
+            if (typeof showToast === 'function') {
+              showToast('Erro ao copiar SVG: ' + error.message, 'error');
+            }
             btn.disabled = false;
             btn.textContent = originalText;
           });

@@ -1,53 +1,119 @@
 {% extends 'core/base.html' %}
 {% load i18n %}
 
-{% block title %}Minha Biblioteca — AkkaUi{% endblock %}
+{% block title %}{% trans "Library" %} — AkkaUi{% endblock %}
 
 {% block content %}
-<div style="width: 100%; background: var(--bg-dark);">
-  <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
-    <h1 style="font-size: 48px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-      📚 Minha Biblioteca
-    </h1>
-    <p class="lead" style="font-size: 18px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">
-      Seus SVGs comprados e acessos VIP em um só lugar
-    </p>
-  </header>
+<div style="background: var(--bg-dark); min-height: 100vh; padding: 4rem 0;">
+  <div class="container">
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 3rem;">
+      <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem;">
+        <i data-lucide="book-open" style="width: 2.5rem; height: 2.5rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem;"></i>
+        {% trans "My Library" %}
+      </h1>
+      <p style="color: var(--text-muted); font-size: 1.125rem;">
+        {% trans "Your purchased SVGs and VIP access in one place" %}
+      </p>
+    </div>
 
-  <section style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
-    
+    <!-- VIP Badge -->
     {% if is_vip %}
-      <div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 20px; border-radius: 12px; margin-bottom: 40px; text-align: center;">
-        <h2 style="margin: 0; font-size: 24px; color: #000;">👑 Você é VIP!</h2>
-        <p style="margin: 8px 0 0 0; color: #000;">Você tem acesso ilimitado a todos os SVGs pagos da plataforma.</p>
+      <div style="background: linear-gradient(135deg, var(--color-lime-400), var(--color-lime-500)); padding: 1.5rem; border-radius: var(--radius-xl); margin-bottom: 3rem; text-align: center;">
+        <h2 style="margin: 0; font-size: 1.5rem; color: var(--color-black); font-weight: 700;">
+          <i data-lucide="crown" style="width: 1.5rem; height: 1.5rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem;"></i>
+          {% trans "You are VIP!" %}
+        </h2>
+        <p style="margin: 0.5rem 0 0 0; color: var(--color-black); font-weight: 500;">
+          {% trans "You have unlimited access to all paid SVGs on the platform." %}
+        </p>
       </div>
     {% endif %}
 
+    <!-- Purchased SVGs Section -->
     {% if owned_svgs %}
-      <h2 style="font-size: 32px; margin-bottom: 24px; margin-top: 40px;">✅ SVGs Comprados</h2>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">
-        SVGs que você adquiriu e possui permanentemente.
-      </p>
-      <div class="container-cards">
-        {% for svg in owned_svgs %}
-          {% include 'core/partials/item_card.html' with item=svg purchased=True %}
-        {% endfor %}
-      </div>
+      <section style="margin-bottom: 4rem;">
+        <div style="margin-bottom: 2rem;">
+          <h2 style="font-size: 2rem; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem;">
+            <i data-lucide="check-circle" style="width: 1.75rem; height: 1.75rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem; color: var(--color-lime-400);"></i>
+            {% trans "Purchased SVGs" %}
+          </h2>
+          <p style="color: var(--text-muted);">
+            {% trans "SVGs that you have acquired and own permanently." %}
+          </p>
+        </div>
+        <div class="grid grid-cols-1 grid-cols-2-sm grid-cols-4-lg">
+          {% for svg in owned_svgs %}
+            {% include 'core/partials/item_card.html' with item=svg purchased=True %}
+          {% endfor %}
+        </div>
+      </section>
     {% endif %}
 
+    <!-- VIP Access Section -->
     {% if vip_svgs %}
-      <h2 style="font-size: 32px; margin-bottom: 24px; margin-top: 60px;">👑 Acesso VIP</h2>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">
-        SVGs pagos aos quais você tem acesso por ser VIP.
-      </p>
-      <div class="container-cards">
-        {% for svg in vip_svgs %}
-          {% include 'core/partials/item_card.html' with item=svg vip_access=True %}
-        {% endfor %}
-      </div>
+      <section style="margin-bottom: 4rem;">
+        <div style="margin-bottom: 2rem;">
+          <h2 style="font-size: 2rem; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem;">
+            <i data-lucide="crown" style="width: 1.75rem; height: 1.75rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem; color: var(--color-lime-400);"></i>
+            {% trans "VIP Access" %}
+          </h2>
+          <p style="color: var(--text-muted);">
+            {% trans "Paid SVGs you have access to as a VIP member." %}
+          </p>
+        </div>
+        <div class="grid grid-cols-1 grid-cols-2-sm grid-cols-4-lg">
+          {% for svg in vip_svgs %}
+            {% include 'core/partials/item_card.html' with item=svg vip_access=True %}
+          {% endfor %}
+        </div>
+      </section>
     {% endif %}
 
+    <!-- Free SVGs Section -->
     {% if free_svgs %}
+      <section style="margin-bottom: 4rem;">
+        <div style="margin-bottom: 2rem;">
+          <h2 style="font-size: 2rem; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem;">
+            <i data-lucide="gift" style="width: 1.75rem; height: 1.75rem; display: inline-block; vertical-align: middle; margin-right: 0.5rem; color: var(--color-lime-400);"></i>
+            {% trans "Free SVGs" %}
+          </h2>
+          <p style="color: var(--text-muted);">
+            {% trans "Free SVGs available to all users." %}
+          </p>
+        </div>
+        <div class="grid grid-cols-1 grid-cols-2-sm grid-cols-4-lg">
+          {% for svg in free_svgs %}
+            {% include 'core/partials/item_card.html' with item=svg %}
+          {% endfor %}
+        </div>
+      </section>
+    {% endif %}
+
+    <!-- Empty State -->
+    {% if not owned_svgs and not vip_svgs and not free_svgs %}
+      <div style="text-align: center; padding: 4rem 1rem;">
+        <i data-lucide="inbox" style="width: 5rem; height: 5rem; color: var(--text-muted); margin: 0 auto 1.5rem;"></i>
+        <h3 style="color: var(--text-light); font-size: 1.5rem; margin-bottom: 0.75rem;">
+          {% trans "Your library is empty" %}
+        </h3>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">
+          {% trans "Start exploring and adding SVGs to your collection!" %}
+        </p>
+        <a href="{% url 'core:explore' %}" class="btn btn-primary" style="padding: 0.875rem 2rem;">
+          <i data-lucide="compass" style="width: 16px; height: 16px; margin-right: 8px;"></i>
+          {% trans "Explore SVGs" %}
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  // Initialize Lucide icons
+  lucide.createIcons();
+</script>
+{% endblock %}
       <h2 style="font-size: 32px; margin-bottom: 24px; margin-top: 60px;">🆓 SVGs Gratuitos</h2>
       <p style="color: var(--text-muted); margin-bottom: 20px;">
         SVGs gratuitos disponíveis para todos os usuários.

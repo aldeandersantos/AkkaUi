@@ -4,80 +4,163 @@
 {% block title %}{% trans "Home" %} — AkkaUi{% endblock %}
 
 {% block content %}
-  <div style="width: 100%; background: var(--bg-dark);">
-    <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
-      <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{% trans "Welcome to AkkaUi" %}</h1>
-      <p class="lead" style="font-size: 20px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">{% trans "Your complete catalog of modern and responsive UI design resources with dark theme." %}</p>
-    </header>
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-decorative-blur"></div>
+    <div class="hero-decorative-blur"></div>
+    
+    <div class="container">
+      <div class="hero-content">
+        <!-- Heading -->
+        <h1 class="hero-title">
+          {% trans "Ready-to-Use Figma Designs for" %}
+          <br>
+          <span class="hero-subtitle">{% trans "a Faster Workflow" %}</span>
+        </h1>
+        
+        <!-- Search Bar -->
+        <div class="search-wrapper">
+          <i data-lucide="search" class="search-icon" style="width: 20px; height: 20px;"></i>
+          <input
+            type="search"
+            placeholder="{% trans 'Search...' %}"
+            class="search-input"
+            onkeypress="if(event.key === 'Enter') { window.location.href = '{% url 'core:explore' %}?q=' + this.value; }"
+          />
+        </div>
+        
+        <!-- Category Tags -->
+        <div class="category-tags">
+          <span class="category-tag" onclick="window.location.href='{% url 'core:explore' %}?category=Ecommerce'">Ecommerce</span>
+          <span class="category-tag" onclick="window.location.href='{% url 'core:explore' %}?category=Website'">Website</span>
+          <span class="category-tag" onclick="window.location.href='{% url 'core:explore' %}?category=Saas'">Saas</span>
+          <span class="category-tag" onclick="window.location.href='{% url 'core:explore' %}?category=Education'">{% trans "Education" %}</span>
+          <span class="category-tag" onclick="window.location.href='{% url 'core:explore' %}?category=Agency'">Agency</span>
+          <span class="category-tag" onclick="window.location.href='{% url 'core:explore' %}?category=Dashboard'">Dashboard</span>
+          <span class="category-tag" onclick="window.location.href='{% url 'core:explore' %}?category=App'">App</span>
+          <span class="category-tag" onclick="window.location.href='{% url 'core:explore' %}?category=Landing'">Landing</span>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <section id="svg-tools" style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
-      <h3 style="margin-bottom: 16px; font-size: 28px;">{% trans "Recently saved SVGs" %}</h3>
-      {% if svgfiles %}
-        {# Debug: mostrar quantos SVGs estão sendo renderizados #}
-        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">
-          {% blocktrans count counter=svgfiles|length %}Showing {{ counter }} public SVG{% plural %}Showing {{ counter }} public SVGs{% endblocktrans %}
-        </p>
-        <div class="container-cards">
-          {% for item in svgfiles %}
-            {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
+  <!-- Category Cards Section -->
+  <section style="background: var(--bg-dark); padding: 3rem 0;">
+    <div class="container">
+      <div class="grid grid-cols-1 grid-cols-2-md" style="max-width: 64rem; margin: 0 auto;">
+        <!-- UI Components Card -->
+        <div class="card" style="cursor: pointer;" onclick="window.location.href='{% url 'core:explore' %}'">
+          <div style="aspect-ratio: 16/10; background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-900) 100%); display: flex; align-items: center; justify-content: center;">
+            <div style="text-align: center;">
+              <div style="display: inline-flex; width: 4rem; height: 4rem; align-items: center; justify-content: center; border-radius: var(--radius-lg); background: var(--color-gray-800); margin-bottom: 0.75rem;">
+                <i data-lucide="layout-grid" style="width: 2rem; height: 2rem; color: var(--text-muted);"></i>
+              </div>
+            </div>
+          </div>
+          <div style="padding: 1rem; text-align: center;">
+            <h3 style="color: var(--text-light);">UI Components</h3>
+          </div>
+        </div>
+
+        <!-- Figma Files Card -->
+        <div class="card" style="cursor: pointer;" onclick="window.location.href='{% url 'core:explore' %}'">
+          <div style="aspect-ratio: 16/10; background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-900) 100%); display: flex; align-items: center; justify-content: center;">
+            <div style="text-align: center;">
+              <div style="display: inline-flex; width: 4rem; height: 4rem; align-items: center; justify-content: center; border-radius: var(--radius-lg); background: var(--color-gray-800); margin-bottom: 0.75rem;">
+                <i data-lucide="figma" style="width: 2rem; height: 2rem; color: var(--text-muted);"></i>
+              </div>
+            </div>
+          </div>
+          <div style="padding: 1rem; text-align: center;">
+            <h3 style="color: var(--text-light);">Figma Files</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Latest Designs Section -->
+  <section class="py-16">
+    <div class="container">
+      <!-- Section Title -->
+      <h2 class="text-center mb-8" style="color: var(--text-light); font-size: 2rem; font-weight: 700;">{% trans "Latest Components" %}</h2>
+      
+      <!-- Design Grid -->
+      <div class="grid grid-cols-1 grid-cols-2-sm grid-cols-4-lg mb-8">
+        {% if svgfiles %}
+          {% for item in svgfiles|slice:":8" %}
+            <div class="design-card" onclick="window.location.href='{% url 'core:explore' %}'">
+              <!-- Image Preview -->
+              <div class="design-card-image">
+                {% if item.preview_url %}
+                  <img src="{{ item.preview_url }}" alt="{{ item.title }}" loading="lazy">
+                {% else %}
+                  <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--color-gray-800);">
+                    <i data-lucide="image" style="width: 3rem; height: 3rem; color: var(--text-muted);"></i>
+                  </div>
+                {% endif %}
+              </div>
+              
+              <!-- Content -->
+              <div class="design-card-content">
+                <h3 class="design-card-title">{{ item.title }}</h3>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <p class="design-card-author">by AkkaUi</p>
+                  {% if not item.vip_access %}
+                    <span class="badge badge-free">{% trans "Free" %}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
           {% endfor %}
-        </div>
-      {% else %}
-        <p class="muted">{% trans "No SVGs saved yet. Save your first one using the form above." %}</p>
-      {% endif %}
-    </section>
+        {% else %}
+          {% for i in "12345678" %}
+            <div class="design-card" onclick="window.location.href='{% url 'core:explore' %}'">
+              <div class="design-card-image">
+                <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--color-gray-800);">
+                  <i data-lucide="image" style="width: 3rem; height: 3rem; color: var(--text-muted);"></i>
+                </div>
+              </div>
+              <div class="design-card-content">
+                <h3 class="design-card-title">Sample Design {{ forloop.counter }}</h3>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <p class="design-card-author">by AkkaUi</p>
+                  <span class="badge badge-free">{% trans "Free" %}</span>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>
+      
+      <!-- See More Button -->
+      <div class="text-center">
+        <a href="{% url 'core:explore' %}" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+          {% trans "See more" %}
+        </a>
+      </div>
+    </div>
+  </section>
 
-    <article class="page" style="max-width: 1200px; margin: 0 auto; padding: 40px 80px 80px;">
-      <section id="about-store" style="text-align: center; margin-bottom: 60px;">
-        <h2 style="font-size: 36px; margin-bottom: 20px; color: var(--primary);">{% trans "Premium SVG Design Store" %}</h2>
-        <p style="font-size: 18px; color: var(--text-muted); max-width: 700px; margin: 0 auto 30px;">
-          {% trans "Discover a curated collection of high-quality SVG graphics and design resources. Perfect for your next project." %}
+  <!-- Community CTA Section -->
+  <section style="background: var(--bg-dark); padding: 4rem 0;">
+    <div class="container">
+      <div style="max-width: 48rem; margin: 0 auto; text-align: center;">
+        <h2 style="font-size: 2.5rem; font-weight: 700; color: var(--text-light); margin-bottom: 1rem;">
+          {% trans "Join our community" %}
+        </h2>
+        <p style="color: var(--text-muted); font-size: 1.125rem; margin-bottom: 2rem;">
+          {% trans "Get access to exclusive designs, updates, and join thousands of designers and developers." %}
         </p>
-        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-          <div style="padding: 20px 30px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
-            <div style="font-size: 32px; font-weight: 700; color: var(--primary);">500+</div>
-            <div style="color: var(--text-muted); margin-top: 4px;">{% trans "SVG Graphics" %}</div>
-          </div>
-          <div style="padding: 20px 30px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
-            <div style="font-size: 32px; font-weight: 700; color: var(--primary);">100%</div>
-            <div style="color: var(--text-muted); margin-top: 4px;">{% trans "Customizable" %}</div>
-          </div>
-          <div style="padding: 20px 30px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
-            <div style="font-size: 32px; font-weight: 700; color: var(--primary);">24/7</div>
-            <div style="color: var(--text-muted); margin-top: 4px;">{% trans "Access" %}</div>
-          </div>
-        </div>
-      </section>
+        <a href="{% url 'usuario:signup' %}" class="btn btn-primary" style="padding: 0.875rem 2.5rem; font-size: 1.125rem;">
+          {% trans "Get Started" %}
+        </a>
+      </div>
+    </div>
+  </section>
 
-      <section id="how-it-works" style="margin-bottom: 60px;">
-        <h3 style="text-align: center; font-size: 28px; margin-bottom: 40px;">{% trans "How It Works" %}</h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
-          <div style="text-align: center;">
-            <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
-            <h4 style="font-size: 20px; margin-bottom: 12px; color: var(--text-light);">{% trans "Browse & Discover" %}</h4>
-            <p style="color: var(--text-muted);">{% trans "Explore our collection of premium SVG designs" %}</p>
-          </div>
-          <div style="text-align: center;">
-            <div style="font-size: 48px; margin-bottom: 16px;">🛒</div>
-            <h4 style="font-size: 20px; margin-bottom: 12px; color: var(--text-light);">{% trans "Add to Cart" %}</h4>
-            <p style="color: var(--text-muted);">{% trans "Select the designs you need for your project" %}</p>
-          </div>
-          <div style="text-align: center;">
-            <div style="font-size: 48px; margin-bottom: 16px;">💳</div>
-            <h4 style="font-size: 20px; margin-bottom: 12px; color: var(--text-light);">{% trans "Secure Checkout" %}</h4>
-            <p style="color: var(--text-muted);">{% trans "Complete your purchase with secure payment" %}</p>
-          </div>
-          <div style="text-align: center;">
-            <div style="font-size: 48px; margin-bottom: 16px;">📚</div>
-            <h4 style="font-size: 20px; margin-bottom: 12px; color: var(--text-light);">{% trans "Instant Access" %}</h4>
-            <p style="color: var(--text-muted);">{% trans "Download and use your SVGs immediately" %}</p>
-          </div>
-        </div>
-      </section>
-
-      <footer class="page-footer" style="text-align: center; padding-top: 40px; border-top: 1px solid var(--border);">
-        <a class="btn" href="{% url 'core:explore' %}" style="padding: 14px 32px; font-size: 16px;">{% trans "Start Shopping" %} →</a>
-      </footer>
-    </article>
-  </div>
+  <script>
+    // Initialize Lucide icons for dynamically loaded content
+    lucide.createIcons();
+  </script>
 {% endblock %}

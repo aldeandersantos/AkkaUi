@@ -6,278 +6,172 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}AkkaUi{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'core/wiki.css' %}">
-    <link rel="stylesheet" href="{% static 'core/ui-enhancements.css' %}">
+    <link rel="stylesheet" href="{% static 'core/modern-design.css' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'Favicon.ico' %}">
     
-    <!-- HTMX para interações dinâmicas sem JavaScript complexo -->
-    <script src="https://unpkg.com/htmx.org@1.9.10" 
-            integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" 
-            crossorigin="anonymous"></script>
-    
-    <!-- Alpine.js para reatividade leve (modais, toggles) -->
-    <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js" 
-            integrity="sha384-Uz679UqE3+L2WCGSYkh+Y2KnGFN7aRRLJMWc9lL3QYAKrVEkbydCPvFODHOcbH1M" 
-            crossorigin="anonymous"></script>
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     
     {% block extra_head %}{% endblock %}
   </head>
   <body>
     <header class="site-header">
       <div class="container">
+        <!-- Logo -->
         <a href="{% url 'core:home' %}" class="brand">
-          <span>⚡</span> AkkaUi
+          <div class="brand-icon">AK</div>
+          <span>AkkaUi</span>
         </a>
-        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
-        <nav class="main-nav" id="mainNav">
-          <a href="{% url 'core:home' %}" {% if request.path == '/' %}class="active"{% endif %}>{% trans "Home" %}</a>
+        
+        <!-- Desktop Navigation -->
+        <nav class="main-nav">
           <a href="{% url 'core:explore' %}" {% if 'explore' in request.path %}class="active"{% endif %}>{% trans "Explore" %}</a>
           <a href="{% url 'core:pricing' %}" {% if 'pricing' in request.path %}class="active"{% endif %}>{% trans "Pricing" %}</a>
           <a href="{% url 'core:faq' %}" {% if 'faq' in request.path %}class="active"{% endif %}>FAQ</a>
           {% if user.is_authenticated %}
-            <a href="{% url 'core:minha_biblioteca' %}" {% if 'minha-biblioteca' in request.path %}class="active"{% endif %}>📚 {% trans "Library" %}</a>
-            <a href="{% url 'core:cart' %}" {% if 'cart' in request.path %}class="active"{% endif %}>🛒 {% trans "Cart" %}</a>
-          {% endif %}
-          {% if user.is_authenticated and user.admin %}
-            <a href="{% url 'core:admin_svg' %}" {% if 'manage/svg' in request.path %}class="active"{% endif %}>{% trans "Manage SVG" %}</a>
-          {% endif %}
-          {% if user.is_authenticated %}
-            <a href="{% url 'usuario:profile' %}" class="mobile-only">{% trans "Profile" %}</a>
-            <a href="{% url 'usuario:signout' %}" class="mobile-only">{% trans "Sign Out" %}</a>
-          {% else %}
-            <a href="{% url 'usuario:signin' %}" class="mobile-only">{% trans "Sign In" %}</a>
-            <a href="{% url 'usuario:signup' %}" class="mobile-only">{% trans "Sign Up" %}</a>
+            <a href="{% url 'core:minha_biblioteca' %}" {% if 'minha-biblioteca' in request.path %}class="active"{% endif %}>
+              <i data-lucide="book-open" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+              {% trans "Library" %}
+            </a>
+            <a href="{% url 'core:cart' %}" {% if 'cart' in request.path %}class="active"{% endif %}>
+              <i data-lucide="shopping-cart" style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+              {% trans "Cart" %}
+            </a>
           {% endif %}
         </nav>
+        
+        <!-- Actions -->
         <div class="auth-buttons">
+          <button onclick="toggleSearch()" class="btn btn-outline" style="padding: 0.5rem;">
+            <i data-lucide="search" style="width: 20px; height: 20px;"></i>
+          </button>
+          
           {% if user.is_authenticated %}
+            {% if user.admin %}
+              <a href="{% url 'core:admin_svg' %}" class="btn btn-secondary">{% trans "Manage SVG" %}</a>
+            {% endif %}
             <a href="{% url 'usuario:profile' %}" class="btn btn-secondary">{{ user.username }}</a>
             <a href="{% url 'usuario:signout' %}" class="btn btn-outline">{% trans "Sign Out" %}</a>
           {% else %}
             <a href="{% url 'usuario:signin' %}" class="btn btn-outline">{% trans "Sign In" %}</a>
             <a href="{% url 'usuario:signup' %}" class="btn btn-primary">{% trans "Sign Up" %}</a>
           {% endif %}
-          
-          <!-- Language Switcher -->
-          <div class="language-switcher" style="position: relative; display: inline-block; margin-left: 12px;">
-            <button onclick="toggleLanguageMenu()" class="btn btn-outline" style="padding: 8px 12px; font-size: 14px;">
-              🌐 {{ LANGUAGE_CODE|upper }}
-            </button>
-            <div id="languageMenu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000;">
-              <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
-                {% csrf_token %}
-                <input name="next" type="hidden" value="/">
-                {% get_current_language as LANGUAGE_CODE %}
-                {% get_available_languages as LANGUAGES %}
-                {% for lang_code, lang_name in LANGUAGES %}
-                <button type="submit" name="language" value="{{ lang_code }}" 
-                        style="width: 100%; padding: 12px 16px; background: {% if lang_code == LANGUAGE_CODE %}var(--primary){% else %}transparent{% endif %}; 
-                               border: none; color: {% if lang_code == LANGUAGE_CODE %}#fff{% else %}var(--text-light){% endif %}; 
-                               text-align: left; cursor: pointer; transition: var(--transition); font-size: 14px;">
-                  {{ lang_name }}
-                </button>
-                {% endfor %}
-              </form>
-            </div>
-          </div>
         </div>
-        <div class="search">
-          <form action="{% url 'core:explore' %}" method="get">
-            <input name="q" type="search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search components' %}">
-          </form>
-        </div>
+        
+        <!-- Mobile Menu Toggle -->
+        <button class="menu-toggle" onclick="toggleMenu()">☰</button>
       </div>
     </header>
 
-    <main class="container app-container">
-      {% block sidebar %}
-      {% endblock %}
+    <!-- Mobile Menu -->
+    <nav id="mobileNav" style="display: none; background: var(--bg-dark); border-bottom: 1px solid var(--border); padding: 1rem;">
+      <div class="container" style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <a href="{% url 'core:explore' %}" class="btn btn-outline" style="width: 100%; justify-content: flex-start;">{% trans "Explore" %}</a>
+        <a href="{% url 'core:pricing' %}" class="btn btn-outline" style="width: 100%; justify-content: flex-start;">{% trans "Pricing" %}</a>
+        <a href="{% url 'core:faq' %}" class="btn btn-outline" style="width: 100%; justify-content: flex-start;">FAQ</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'core:minha_biblioteca' %}" class="btn btn-outline" style="width: 100%; justify-content: flex-start;">{% trans "Library" %}</a>
+          <a href="{% url 'core:cart' %}" class="btn btn-outline" style="width: 100%; justify-content: flex-start;">{% trans "Cart" %}</a>
+          {% if user.admin %}
+            <a href="{% url 'core:admin_svg' %}" class="btn btn-secondary" style="width: 100%; justify-content: flex-start;">{% trans "Manage SVG" %}</a>
+          {% endif %}
+          <a href="{% url 'usuario:profile' %}" class="btn btn-secondary" style="width: 100%; justify-content: flex-start;">{% trans "Profile" %}</a>
+          <a href="{% url 'usuario:signout' %}" class="btn btn-outline" style="width: 100%; justify-content: flex-start;">{% trans "Sign Out" %}</a>
+        {% else %}
+          <a href="{% url 'usuario:signin' %}" class="btn btn-outline" style="width: 100%; justify-content: flex-start;">{% trans "Sign In" %}</a>
+          <a href="{% url 'usuario:signup' %}" class="btn btn-primary" style="width: 100%; justify-content: flex-start;">{% trans "Sign Up" %}</a>
+        {% endif %}
+      </div>
+    </nav>
 
-      <section class="content">
-        {% block content %}
-        <!-- Conteúdo da página -->
-        {% endblock %}
-      </section>
+    <main>
+      {% block content %}
+      <!-- Conteúdo da página -->
+      {% endblock %}
     </main>
 
     <footer class="site-footer">
       <div class="container">
-        <div class="footer-brand">
-          <a href="{% url 'core:home' %}" class="brand">
-            <span>⚡</span> AkkaUi
-          </a>
-          <p>{% trans "Your complete catalog of modern and responsive UI design resources." %}</p>
+        <div class="footer-grid">
+          <!-- Brand -->
+          <div>
+            <a href="{% url 'core:home' %}" class="brand" style="margin-bottom: 1.5rem;">
+              <div class="brand-icon">AK</div>
+              <span>AkkaUi</span>
+            </a>
+          </div>
+          
+          <!-- Products -->
+          <div class="footer-section">
+            <h4>{% trans "Product" %}</h4>
+            <ul class="footer-links">
+              <li><a href="{% url 'core:pricing' %}">{% trans "Pricing" %}</a></li>
+              <li><a href="{% url 'core:explore' %}">{% trans "Explore" %}</a></li>
+              <li><a href="{% url 'core:faq' %}">FAQ</a></li>
+            </ul>
+          </div>
+          
+          <!-- Resources -->
+          <div class="footer-section">
+            <h4>{% trans "Resources" %}</h4>
+            <ul class="footer-links">
+              <li><a href="#">{% trans "Documentation" %}</a></li>
+              <li><a href="#">{% trans "Tutorials" %}</a></li>
+              <li><a href="#">{% trans "Blog" %}</a></li>
+            </ul>
+          </div>
+          
+          <!-- Company -->
+          <div class="footer-section">
+            <h4>{% trans "Company" %}</h4>
+            <ul class="footer-links">
+              <li><a href="#">{% trans "About" %}</a></li>
+              <li><a href="#">{% trans "Contact" %}</a></li>
+              <li><a href="#">{% trans "Terms" %}</a></li>
+            </ul>
+          </div>
+          
+          <!-- Social -->
+          <div class="footer-section">
+            <h4>{% trans "Join the community" %}</h4>
+            <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1rem;">{% trans "Follow us" %}</p>
+            <div class="social-links">
+              <a href="#" class="social-link" title="Facebook">
+                <i data-lucide="facebook" style="width: 16px; height: 16px;"></i>
+              </a>
+              <a href="#" class="social-link" title="Instagram">
+                <i data-lucide="instagram" style="width: 16px; height: 16px;"></i>
+              </a>
+              <a href="#" class="social-link" title="LinkedIn">
+                <i data-lucide="linkedin" style="width: 16px; height: 16px;"></i>
+              </a>
+              <a href="#" class="social-link" title="YouTube">
+                <i data-lucide="youtube" style="width: 16px; height: 16px;"></i>
+              </a>
+            </div>
+          </div>
         </div>
-        <div class="footer-section">
-          <h4>{% trans "Product" %}</h4>
-          <ul>
-            <li><a href="{% url 'core:explore' %}">{% trans "Explore" %}</a></li>
-            <li><a href="{% url 'core:pricing' %}">{% trans "Pricing" %}</a></li>
-            <li><a href="{% url 'core:faq' %}">FAQ</a></li>
-          </ul>
+        
+        <!-- Large Brand Text -->
+        <div class="footer-brand-large">
+          akkaui
         </div>
-        <div class="footer-section">
-          <h4>{% trans "Resources" %}</h4>
-          <ul>
-            <li><a href="#">{% trans "Documentation" %}</a></li>
-            <li><a href="#">{% trans "Tutorials" %}</a></li>
-            <li><a href="#">{% trans "Blog" %}</a></li>
-          </ul>
-        </div>
-        <div class="footer-section">
-          <h4>{% trans "Company" %}</h4>
-          <ul>
-            <li><a href="#">{% trans "About" %}</a></li>
-            <li><a href="#">{% trans "Contact" %}</a></li>
-            <li><a href="#">{% trans "Terms" %}</a></li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p>© {{ year|default:2025 }} AkkaUi. {% trans "All rights reserved." %}</p>
       </div>
     </footer>
 
     <script>
+      // Initialize Lucide icons
+      lucide.createIcons();
+      
       function toggleMenu() {
-        const nav = document.getElementById('mainNav');
-        nav.classList.toggle('active');
+        const nav = document.getElementById('mobileNav');
+        nav.style.display = nav.style.display === 'none' ? 'block' : 'none';
       }
-
-      function toggleLanguageMenu() {
-        const menu = document.getElementById('languageMenu');
-        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+      
+      function toggleSearch() {
+        // TODO: Implement search modal/dropdown
+        alert('Search feature - to be implemented');
       }
-
-      // Close menu when clicking outside
-      document.addEventListener('click', function(event) {
-        const nav = document.getElementById('mainNav');
-        const toggle = document.querySelector('.menu-toggle');
-        const langMenu = document.getElementById('languageMenu');
-        const langSwitcher = document.querySelector('.language-switcher');
-        
-        if (!nav.contains(event.target) && !toggle.contains(event.target)) {
-          nav.classList.remove('active');
-        }
-        
-        if (langSwitcher && !langSwitcher.contains(event.target)) {
-          langMenu.style.display = 'none';
-        }
-      });
-    </script>
-    
-    <!-- Shopping Cart Script -->
-    <script>
-      // Shopping Cart Management
-      (function() {
-        // Get cart from localStorage
-        function getCart() {
-          try {
-            return JSON.parse(localStorage.getItem('akka_cart') || '[]');
-          } catch {
-            return [];
-          }
-        }
-
-        // Save cart to localStorage
-        function saveCart(cart) {
-          localStorage.setItem('akka_cart', JSON.stringify(cart));
-          updateCartBadge();
-        }
-
-        // Add item to cart
-        window.addToCart = function(id, name, price) {
-          const cart = getCart();
-          const existingItem = cart.find(item => item.id === id);
-          
-          if (existingItem) {
-            existingItem.quantity += 1;
-          } else {
-            cart.push({ id, name, price: parseFloat(price), quantity: 1, type: 'svg' });
-          }
-          
-          saveCart(cart);
-          showCartNotification(name);
-        };
-
-        // Show notification
-        function showCartNotification(name) {
-          const notification = document.createElement('div');
-          notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--accent);
-            color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-          `;
-          notification.textContent = `✓ "${name}" adicionado ao carrinho!`;
-          document.body.appendChild(notification);
-          
-          setTimeout(() => {
-            notification.style.animation = 'slideOut 0.3s ease';
-            setTimeout(() => notification.remove(), 300);
-          }, 2000);
-        }
-
-        // Update cart badge
-        function updateCartBadge() {
-          const cart = getCart();
-          const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-          
-          let badge = document.getElementById('cart-badge');
-          if (!badge && totalItems > 0) {
-            const cartLink = document.querySelector('a[href*="cart"]');
-            if (cartLink) {
-              badge = document.createElement('span');
-              badge.id = 'cart-badge';
-              badge.style.cssText = `
-                position: absolute;
-                top: -8px;
-                right: -8px;
-                background: #ff4444;
-                color: white;
-                border-radius: 50%;
-                width: 20px;
-                height: 20px;
-                font-size: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: bold;
-              `;
-              cartLink.style.position = 'relative';
-              cartLink.appendChild(badge);
-            }
-          }
-          
-          if (badge) {
-            badge.textContent = totalItems;
-            badge.style.display = totalItems > 0 ? 'flex' : 'none';
-          }
-        }
-
-        // Initialize on load
-        updateCartBadge();
-
-        // Add CSS animations
-        const style = document.createElement('style');
-        style.textContent = `
-          @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-          }
-          @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(400px); opacity: 0; }
-          }
-        `;
-        document.head.appendChild(style);
-      })();
     </script>
     
     {% block extra_js %}{% endblock %}

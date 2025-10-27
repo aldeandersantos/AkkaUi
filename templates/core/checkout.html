@@ -181,9 +181,9 @@
         </p>
         
         <div style="background: rgba(116, 96, 243, 0.1); border: 1px solid var(--primary); border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: left;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
-            <span style="color: var(--text-muted);">{% trans "Transaction ID" %}:</span>
-            <span style="color: var(--text-light); font-weight: 600;">${payment.transaction_id}</span>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px; gap: 12px;">
+            <span style="color: var(--text-muted); flex-shrink: 0;">{% trans "Transaction ID" %}:</span>
+            <span style="color: var(--text-light); font-weight: 600; word-break: break-all; text-align: right;">${payment.transaction_id}</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">{% trans "Amount" %}:</span>

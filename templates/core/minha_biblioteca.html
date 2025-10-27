@@ -1,0 +1,75 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block title %}Minha Biblioteca — AkkaUi{% endblock %}
+
+{% block content %}
+<div style="width: 100%; background: var(--bg-dark);">
+  <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
+    <h1 style="font-size: 48px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+      📚 Minha Biblioteca
+    </h1>
+    <p class="lead" style="font-size: 18px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">
+      Seus SVGs comprados e acessos VIP em um só lugar
+    </p>
+  </header>
+
+  <section style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
+    
+    {% if is_vip %}
+      <div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 20px; border-radius: 12px; margin-bottom: 40px; text-align: center;">
+        <h2 style="margin: 0; font-size: 24px; color: #000;">👑 Você é VIP!</h2>
+        <p style="margin: 8px 0 0 0; color: #000;">Você tem acesso ilimitado a todos os SVGs pagos da plataforma.</p>
+      </div>
+    {% endif %}
+
+    {% if owned_svgs %}
+      <h2 style="font-size: 32px; margin-bottom: 24px; margin-top: 40px;">✅ SVGs Comprados</h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        SVGs que você adquiriu e possui permanentemente.
+      </p>
+      <div class="container-cards">
+        {% for svg in owned_svgs %}
+          {% include 'core/partials/item_card.html' with item=svg purchased=True %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if vip_svgs %}
+      <h2 style="font-size: 32px; margin-bottom: 24px; margin-top: 60px;">👑 Acesso VIP</h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        SVGs pagos aos quais você tem acesso por ser VIP.
+      </p>
+      <div class="container-cards">
+        {% for svg in vip_svgs %}
+          {% include 'core/partials/item_card.html' with item=svg vip_access=True %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if free_svgs %}
+      <h2 style="font-size: 32px; margin-bottom: 24px; margin-top: 60px;">🆓 SVGs Gratuitos</h2>
+      <p style="color: var(--text-muted); margin-bottom: 20px;">
+        SVGs gratuitos disponíveis para todos os usuários.
+      </p>
+      <div class="container-cards">
+        {% for svg in free_svgs %}
+          {% include 'core/partials/item_card.html' with item=svg %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {% if not owned_svgs and not vip_svgs and not free_svgs %}
+      <div style="text-align: center; padding: 80px 20px; color: var(--text-muted);">
+        <p style="font-size: 64px; margin-bottom: 20px;">📚</p>
+        <h3 style="font-size: 24px; margin-bottom: 12px;">Sua biblioteca está vazia</h3>
+        <p style="margin-bottom: 30px;">Explore nosso catálogo e comece a construir sua coleção de SVGs!</p>
+        <a href="{% url 'core:explore' %}" class="btn btn-primary" style="font-size: 16px; padding: 12px 32px;">
+          🔍 Explorar SVGs
+        </a>
+      </div>
+    {% endif %}
+
+  </section>
+</div>
+{% endblock %}

@@ -22,11 +22,40 @@ class SvgFile(models.Model):
     )
     is_public = models.BooleanField(default=False)
     license_required = models.BooleanField(default=False)
+    is_paid = models.BooleanField(default=False, help_text="Indica se o SVG é pago")
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Preço para venda do SVG (0 = gratuito)")
     hash_value = models.CharField(max_length=64, unique=True, blank=True)
 
     def __str__(self):
         return f"{self.title_name} ({self.uploaded_at.isoformat()})"
+    
+    def user_access_type(self, user):
+        """
+        Retorna o tipo de acesso que um usuário tem a este SVG.
+        
+        Retornos possíveis:
+        - 'owned': usuário comprou o SVG
+        - 'vip': usuário tem acesso VIP (acesso a todos os SVGs pagos)
+        - 'free': SVG é gratuito (price = 0 ou is_paid = False)
+        - 'locked': SVG é pago e usuário não tem acesso
+        """
+        if not user or not user.is_authenticated:
+            if self.is_paid or (self.price and self.price > 0):
+                return 'locked'
+            return 'free'
+        
+        if hasattr(user, 'is_vip') and user.is_vip:
+            if self.is_paid or (self.price and self.price > 0):
+                return 'vip'
+            return 'free'
+        
+        if self.is_paid or (self.price and self.price > 0):
+            from payment.models import Purchase
+            if Purchase.objects.filter(user=user, svg=self).exists():
+                return 'owned'
+            return 'locked'
+        
+        return 'free'
 
     def get_sanitized_content(self):
         """

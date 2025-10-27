@@ -142,6 +142,101 @@
       statusDiv.textContent = message;
     }
 
+    function showSuccessModal(payment) {
+      // Create modal overlay
+      const overlay = document.createElement('div');
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        animation: fadeIn 0.3s ease;
+      `;
+
+      // Create modal content
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 40px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        text-align: center;
+        animation: slideUp 0.3s ease;
+      `;
+
+      modal.innerHTML = `
+        <div style="font-size: 64px; margin-bottom: 20px;">✓</div>
+        <h2 style="color: var(--primary); margin-bottom: 12px; font-size: 28px;">{% trans "Payment Created Successfully!" %}</h2>
+        <p style="color: var(--text-muted); margin-bottom: 24px; font-size: 16px;">
+          {% trans "Your order has been processed. Complete the payment through your selected gateway." %}
+        </p>
+        
+        <div style="background: rgba(116, 96, 243, 0.1); border: 1px solid var(--primary); border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: left;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 12px; gap: 12px;">
+            <span style="color: var(--text-muted); flex-shrink: 0;">{% trans "Transaction ID" %}:</span>
+            <span style="color: var(--text-light); font-weight: 600; word-break: break-all; text-align: right;">${payment.transaction_id}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">{% trans "Amount" %}:</span>
+            <span style="color: var(--primary); font-weight: 700; font-size: 20px;">R$ ${payment.amount}</span>
+          </div>
+        </div>
+
+        <button onclick="closeSuccessModal()" class="btn btn-primary" style="width: 100%; padding: 14px;">
+          {% trans "Continue" %}
+        </button>
+      `;
+
+      overlay.appendChild(modal);
+      document.body.appendChild(overlay);
+
+      // Store overlay reference for closing
+      window.currentModalOverlay = overlay;
+
+      // Add animations
+      if (!document.getElementById('checkout-success-animations')) {
+        const style = document.createElement('style');
+        style.id = 'checkout-success-animations';
+        style.textContent = `
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+          }
+          @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+
+    function closeSuccessModal() {
+      if (window.currentModalOverlay) {
+        window.currentModalOverlay.style.animation = 'fadeOut 0.3s ease';
+        setTimeout(() => {
+          if (window.currentModalOverlay) {
+            window.currentModalOverlay.remove();
+            window.currentModalOverlay = null;
+          }
+          window.location.href = '{% url "core:home" %}';
+        }, 300);
+      }
+    }
+
     async function processPayment() {
       const cart = getCart();
       if (cart.length === 0) {
@@ -184,16 +279,11 @@
         const data = await response.json();
 
         if (response.ok && data.status === 'success') {
-          showStatus('{% trans "Payment created successfully!" %}');
-          
           // Clear cart
           localStorage.removeItem('akka_cart');
           
-          // Show payment details
-          setTimeout(() => {
-            alert(`{% trans "Payment ID" %}: ${data.payment.transaction_id}\n{% trans "Amount" %}: R$ ${data.payment.amount}\n\n{% trans "Please complete the payment through your selected gateway." %}`);
-            window.location.href = '{% url "core:home" %}';
-          }, 1000);
+          // Show success modal
+          showSuccessModal(data.payment);
         } else {
           showStatus(`{% trans "Error" %}: ${data.error || 'Unknown error'}`, true);
           payButton.disabled = false;

@@ -54,17 +54,23 @@ class CartManager {
 
   // Add item to cart
   addToCart(item) {
+    console.log('[CartManager] addToCart recebeu:', item);
+    
     if (!item || !item.id) {
-      console.error('Invalid item:', item);
+      console.error('[CartManager] Invalid item:', item);
       return false;
     }
 
     const cart = this.getCart();
+    console.log('[CartManager] Carrinho atual:', cart);
+    
     const existingItem = cart.find(i => i.id === item.id);
 
     if (existingItem) {
+      console.log('[CartManager] Item já existe, incrementando quantidade');
       existingItem.quantity = (existingItem.quantity || 1) + 1;
     } else {
+      console.log('[CartManager] Adicionando novo item');
       cart.push({
         id: item.id,
         name: item.name || 'Item sem nome',
@@ -75,7 +81,9 @@ class CartManager {
       });
     }
 
+    console.log('[CartManager] Carrinho após adição:', cart);
     const saved = this.saveCart(cart);
+    console.log('[CartManager] Salvo com sucesso:', saved);
     
     if (saved && typeof showToast === 'function') {
       showToast('Item adicionado ao carrinho!', 'success');
@@ -232,7 +240,10 @@ function saveCart(cart) {
 }
 
 function addToCart(id, name, price, type = 'svg') {
-  return cartManager.addToCart({ id, name, price, type });
+  console.log('[Cart Debug] addToCart chamado com:', { id, name, price, type });
+  const result = cartManager.addToCart({ id, name, price, type });
+  console.log('[Cart Debug] addToCart resultado:', result);
+  return result;
 }
 
 function removeFromCart(itemId) {

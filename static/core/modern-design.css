@@ -756,3 +756,148 @@ body {
   align-items: center;
   justify-content: center;
 }
+
+/* Auth Pages - Modern Design */
+.page {
+  min-height: calc(100vh - 4rem);
+  background: var(--bg-dark);
+  padding: 4rem 1rem;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.page-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.page-header .lead {
+  font-size: 1.125rem;
+  color: var(--text-muted);
+}
+
+.page-body {
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.auth-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: var(--text-light);
+  font-weight: 500;
+  font-size: 0.9375rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--color-gray-900);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-light);
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(116, 96, 243, 0.1);
+}
+
+.form-group input::placeholder {
+  color: var(--text-muted);
+}
+
+.form-help {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.btn-block {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.auth-footer p {
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+}
+
+.auth-footer a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+.auth-footer a:hover {
+  color: var(--color-lime-500);
+  text-decoration: underline;
+}
+
+/* Messages */
+.messages {
+  margin-bottom: 1.5rem;
+}
+
+.message {
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 0.75rem;
+  font-size: 0.9375rem;
+}
+
+.message-success {
+  background: rgba(123, 255, 176, 0.1);
+  border: 1px solid rgba(123, 255, 176, 0.3);
+  color: #7bffb0;
+}
+
+.message-error {
+  background: rgba(255, 123, 123, 0.1);
+  border: 1px solid rgba(255, 123, 123, 0.3);
+  color: #ff7b7b;
+}
+
+.message-warning {
+  background: rgba(255, 176, 123, 0.1);
+  border: 1px solid rgba(255, 176, 123, 0.3);
+  color: #ffb07b;
+}
+
+.message-info {
+  background: rgba(116, 96, 243, 0.1);
+  border: 1px solid rgba(116, 96, 243, 0.3);
+  color: var(--primary);
+}

@@ -172,6 +172,54 @@
         // TODO: Implement search modal/dropdown
         alert('Search feature - to be implemented');
       }
+      
+      // Shopping Cart Functions
+      function getCart() {
+        try {
+          return JSON.parse(localStorage.getItem('akka_cart') || '[]');
+        } catch {
+          return [];
+        }
+      }
+      
+      function saveCart(cart) {
+        localStorage.setItem('akka_cart', JSON.stringify(cart));
+        updateCartCount();
+      }
+      
+      function addToCart(id, name, price) {
+        const cart = getCart();
+        const existing = cart.find(item => item.id === id);
+        
+        if (existing) {
+          existing.quantity += 1;
+        } else {
+          cart.push({
+            id: id,
+            name: name,
+            price: parseFloat(price),
+            quantity: 1
+          });
+        }
+        
+        saveCart(cart);
+        
+        // Show notification
+        alert('{% trans "Item added to cart!" %}');
+      }
+      
+      function updateCartCount() {
+        const cart = getCart();
+        const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const badge = document.querySelector('.cart-badge');
+        if (badge) {
+          badge.textContent = count;
+          badge.style.display = count > 0 ? 'flex' : 'none';
+        }
+      }
+      
+      // Update cart count on page load
+      updateCartCount();
     </script>
     
     {% block extra_js %}{% endblock %}

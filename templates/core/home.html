@@ -27,32 +27,56 @@
       {% endif %}
     </section>
 
-    <article class="page" style="max-width: 1200px; margin: 0 auto; padding: 0 80px;">
-      <section id="getting-started">
-
-      <section id="getting-started">
-        <h2>{% trans "Getting Started" %}</h2>
-        <p>{% trans "Explore our collection of components, patterns and design resources. Browse through categories, see examples and find inspiration for your projects." %}</p>
+    <article class="page" style="max-width: 1200px; margin: 0 auto; padding: 40px 80px 80px;">
+      <section id="about-store" style="text-align: center; margin-bottom: 60px;">
+        <h2 style="font-size: 36px; margin-bottom: 20px; color: var(--primary);">{% trans "Premium SVG Design Store" %}</h2>
+        <p style="font-size: 18px; color: var(--text-muted); max-width: 700px; margin: 0 auto 30px;">
+          {% trans "Discover a curated collection of high-quality SVG graphics and design resources. Perfect for your next project." %}
+        </p>
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+          <div style="padding: 20px 30px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
+            <div style="font-size: 32px; font-weight: 700; color: var(--primary);">500+</div>
+            <div style="color: var(--text-muted); margin-top: 4px;">{% trans "SVG Graphics" %}</div>
+          </div>
+          <div style="padding: 20px 30px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
+            <div style="font-size: 32px; font-weight: 700; color: var(--primary);">100%</div>
+            <div style="color: var(--text-muted); margin-top: 4px;">{% trans "Customizable" %}</div>
+          </div>
+          <div style="padding: 20px 30px; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);">
+            <div style="font-size: 32px; font-weight: 700; color: var(--primary);">24/7</div>
+            <div style="color: var(--text-muted); margin-top: 4px;">{% trans "Access" %}</div>
+          </div>
+        </div>
       </section>
 
-      <section id="features">
-        <h2>{% trans "Features" %}</h2>
-        <ul>
-          <li>🎨 {% trans "Modern dark theme with customizable color palette" %}</li>
-          <li>📱 {% trans "Fully responsive design" %}</li>
-          <li>⚡ {% trans "Optimized performance" %}</li>
-          <li>🔍 {% trans "Fast and intuitive search" %}</li>
-          <li>🎯 {% trans "Clean and professional interface" %}</li>
-        </ul>
+      <section id="how-it-works" style="margin-bottom: 60px;">
+        <h3 style="text-align: center; font-size: 28px; margin-bottom: 40px;">{% trans "How It Works" %}</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px;">
+          <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+            <h4 style="font-size: 20px; margin-bottom: 12px; color: var(--text-light);">{% trans "Browse & Discover" %}</h4>
+            <p style="color: var(--text-muted);">{% trans "Explore our collection of premium SVG designs" %}</p>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🛒</div>
+            <h4 style="font-size: 20px; margin-bottom: 12px; color: var(--text-light);">{% trans "Add to Cart" %}</h4>
+            <p style="color: var(--text-muted);">{% trans "Select the designs you need for your project" %}</p>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 16px;">💳</div>
+            <h4 style="font-size: 20px; margin-bottom: 12px; color: var(--text-light);">{% trans "Secure Checkout" %}</h4>
+            <p style="color: var(--text-muted);">{% trans "Complete your purchase with secure payment" %}</p>
+          </div>
+          <div style="text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📚</div>
+            <h4 style="font-size: 20px; margin-bottom: 12px; color: var(--text-light);">{% trans "Instant Access" %}</h4>
+            <p style="color: var(--text-muted);">{% trans "Download and use your SVGs immediately" %}</p>
+          </div>
+        </div>
       </section>
 
-      <section id="about">
-        <h2>{% trans "About AkkaUi" %}</h2>
-        <p>{% trans "AkkaUi is a modern platform inspired by uiwiki.co, focused on content presentation and reading with elegant dark theme. We use colors #7460F3 (primary), #e7e7e7 (text), #7b7b7b (muted) and #0c0c0c (background) to create a unique visual experience." %}</p>
-      </section>
-
-      <footer class="page-footer">
-        <a class="btn" href="{% url 'core:explore' %}">{% trans "Explore Components" %}</a>
+      <footer class="page-footer" style="text-align: center; padding-top: 40px; border-top: 1px solid var(--border);">
+        <a class="btn" href="{% url 'core:explore' %}" style="padding: 14px 32px; font-size: 16px;">{% trans "Start Shopping" %} →</a>
       </footer>
     </article>
   </div>

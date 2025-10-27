@@ -240,13 +240,13 @@
     async function processPayment() {
       const cart = getCart();
       if (cart.length === 0) {
-        showStatus('{% trans "Cart is empty" %}', true);
+        showToast('{% trans "Cart is empty" %}', 'error');
         return;
       }
 
       const gateway = document.querySelector('input[name="gateway"]:checked')?.value;
       if (!gateway) {
-        showStatus('{% trans "Please select a payment method" %}', true);
+        showToast('{% trans "Please select a payment method" %}', 'warning');
         return;
       }
 
@@ -279,19 +279,19 @@
         const data = await response.json();
 
         if (response.ok && data.status === 'success') {
-          // Clear cart
-          localStorage.removeItem('akka_cart');
+          // Clear cart using cartManager
+          cartManager.clearCart();
           
           // Show success modal
           showSuccessModal(data.payment);
         } else {
-          showStatus(`{% trans "Error" %}: ${data.error || 'Unknown error'}`, true);
+          showToast(`{% trans "Error" %}: ${data.error || 'Unknown error'}`, 'error');
           payButton.disabled = false;
           payButton.textContent = originalText;
         }
       } catch (error) {
         console.error('Payment error:', error);
-        showStatus(`{% trans "Error processing payment" %}: ${error.message}`, true);
+        showToast(`{% trans "Error processing payment" %}: ${error.message}`, 'error');
         payButton.disabled = false;
         payButton.textContent = originalText;
       }

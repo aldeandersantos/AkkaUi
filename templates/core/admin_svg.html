@@ -393,7 +393,9 @@
             btn.disabled = false;
           }, 2000);
         } catch (err) {
-          alert('Erro ao copiar: ' + err.message);
+          if (typeof showToast === 'function') {
+            showToast('Erro ao copiar: ' + err.message, 'error');
+          }
           btn.textContent = originalText;
           btn.disabled = false;
         }
@@ -440,7 +442,9 @@
           }
 
         } catch (err) {
-          alert('Erro ao excluir: ' + err.message);
+          if (typeof showToast === 'function') {
+            showToast('Erro ao excluir: ' + err.message, 'error');
+          }
           btn.disabled = false;
           btn.innerHTML = originalHtml;
         }

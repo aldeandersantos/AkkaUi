@@ -719,3 +719,20 @@ body {
 [x-cloak] {
   display: none !important;
 }
+
+/* Cart Badge */
+.cart-badge {
+  display: none;
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--primary);
+  color: var(--color-black);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+}

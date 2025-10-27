@@ -131,7 +131,10 @@ Validar a integração do sistema de notificações toast e melhorias no carrinh
 ### 2.8 Migração de Dados Antigos
 **Passos:**
 1. Abrir DevTools → Application → LocalStorage
-2. Criar manualmente chave `akka_cart` com dados: `[{"id":"test","name":"Test","price":10,"quantity":1}]`
+2. Criar manualmente chave `akka_cart` com dados:
+   ```json
+   [{"id":"test","name":"Test","price":10,"quantity":1}]
+   ```
 3. Recarregar página
 4. **Esperado:**
    - Dados migrados para `akkaui_cart_v1`

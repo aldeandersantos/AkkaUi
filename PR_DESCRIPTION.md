@@ -273,7 +273,7 @@ Nenhuma ação manual necessária! ✨
 
 ## 👥 Créditos
 
-- **Desenvolvedor:** GitHub Copilot Agent
+- **Desenvolvimento:** AI-assisted development
 - **Design Base:** futuro_frontend (Tailwind/React)
 - **Framework:** Django + Vanilla JS
 - **Icons:** Lucide Icons

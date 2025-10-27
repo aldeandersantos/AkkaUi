@@ -149,11 +149,11 @@ class PaymentService:
             payment.status = cls.STATUS_MAP.get(new_status.lower(), payment.status)
             payment.gateway_response = status_response
             
-            # Se foi completado agora, registrar timestamp
+            # Se foi completado agora, executar ações finais (VIP, registro de compras, etc.)
             if payment.status == 'completed' and old_status != 'completed':
                 notify_discord(payment.user.username, "confirmed_payment", payment.amount, payment.status)
-                payment.completed_at = timezone.now()
-                cls._apply_vip_to_user(payment)
+                # Encapsula ações que devem ocorrer quando um pagamento é confirmado
+                cls._finalize_payment(payment, old_status=old_status)
             
             payment.save()
             return payment
@@ -182,13 +182,12 @@ class PaymentService:
             gateway = cls.get_gateway(payment.gateway)
             confirmation_response = gateway.simulate_payment_confirmation(payment.gateway_payment_id)
             
+            old_status = payment.status
             payment.status = 'completed'
             payment.gateway_response = confirmation_response
-            payment.completed_at = timezone.now()
+            # Encapsula ações que devem ocorrer quando um pagamento é confirmado
             payment.save()
-            
-            # Aplicar VIP ao usuário
-            cls._apply_vip_to_user(payment)
+            cls._finalize_payment(payment, old_status=old_status)
             
             return payment
             
@@ -355,3 +354,70 @@ class PaymentService:
         else:
             # Pagamento apenas de SVGs, não aplica VIP
             logger.info(f"Pagamento {payment.transaction_id} sem plano, VIP não aplicado")
+
+    @classmethod
+    def _finalize_payment(cls, payment: Payment, old_status: str = None) -> None:
+        """Executa ações que devem ocorrer quando um pagamento é confirmado.
+
+        - Marca completed_at
+        - Registra compras de SVGs (PaymentItem.item_type == 'svg')
+        - Aplica VIP quando aplicável
+        - Notifica e registra eventos
+        """
+        try:
+            payment.completed_at = timezone.now()
+            # Registrar compras de SVGs associadas aos itens do pagamento
+            try:
+                cls._register_svg_purchases(payment)
+            except Exception as e:
+                logger.exception("Falha ao registrar compras de SVGs para pagamento %s: %s", payment.transaction_id, e)
+
+            # Aplicar VIP caso haja plano
+            try:
+                cls._apply_vip_to_user(payment)
+            except Exception as e:
+                logger.exception("Falha ao aplicar VIP para pagamento %s: %s", payment.transaction_id, e)
+
+            payment.save()
+            logger.info(f"Finalização de pagamento realizada para {payment.transaction_id}")
+        except Exception as e:
+            logger.exception("Erro ao finalizar pagamento %s: %s", payment.transaction_id, e)
+
+    @classmethod
+    def _register_svg_purchases(cls, payment: Payment) -> None:
+        """Cria registros Purchase para cada item do tipo 'svg' em um pagamento.
+
+        Observações:
+        - Se o usuário já possui o registro de compra para um SVG (unique_together), apenas ignora.
+        - Usa get_or_create para evitar duplicação em retries de webhook.
+        """
+        from ..models import Purchase
+        from django.db import IntegrityError
+
+        svg_items = payment.items.filter(item_type='svg')
+        if not svg_items.exists():
+            logger.debug(f"Pagamento {payment.transaction_id} não contém itens de SVG para registrar")
+            return
+
+        for item in svg_items:
+            svg_id = item.item_id
+            try:
+                purchase, created = Purchase.objects.get_or_create(
+                    user=payment.user,
+                    svg_id=svg_id,
+                    defaults={
+                        'price': item.unit_price,
+                        'payment_method': payment.gateway,
+                    }
+                )
+                if created:
+                    logger.info(f"Registro de compra criado: user={payment.user.username}, svg={svg_id}, payment={payment.transaction_id}")
+                else:
+                    logger.debug(f"Registro de compra já existente: user={payment.user.username}, svg={svg_id}")
+            except IntegrityError:
+                # Em caso de condição de corrida, tentar obter novamente
+                try:
+                    Purchase.objects.get(user=payment.user, svg_id=svg_id)
+                    logger.debug(f"Registro de compra (race) já existe: user={payment.user.username}, svg={svg_id}")
+                except Purchase.DoesNotExist:
+                    logger.exception("Erro ao criar purchase para user=%s svg=%s", payment.user.username, svg_id)

@@ -19,7 +19,7 @@
         </p>
         <div class="container-cards">
           {% for item in svgfiles %}
-            {% include 'core/partials/item_card.html' with item=item %}
+            {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
           {% endfor %}
         </div>
       {% else %}

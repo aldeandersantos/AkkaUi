@@ -36,6 +36,14 @@ msgstr "Preços"
 msgid "Manage SVG"
 msgstr "Gerenciar SVG"
 
+#: templates/core/base.html:38
+msgid "Library"
+msgstr "Biblioteca"
+
+#: templates/core/base.html:39
+msgid "Cart"
+msgstr "Carrinho"
+
 #: templates/core/base.html:40 templates/usuario/profile.html:4
 msgid "Profile"
 msgstr "Perfil"

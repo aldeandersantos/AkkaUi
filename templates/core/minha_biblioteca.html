@@ -114,28 +114,3 @@
   lucide.createIcons();
 </script>
 {% endblock %}
-      <h2 style="font-size: 32px; margin-bottom: 24px; margin-top: 60px;">🆓 SVGs Gratuitos</h2>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">
-        SVGs gratuitos disponíveis para todos os usuários.
-      </p>
-      <div class="container-cards">
-        {% for svg in free_svgs %}
-          {% include 'core/partials/item_card.html' with item=svg %}
-        {% endfor %}
-      </div>
-    {% endif %}
-
-    {% if not owned_svgs and not vip_svgs and not free_svgs %}
-      <div style="text-align: center; padding: 80px 20px; color: var(--text-muted);">
-        <p style="font-size: 64px; margin-bottom: 20px;">📚</p>
-        <h3 style="font-size: 24px; margin-bottom: 12px;">Sua biblioteca está vazia</h3>
-        <p style="margin-bottom: 30px;">Explore nosso catálogo e comece a construir sua coleção de SVGs!</p>
-        <a href="{% url 'core:explore' %}" class="btn btn-primary" style="font-size: 16px; padding: 12px 32px;">
-          🔍 Explorar SVGs
-        </a>
-      </div>
-    {% endif %}
-
-  </section>
-</div>
-{% endblock %}

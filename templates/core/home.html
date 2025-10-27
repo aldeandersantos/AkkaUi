@@ -6,12 +6,14 @@
 {% block content %}
   <div style="width: 100%; background: var(--bg-dark);">
     <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
-      <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{% trans "Welcome to AkkaUi" %}</h1>
-      <p class="lead" style="font-size: 20px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">{% trans "Your complete catalog of modern and responsive UI design resources with dark theme." %}</p>
+      <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Bem-vindo à AkkaUi</h1>
+      <p class="lead" style="font-size: 20px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">
+        Sua loja completa de figmas profissionais com tema dark elegante
+      </p>
     </header>
 
     <section id="svg-tools" style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
-      <h3 style="margin-bottom: 16px; font-size: 28px;">{% trans "Recently saved SVGs" %}</h3>
+      <h3 style="margin-bottom: 16px; font-size: 28px;">🎨 Figmas Recentes</h3>
       {% if svgfiles %}
         {# Debug: mostrar quantos SVGs estão sendo renderizados #}
         <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">
@@ -23,36 +25,53 @@
           {% endfor %}
         </div>
       {% else %}
-        <p class="muted">{% trans "No SVGs saved yet. Save your first one using the form above." %}</p>
+        <p class="muted">Nenhum figma disponível no momento. Em breve novos designs serão adicionados!</p>
       {% endif %}
     </section>
 
     <article class="page" style="max-width: 1200px; margin: 0 auto; padding: 0 80px;">
-      <section id="getting-started">
-
-      <section id="getting-started">
-        <h2>{% trans "Getting Started" %}</h2>
-        <p>{% trans "Explore our collection of components, patterns and design resources. Browse through categories, see examples and find inspiration for your projects." %}</p>
+      <section id="nosso-catalogo" style="margin-bottom: 48px;">
+        <h2 style="font-size: 32px; margin-bottom: 16px; color: var(--text-light);">🎨 Nosso Catálogo de Figmas</h2>
+        <p style="font-size: 16px; line-height: 1.7; color: var(--text-muted);">
+          Explore nossa coleção exclusiva de designs prontos para uso. Cada figma foi cuidadosamente criado 
+          para atender às suas necessidades de design, desde interfaces modernas até componentes reutilizáveis.
+        </p>
       </section>
 
-      <section id="features">
-        <h2>{% trans "Features" %}</h2>
-        <ul>
-          <li>🎨 {% trans "Modern dark theme with customizable color palette" %}</li>
-          <li>📱 {% trans "Fully responsive design" %}</li>
-          <li>⚡ {% trans "Optimized performance" %}</li>
-          <li>🔍 {% trans "Fast and intuitive search" %}</li>
-          <li>🎯 {% trans "Clean and professional interface" %}</li>
+      <section id="vantagens" style="margin-bottom: 48px;">
+        <h2 style="font-size: 32px; margin-bottom: 20px; color: var(--text-light);">✨ Por que escolher nossos Figmas?</h2>
+        <ul style="list-style: none; padding: 0;">
+          <li style="padding: 12px 0; font-size: 16px; color: var(--text-muted);">
+            <span style="color: var(--primary); font-weight: 600;">🎨 Designs Profissionais</span> - Templates criados por designers experientes
+          </li>
+          <li style="padding: 12px 0; font-size: 16px; color: var(--text-muted);">
+            <span style="color: var(--primary); font-weight: 600;">📱 Totalmente Responsivos</span> - Adapte para qualquer dispositivo
+          </li>
+          <li style="padding: 12px 0; font-size: 16px; color: var(--text-muted);">
+            <span style="color: var(--primary); font-weight: 600;">⚡ Pronto para Usar</span> - Economize tempo no seu projeto
+          </li>
+          <li style="padding: 12px 0; font-size: 16px; color: var(--text-muted);">
+            <span style="color: var(--primary); font-weight: 600;">🔄 Atualizações Regulares</span> - Novos designs adicionados frequentemente
+          </li>
+          <li style="padding: 12px 0; font-size: 16px; color: var(--text-muted);">
+            <span style="color: var(--primary); font-weight: 600;">💎 Acesso VIP Disponível</span> - Acesso ilimitado a todos os figmas premium
+          </li>
         </ul>
       </section>
 
-      <section id="about">
-        <h2>{% trans "About AkkaUi" %}</h2>
-        <p>{% trans "AkkaUi is a modern platform inspired by uiwiki.co, focused on content presentation and reading with elegant dark theme. We use colors #7460F3 (primary), #e7e7e7 (text), #7b7b7b (muted) and #0c0c0c (background) to create a unique visual experience." %}</p>
+      <section id="sobre" style="margin-bottom: 48px;">
+        <h2 style="font-size: 32px; margin-bottom: 16px; color: var(--text-light);">🚀 Sobre a AkkaUi</h2>
+        <p style="font-size: 16px; line-height: 1.7; color: var(--text-muted);">
+          AkkaUi é sua plataforma completa para adquirir figmas de alta qualidade. Oferecemos um catálogo 
+          diversificado com interface moderna e tema dark elegante, pensado para proporcionar a melhor 
+          experiência de navegação e compra.
+        </p>
       </section>
 
-      <footer class="page-footer">
-        <a class="btn" href="{% url 'core:explore' %}">{% trans "Explore Components" %}</a>
+      <footer class="page-footer" style="text-align: center; margin-top: 48px;">
+        <a class="btn" href="{% url 'core:explore' %}" style="font-size: 18px; padding: 16px 40px;">
+          🔍 Explorar Catálogo
+        </a>
       </footer>
     </article>
   </div>

@@ -64,8 +64,12 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block extra_js %}
 <script>
   // Cart management - using centralized cart.js functions
+  // This block runs after cart.js is loaded
   
   function clearCart() {
     if (confirm('{% trans "Are you sure you want to clear your cart?" %}')) {

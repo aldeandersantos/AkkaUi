@@ -89,6 +89,9 @@
     const emptyState = document.getElementById('cart-empty');
     const summary = document.getElementById('cart-summary');
 
+    console.log('[Cart Debug] Renderizando carrinho:', cart);
+    console.log('[Cart Debug] Container:', container);
+
     if (cart.length === 0) {
       container.innerHTML = '';
       emptyState.style.display = 'block';
@@ -152,8 +155,13 @@
 
     document.getElementById('cart-total').textContent = total.toFixed(2);
     
+    console.log('[Cart Debug] Total:', total);
+    console.log('[Cart Debug] Inicializando Lucide icons...');
+    
     // Reinitialize Lucide icons
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined' && lucide.createIcons) {
+      lucide.createIcons();
+    }
   }
 
   function escapeHtml(text) {
@@ -168,7 +176,12 @@
   });
 
   // Initialize on page load
+  console.log('[Cart Debug] Iniciando renderCart no load...');
   renderCart();
-  lucide.createIcons();
+  
+  // Initialize Lucide icons
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    lucide.createIcons();
+  }
 </script>
 {% endblock %}

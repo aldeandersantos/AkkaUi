@@ -139,6 +139,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
             })
             .then(() => {
               btn.textContent = '✓';
+              if (typeof showNotification === 'function') {
+                showNotification('SVG copiado com sucesso!', 'success');
+              }
               setTimeout(() => {
                 btn.disabled = false;
                 btn.textContent = originalText;
@@ -146,7 +149,11 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
             })
             .catch(error => {
               console.error('Erro ao copiar:', error);
-              alert('Erro ao copiar SVG: ' + error.message);
+              if (typeof showNotification === 'function') {
+                showNotification('Erro ao copiar SVG: ' + error.message, 'error');
+              } else {
+                alert('Erro ao copiar SVG: ' + error.message);
+              }
               btn.disabled = false;
               btn.textContent = originalText;
             });
@@ -225,6 +232,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
             })
             .then(() => {
               btn.textContent = '✓';
+              if (typeof showNotification === 'function') {
+                showNotification('SVG copiado com sucesso!', 'success');
+              }
               setTimeout(() => {
                 btn.disabled = false;
                 btn.textContent = originalText;
@@ -232,7 +242,11 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
             })
             .catch(error => {
               console.error('Erro ao copiar:', error);
-              alert('Erro ao copiar SVG: ' + error.message);
+              if (typeof showNotification === 'function') {
+                showNotification('Erro ao copiar SVG: ' + error.message, 'error');
+              } else {
+                alert('Erro ao copiar SVG: ' + error.message);
+              }
               btn.disabled = false;
               btn.textContent = originalText;
             });

@@ -24,108 +24,110 @@
     {% block extra_head %}{% endblock %}
   </head>
   <body>
+    <!-- Notification Toast Container -->
+    <div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 0.5rem;"></div>
+    
     <header class="site-header-dark">
       <div class="container">
-        <div style="display: flex; align-items: center; gap: 2rem;">
-          <a href="{% url 'core:home' %}" class="brand">
-            <span class="brand-icon">A</span>
-            <span>AkkaUi</span>
-          </a>
-          
-          <nav class="nav" style="display: none;" id="mainNav">
-            <a href="{% url 'core:home' %}" {% if request.path == '/' %}class="active"{% endif %}>{% trans "Home" %}</a>
-            <a href="{% url 'core:explore' %}" {% if 'explore' in request.path %}class="active"{% endif %}>{% trans "Explore" %}</a>
-            <a href="{% url 'core:pricing' %}" {% if 'pricing' in request.path %}class="active"{% endif %}>{% trans "Pricing" %}</a>
-            <a href="{% url 'core:faq' %}" {% if 'faq' in request.path %}class="active"{% endif %}>FAQ</a>
-            {% if user.is_authenticated %}
-              <a href="{% url 'core:minha_biblioteca' %}" {% if 'minha-biblioteca' in request.path %}class="active"{% endif %}>{% trans "Library" %}</a>
-            {% endif %}
-            {% if user.is_authenticated and user.admin %}
-              <a href="{% url 'core:admin_svg' %}" {% if 'manage/svg' in request.path %}class="active"{% endif %}>{% trans "Manage SVG" %}</a>
-            {% endif %}
-          </nav>
-          
-          <button class="icon-button" onclick="toggleMenu()" style="display: block; margin-left: auto;">☰</button>
-        </div>
-        
-        <div class="actions">
-          <form action="{% url 'core:explore' %}" method="get" style="position: relative; display: none;" id="searchForm">
-            <input name="q" type="search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search components' %}" class="input" style="padding-right: 2.5rem; width: 200px;">
-            <button type="button" onclick="toggleSearch()" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-gray-400); cursor: pointer;">✕</button>
-          </form>
-          
-          <button class="icon-button" onclick="toggleSearch()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </button>
-          
-          {% if user.is_authenticated %}
-            <a href="{% url 'core:cart' %}" class="icon-button" style="position: relative; text-decoration: none;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="21" r="1"></circle>
-                <circle cx="20" cy="21" r="1"></circle>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-              </svg>
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <!-- Logo e Navegação Desktop -->
+          <div style="display: flex; align-items: center; gap: 2rem;">
+            <a href="{% url 'core:home' %}" class="brand">
+              <span class="brand-icon">A</span>
+              <span>AkkaUi</span>
             </a>
-          {% endif %}
-          
-          <div class="language-switcher" style="position: relative;">
-            <button onclick="toggleLanguageMenu()" class="btn btn-outline" style="padding: 0.5rem 0.75rem; font-size: 0.875rem; height: auto;">
-              🌐 {{ LANGUAGE_CODE|upper }}
-            </button>
-            <div id="languageMenu" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: 0.5rem; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000;">
-              <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
-                {% csrf_token %}
-                <input name="next" type="hidden" value="{{ request.path }}">
-                {% get_current_language as LANGUAGE_CODE %}
-                {% get_available_languages as LANGUAGES %}
-                {% for lang_code, lang_name in LANGUAGES %}
-                <button type="submit" name="language" value="{{ lang_code }}" 
-                        style="width: 100%; padding: 0.75rem 1rem; background: {% if lang_code == LANGUAGE_CODE %}var(--primary){% else %}transparent{% endif %}; 
-                               border: none; color: {% if lang_code == LANGUAGE_CODE %}var(--bg-black){% else %}var(--text-gray-300){% endif %}; 
-                               text-align: left; cursor: pointer; transition: var(--transition-fast); font-size: 0.875rem; font-weight: 500;">
-                  {{ lang_name }}
-                </button>
-                {% endfor %}
-              </form>
-            </div>
+            
+            <!-- Desktop Navigation - sempre visível em telas grandes -->
+            <nav style="display: none; gap: 1.5rem; align-items: center;" id="desktopNav">
+              <a href="{% url 'core:explore' %}" style="color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.9375rem;" onmouseover="this.style.color='var(--text-white)'" onmouseout="this.style.color='var(--text-gray-300)'">{% trans "Explore" %}</a>
+              <a href="{% url 'core:pricing' %}" style="color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.9375rem;" onmouseover="this.style.color='var(--text-white)'" onmouseout="this.style.color='var(--text-gray-300)'">{% trans "Pricing" %}</a>
+              <a href="{% url 'core:faq' %}" style="color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.9375rem;" onmouseover="this.style.color='var(--text-white)'" onmouseout="this.style.color='var(--text-gray-300)'">FAQ</a>
+              {% if user.is_authenticated %}
+                <a href="{% url 'core:minha_biblioteca' %}" style="color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.9375rem;" onmouseover="this.style.color='var(--text-white)'" onmouseout="this.style.color='var(--text-gray-300)'">{% trans "Library" %}</a>
+              {% endif %}
+              {% if user.is_authenticated and user.admin %}
+                <a href="{% url 'core:admin_svg' %}" style="color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.9375rem;" onmouseover="this.style.color='var(--text-white)'" onmouseout="this.style.color='var(--text-gray-300)'">{% trans "Admin" %}</a>
+              {% endif %}
+            </nav>
           </div>
           
-          {% if user.is_authenticated %}
-            <div style="position: relative;" x-data="{ open: false }">
-              <button @click="open = !open" class="icon-button" style="width: 2rem; height: 2rem; background-color: var(--primary); border-radius: 50%; color: var(--bg-black); font-weight: 600; font-size: 0.875rem;">
+          <!-- Actions - direita -->
+          <div class="actions">
+            <button class="icon-button" onclick="toggleSearch()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </button>
+            
+            {% if user.is_authenticated %}
+              <a href="{% url 'core:cart' %}" class="icon-button" style="position: relative; text-decoration: none;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="9" cy="21" r="1"></circle>
+                  <circle cx="20" cy="21" r="1"></circle>
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                </svg>
+              </a>
+            {% endif %}
+            
+            {% if user.is_authenticated %}
+              <!-- Avatar simples sem dropdown -->
+              <a href="{% url 'usuario:profile' %}" class="icon-button" style="width: 2rem; height: 2rem; background-color: var(--primary); border-radius: 50%; color: var(--bg-black); font-weight: 600; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; text-decoration: none;" title="{% trans 'Profile' %}">
                 {{ user.username|slice:":1"|upper }}
-              </button>
-              <div x-show="open" @click.outside="open = false" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 0.5rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: 0.5rem; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 1000;" x-bind:style="open ? 'display: block' : 'display: none'">
-                <a href="{% url 'usuario:profile' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.875rem;">{% trans "Profile" %}</a>
-                <a href="{% url 'usuario:signout' %}" style="display: block; padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.875rem; border-top: 1px solid var(--border-gray-800);">{% trans "Sign Out" %}</a>
-              </div>
-            </div>
-          {% else %}
-            <a href="{% url 'usuario:signin' %}" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.875rem; height: auto;">{% trans "Sign In" %}</a>
-            <a href="{% url 'usuario:signup' %}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; height: auto;">{% trans "Sign Up" %}</a>
-          {% endif %}
+              </a>
+            {% else %}
+              <a href="{% url 'usuario:signin' %}" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.875rem; height: auto; display: none;" id="signinBtn">{% trans "Sign In" %}</a>
+              <a href="{% url 'usuario:signup' %}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; height: auto; display: none;" id="signupBtn">{% trans "Sign Up" %}</a>
+            {% endif %}
+            
+            <!-- Menu hamburguer para mobile -->
+            <button class="icon-button" onclick="toggleMobileMenu()" style="display: block;" id="menuToggle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+          </div>
         </div>
+        
+        <!-- Search form expandido -->
+        <form action="{% url 'core:explore' %}" method="get" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-gray-900); border-bottom: 1px solid var(--border-gray-800); padding: 1rem; display: none;" id="searchForm">
+          <div class="container">
+            <div style="position: relative; max-width: 600px; margin: 0 auto;">
+              <input name="q" type="search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search components' %}" class="input" style="width: 100%; padding-left: 3rem;">
+              <svg style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-gray-500);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </div>
+          </div>
+        </form>
       </div>
     </header>
     
     <!-- Mobile Menu -->
-    <div id="mobileMenu" style="display: none; position: fixed; top: 4rem; left: 0; right: 0; background: rgba(0, 0, 0, 0.98); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-gray-800); z-index: 40; padding: 1rem;">
-      <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
-        <a href="{% url 'core:home' %}" style="padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast);" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Home" %}</a>
-        <a href="{% url 'core:explore' %}" style="padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast);" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Explore" %}</a>
-        <a href="{% url 'core:pricing' %}" style="padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast);" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Pricing" %}</a>
-        <a href="{% url 'core:faq' %}" style="padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast);" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">FAQ</a>
-        {% if user.is_authenticated %}
-          <a href="{% url 'core:minha_biblioteca' %}" style="padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast);" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Library" %}</a>
-          <a href="{% url 'core:cart' %}" style="padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast);" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Cart" %}</a>
-          {% if user.admin %}
-            <a href="{% url 'core:admin_svg' %}" style="padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast);" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Manage SVG" %}</a>
+    <div id="mobileMenu" style="display: none; position: fixed; top: 4rem; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.98); backdrop-filter: blur(12px); z-index: 40; overflow-y: auto;">
+      <div class="container" style="padding: 2rem 1rem;">
+        <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <a href="{% url 'core:home' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Home" %}</a>
+          <a href="{% url 'core:explore' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Explore" %}</a>
+          <a href="{% url 'core:pricing' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Pricing" %}</a>
+          <a href="{% url 'core:faq' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">FAQ</a>
+          {% if user.is_authenticated %}
+            <a href="{% url 'core:minha_biblioteca' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Library" %}</a>
+            <a href="{% url 'core:cart' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Cart" %}</a>
+            <a href="{% url 'usuario:profile' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Profile" %}</a>
+            <a href="{% url 'usuario:signout' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem; border-top: 1px solid var(--border-gray-800); margin-top: 0.5rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Sign Out" %}</a>
+            {% if user.admin %}
+              <a href="{% url 'core:admin_svg' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Manage SVG" %}</a>
+            {% endif %}
+          {% else %}
+            <a href="{% url 'usuario:signin' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem; border-top: 1px solid var(--border-gray-800); margin-top: 0.5rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Sign In" %}</a>
+            <a href="{% url 'usuario:signup' %}" class="btn btn-primary" style="margin-top: 0.5rem;">{% trans "Sign Up" %}</a>
           {% endif %}
-        {% endif %}
-      </nav>
+        </nav>
+      </div>
     </div>
 
     <main style="min-height: calc(100vh - 12rem);">
@@ -218,54 +220,77 @@
     </footer>
 
     <script>
-      function toggleMenu() {
-        const menu = document.getElementById('mobileMenu');
-        const nav = document.getElementById('mainNav');
+      // Notification System
+      window.showNotification = function(message, type = 'success') {
+        const container = document.getElementById('notificationContainer');
+        const notification = document.createElement('div');
         
-        if (menu.style.display === 'none' || menu.style.display === '') {
-          menu.style.display = 'block';
-          nav.style.display = 'flex';
-        } else {
-          menu.style.display = 'none';
-          nav.style.display = 'none';
-        }
+        const bgColors = {
+          success: 'linear-gradient(135deg, rgba(163, 230, 53, 0.95), rgba(132, 204, 22, 0.95))',
+          error: 'linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(220, 38, 38, 0.95))',
+          info: 'linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95))'
+        };
+        
+        notification.style.cssText = `
+          background: ${bgColors[type] || bgColors.success};
+          color: white;
+          padding: 1rem 1.5rem;
+          border-radius: 0.75rem;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          min-width: 300px;
+          max-width: 400px;
+          animation: slideInRight 0.3s ease;
+          font-weight: 500;
+          font-size: 0.9375rem;
+        `;
+        
+        const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+        notification.innerHTML = `
+          <span style="font-size: 1.25rem; font-weight: bold;">${icon}</span>
+          <span style="flex: 1;">${message}</span>
+          <button onclick="this.parentElement.remove()" style="background: rgba(255,255,255,0.2); border: none; color: white; width: 1.5rem; height: 1.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: bold;">×</button>
+        `;
+        
+        container.appendChild(notification);
+        
+        setTimeout(() => {
+          notification.style.animation = 'slideOutRight 0.3s ease';
+          setTimeout(() => notification.remove(), 300);
+        }, 4000);
+      };
+      
+      // Mobile menu toggle
+      function toggleMobileMenu() {
+        const menu = document.getElementById('mobileMenu');
+        menu.style.display = menu.style.display === 'none' || menu.style.display === '' ? 'block' : 'none';
       }
       
+      // Search toggle
       function toggleSearch() {
         const searchForm = document.getElementById('searchForm');
         const searchInput = searchForm.querySelector('input');
         
         if (searchForm.style.display === 'none' || searchForm.style.display === '') {
           searchForm.style.display = 'block';
-          searchInput.focus();
+          setTimeout(() => searchInput.focus(), 100);
         } else {
           searchForm.style.display = 'none';
           searchInput.value = '';
         }
       }
 
-      function toggleLanguageMenu() {
-        const menu = document.getElementById('languageMenu');
-        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-      }
-
       // Close menus when clicking outside
       document.addEventListener('click', function(event) {
-        const nav = document.getElementById('mainNav');
         const mobileMenu = document.getElementById('mobileMenu');
-        const menuButton = event.target.closest('[onclick*="toggleMenu"]');
-        const langMenu = document.getElementById('languageMenu');
-        const langSwitcher = document.querySelector('.language-switcher');
+        const menuButton = event.target.closest('[onclick*="toggleMobileMenu"]');
         const searchForm = document.getElementById('searchForm');
         const searchButton = event.target.closest('[onclick*="toggleSearch"]');
         
         if (!menuButton && !mobileMenu.contains(event.target)) {
           mobileMenu.style.display = 'none';
-          nav.style.display = 'none';
-        }
-        
-        if (langSwitcher && !langSwitcher.contains(event.target)) {
-          langMenu.style.display = 'none';
         }
         
         if (!searchButton && !searchForm.contains(event.target)) {
@@ -275,21 +300,50 @@
       
       // Show desktop nav on larger screens
       window.addEventListener('resize', function() {
-        const nav = document.getElementById('mainNav');
-        const mobileMenu = document.getElementById('mobileMenu');
+        const desktopNav = document.getElementById('desktopNav');
+        const menuToggle = document.getElementById('menuToggle');
+        const signinBtn = document.getElementById('signinBtn');
+        const signupBtn = document.getElementById('signupBtn');
         
         if (window.innerWidth >= 768) {
-          nav.style.display = 'flex';
-          mobileMenu.style.display = 'none';
+          desktopNav.style.display = 'flex';
+          menuToggle.style.display = 'none';
+          if (signinBtn) signinBtn.style.display = 'inline-flex';
+          if (signupBtn) signupBtn.style.display = 'inline-flex';
+          document.getElementById('mobileMenu').style.display = 'none';
         } else {
-          nav.style.display = 'none';
+          desktopNav.style.display = 'none';
+          menuToggle.style.display = 'block';
+          if (signinBtn) signinBtn.style.display = 'none';
+          if (signupBtn) signupBtn.style.display = 'none';
         }
       });
       
-      // Initialize
-      if (window.innerWidth >= 768) {
-        document.getElementById('mainNav').style.display = 'flex';
-      }
+      // Initialize on load
+      window.addEventListener('DOMContentLoaded', function() {
+        if (window.innerWidth >= 768) {
+          document.getElementById('desktopNav').style.display = 'flex';
+          document.getElementById('menuToggle').style.display = 'none';
+          const signinBtn = document.getElementById('signinBtn');
+          const signupBtn = document.getElementById('signupBtn');
+          if (signinBtn) signinBtn.style.display = 'inline-flex';
+          if (signupBtn) signupBtn.style.display = 'inline-flex';
+        }
+      });
+      
+      // Add CSS animations
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes slideInRight {
+          from { transform: translateX(400px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOutRight {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(400px); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
     </script>
     
     <!-- Shopping Cart Script -->

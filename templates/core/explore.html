@@ -5,29 +5,33 @@
 {% block title %}{% trans "Explore" %} — AkkaUi{% endblock %}
 
 {% block sidebar %}
-{# Sidebar lateral com filtros #}
-<aside class="explore-sidebar">
-  <form method="get" action="{% url 'core:explore' %}" class="sidebar-filters-form">
-    <h3 class="sidebar-title">{% trans "Filters" %}</h3>
-    
-    {# Barra de pesquisa na sidebar #}
-    <div class="sidebar-filter-group">
-      <label for="sidebar-search">{% trans "Search" %}</label>
+{# Sidebar lateral com filtros - Novo Design #}
+<aside style="position: fixed; left: 0; top: 4rem; bottom: 0; width: 280px; background: var(--bg-gray-900); border-right: 1px solid var(--border-gray-800); padding: 2rem 1.5rem; overflow-y: auto; z-index: 30; display: none;" id="filterSidebar">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h3 style="color: var(--text-white); font-size: 1.125rem; font-weight: 600; margin: 0;">{% trans "Filters" %}</h3>
+    <button onclick="toggleFilters()" style="background: none; border: none; color: var(--text-gray-400); cursor: pointer; font-size: 1.5rem; padding: 0; line-height: 1;">×</button>
+  </div>
+  
+  <form method="get" action="{% url 'core:explore' %}" style="display: flex; flex-direction: column; gap: 1.5rem;">
+    {# Barra de pesquisa #}
+    <div>
+      <label for="sidebar-search" style="display: block; color: var(--text-gray-300); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">{% trans "Search" %}</label>
       <input 
         type="search" 
         name="q" 
         id="sidebar-search"
         value="{{ search_query }}" 
-        placeholder="{% trans "Search by title..." %}" 
-        class="sidebar-search-input"
-        aria-label="{% trans "Search SVGs by title" %}"
+        placeholder="{% trans 'Search by title...' %}" 
+        class="input"
+        style="width: 100%;"
+        aria-label="{% trans 'Search SVGs by title' %}"
       >
     </div>
     
     {# Filtro por categoria #}
-    <div class="sidebar-filter-group">
-      <label for="sidebar-category">{% trans "Category" %}</label>
-      <select name="category" id="sidebar-category" class="sidebar-select" onchange="this.form.submit()">
+    <div>
+      <label for="sidebar-category" style="display: block; color: var(--text-gray-300); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">{% trans "Category" %}</label>
+      <select name="category" id="sidebar-category" class="input" style="width: 100%; cursor: pointer;">
         <option value="">{% trans "All" %}</option>
         {% for cat in all_categories %}
           <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
@@ -36,9 +40,9 @@
     </div>
     
     {# Filtro por tag #}
-    <div class="sidebar-filter-group">
-      <label for="sidebar-tag">{% trans "Tag" %}</label>
-      <select name="tag" id="sidebar-tag" class="sidebar-select" onchange="this.form.submit()">
+    <div>
+      <label for="sidebar-tag" style="display: block; color: var(--text-gray-300); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">{% trans "Tag" %}</label>
+      <select name="tag" id="sidebar-tag" class="input" style="width: 100%; cursor: pointer;">
         <option value="">{% trans "All" %}</option>
         {% for t in all_tags %}
           <option value="{{ t }}" {% if t == selected_tag %}selected{% endif %}>{{ t }}</option>
@@ -47,9 +51,9 @@
     </div>
     
     {# Ordenação #}
-    <div class="sidebar-filter-group">
-      <label for="sidebar-sort">{% trans "Sort" %}</label>
-      <select name="sort" id="sidebar-sort" class="sidebar-select" onchange="this.form.submit()">
+    <div>
+      <label for="sidebar-sort" style="display: block; color: var(--text-gray-300); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">{% trans "Sort" %}</label>
+      <select name="sort" id="sidebar-sort" class="input" style="width: 100%; cursor: pointer;">
         <option value="-uploaded_at" {% if selected_sort == '-uploaded_at' %}selected{% endif %}>{% trans "Most recent" %}</option>
         <option value="uploaded_at" {% if selected_sort == 'uploaded_at' %}selected{% endif %}>{% trans "Oldest" %}</option>
         <option value="title_name" {% if selected_sort == 'title_name' %}selected{% endif %}>{% trans "Name (A-Z)" %}</option>
@@ -58,10 +62,14 @@
     </div>
     
     {# Botões #}
-    <div class="sidebar-actions">
-      <button type="submit" class="sidebar-btn sidebar-btn-primary">🔍 {% trans "Search" %}</button>
+    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+      <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+        🔍 {% trans "Search" %}
+      </button>
       {% if search_query or selected_category or selected_tag or selected_sort != '-uploaded_at' %}
-        <a href="{% url 'core:explore' %}" class="sidebar-btn sidebar-btn-secondary">✕ {% trans "Clear" %}</a>
+        <a href="{% url 'core:explore' %}" class="btn btn-secondary" style="width: 100%; justify-content: center; text-align: center;">
+          ✕ {% trans "Clear" %}
+        </a>
       {% endif %}
     </div>
   </form>
@@ -69,38 +77,108 @@
 {% endblock %}
 
 {% block content %}
-<div class="explore-content">
-  <header class="explore-header">
-    <h1>{% trans "Explore SVGs" %}</h1>
-    <p>{% trans "Discover our collection of SVGs saved in the system" %}</p>
-  </header>
-
-  <section class="explore-results">
-    {% if svgfiles %}
-      {# Contador de resultados #}
-      <p class="results-counter">
-        {% if search_query or selected_category or selected_tag %}
-          {% blocktrans count counter=svgfiles|length %}Found {{ counter }} result{% plural %}Found {{ counter}} results{% endblocktrans %}
-        {% else %}
-          {% blocktrans count counter=svgfiles|length %}Showing {{ counter }} public SVG{% plural %}Showing {{ counter }} public SVGs{% endblocktrans %}
-        {% endif %}
-      </p>
-      <div class="container-cards">
-        {% for item in svgfiles %}
-          {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
-        {% endfor %}
+<div style="margin-left: 0; transition: margin-left 0.3s ease;" id="exploreContent">
+  {# Header com título e botão de filtros #}
+  <section style="background: var(--bg-black); padding: 3rem 0 2rem;">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h1 style="color: var(--text-white); font-size: 2.5rem; font-weight: 700; margin: 0;">{% trans "Explore SVGs" %}</h1>
+        <button onclick="toggleFilters()" class="btn btn-secondary" style="display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line>
+            <line x1="9" y1="8" x2="15" y2="8"></line>
+            <line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+          {% trans "Filters" %}
+        </button>
       </div>
-    {% else %}
-      {% if search_query or selected_category or selected_tag %}
-        <p class="no-results">
-          {% trans "No results found. Try adjusting the filters." %}
+      <p style="color: var(--text-gray-400); font-size: 1rem;">{% trans "Discover our collection of SVGs saved in the system" %}</p>
+    </div>
+  </section>
+
+  {# Resultados #}
+  <section class="section">
+    <div class="container">
+      {% if svgfiles %}
+        {# Contador de resultados #}
+        <p style="color: var(--text-gray-400); margin-bottom: 2rem; font-size: 0.875rem;">
+          {% if search_query or selected_category or selected_tag %}
+            {% blocktrans count counter=svgfiles|length %}Found {{ counter }} result{% plural %}Found {{ counter }} results{% endblocktrans %}
+          {% else %}
+            {% blocktrans count counter=svgfiles|length %}Showing {{ counter }} public SVG{% plural %}Showing {{ counter }} public SVGs{% endblocktrans %}
+          {% endif %}
         </p>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {% for item in svgfiles %}
+            {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
+          {% endfor %}
+        </div>
       {% else %}
-        <p class="no-results">
-          {% trans "No public SVGs available yet. Upload the first one!" %}
-        </p>
+        <div style="text-align: center; padding: 4rem 2rem;">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-gray-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 1.5rem;">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          {% if search_query or selected_category or selected_tag %}
+            <p style="color: var(--text-gray-400); font-size: 1.125rem;">
+              {% trans "No results found. Try adjusting the filters." %}
+            </p>
+          {% else %}
+            <p style="color: var(--text-gray-400); font-size: 1.125rem;">
+              {% trans "No public SVGs available yet. Upload the first one!" %}
+            </p>
+          {% endif %}
+        </div>
       {% endif %}
-    {% endif %}
+    </div>
   </section>
 </div>
+
+<script>
+  function toggleFilters() {
+    const sidebar = document.getElementById('filterSidebar');
+    const content = document.getElementById('exploreContent');
+    
+    if (sidebar.style.display === 'none' || sidebar.style.display === '') {
+      sidebar.style.display = 'block';
+      if (window.innerWidth >= 768) {
+        content.style.marginLeft = '280px';
+      }
+    } else {
+      sidebar.style.display = 'none';
+      content.style.marginLeft = '0';
+    }
+  }
+  
+  // Close sidebar on mobile when clicking outside
+  document.addEventListener('click', function(event) {
+    if (window.innerWidth < 768) {
+      const sidebar = document.getElementById('filterSidebar');
+      const filterButton = event.target.closest('[onclick*="toggleFilters"]');
+      
+      if (!filterButton && !sidebar.contains(event.target) && sidebar.style.display === 'block') {
+        sidebar.style.display = 'none';
+      }
+    }
+  });
+  
+  // Adjust on window resize
+  window.addEventListener('resize', function() {
+    const sidebar = document.getElementById('filterSidebar');
+    const content = document.getElementById('exploreContent');
+    
+    if (window.innerWidth < 768) {
+      content.style.marginLeft = '0';
+    } else if (sidebar.style.display === 'block') {
+      content.style.marginLeft = '280px';
+    }
+  });
+</script>
 {% endblock %}

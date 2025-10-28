@@ -161,11 +161,23 @@
   <section style="padding: 2rem 0 4rem;">
     <div class="container">
       {% if svgfiles %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" style="gap: 1.5rem;">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" style="gap: 1.5rem; display: grid; grid-template-columns: repeat(1, minmax(0, 1fr));">
           {% for item in svgfiles %}
             {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
           {% endfor %}
         </div>
+        
+        <style>
+          @media (min-width: 640px) {
+            .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+          }
+          @media (min-width: 1024px) {
+            .grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+          }
+          @media (min-width: 1280px) {
+            .grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+          }
+        </style>
       {% else %}
         <div style="text-align: center; padding: 4rem 2rem;">
           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-gray-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 1.5rem; opacity: 0.3;">

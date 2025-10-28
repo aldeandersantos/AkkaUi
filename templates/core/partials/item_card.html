@@ -67,26 +67,44 @@ Botões aparecem apenas no hover
             btn.disabled = true;
             btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'10\\'/><polyline points=\\'12 6 12 12 16 14\\'/></svg>';
             
+            function copyToClipboard(text) {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text);
+              }
+              return new Promise((resolve, reject) => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-999999px';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                try {
+                  const successful = document.execCommand('copy');
+                  document.body.removeChild(textarea);
+                  if (successful) resolve();
+                  else reject(new Error('execCommand falhou'));
+                } catch (err) {
+                  document.body.removeChild(textarea);
+                  reject(err);
+                }
+              });
+            }
+            
             fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', {
+              method: 'GET',
               headers: { 'Accept': 'application/json' }
             })
-            .then(r => {
-              if (!r.ok) throw new Error('Erro HTTP');
-              return r.json();
+            .then(response => {
+              if (!response.ok) throw new Error('Erro HTTP: ' + response.status);
+              return response.json();
             })
             .then(data => {
-              if (!data.svg_text) throw new Error('SVG vazio');
-              if (navigator.clipboard && navigator.clipboard.writeText) {
-                return navigator.clipboard.writeText(data.svg_text);
+              if (data.svg_text) {
+                return copyToClipboard(data.svg_text);
+              } else {
+                throw new Error('SVG não encontrado na resposta');
               }
-              const textarea = document.createElement('textarea');
-              textarea.value = data.svg_text;
-              textarea.style.position = 'fixed';
-              textarea.style.left = '-999999px';
-              document.body.appendChild(textarea);
-              textarea.select();
-              document.execCommand('copy');
-              document.body.removeChild(textarea);
             })
             .then(() => {
               btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'/></svg>';
@@ -95,7 +113,7 @@ Botões aparecem apenas no hover
             })
             .catch(error => {
               console.error('Erro ao copiar:', error);
-              if (typeof showToast === 'function') showToast('Erro ao copiar SVG', 'error');
+              if (typeof showToast === 'function') showToast('Erro ao copiar SVG: ' + error.message, 'error');
               btn.disabled = false;
               btn.innerHTML = originalHTML;
             });
@@ -118,26 +136,44 @@ Botões aparecem apenas no hover
             btn.disabled = true;
             btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'10\\'/><polyline points=\\'12 6 12 12 16 14\\'/></svg>';
             
+            function copyToClipboard(text) {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text);
+              }
+              return new Promise((resolve, reject) => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-999999px';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                try {
+                  const successful = document.execCommand('copy');
+                  document.body.removeChild(textarea);
+                  if (successful) resolve();
+                  else reject(new Error('execCommand falhou'));
+                } catch (err) {
+                  document.body.removeChild(textarea);
+                  reject(err);
+                }
+              });
+            }
+            
             fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', {
+              method: 'GET',
               headers: { 'Accept': 'application/json' }
             })
-            .then(r => {
-              if (!r.ok) throw new Error('Erro HTTP');
-              return r.json();
+            .then(response => {
+              if (!response.ok) throw new Error('Erro HTTP: ' + response.status);
+              return response.json();
             })
             .then(data => {
-              if (!data.svg_text) throw new Error('SVG vazio');
-              if (navigator.clipboard && navigator.clipboard.writeText) {
-                return navigator.clipboard.writeText(data.svg_text);
+              if (data.svg_text) {
+                return copyToClipboard(data.svg_text);
+              } else {
+                throw new Error('SVG não encontrado na resposta');
               }
-              const textarea = document.createElement('textarea');
-              textarea.value = data.svg_text;
-              textarea.style.position = 'fixed';
-              textarea.style.left = '-999999px';
-              document.body.appendChild(textarea);
-              textarea.select();
-              document.execCommand('copy');
-              document.body.removeChild(textarea);
             })
             .then(() => {
               btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'/></svg>';
@@ -146,7 +182,7 @@ Botões aparecem apenas no hover
             })
             .catch(error => {
               console.error('Erro ao copiar:', error);
-              if (typeof showToast === 'function') showToast('Erro ao copiar SVG', 'error');
+              if (typeof showToast === 'function') showToast('Erro ao copiar SVG: ' + error.message, 'error');
               btn.disabled = false;
               btn.innerHTML = originalHTML;
             });
@@ -182,26 +218,44 @@ Botões aparecem apenas no hover
             btn.disabled = true;
             btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'10\\'/><polyline points=\\'12 6 12 12 16 14\\'/></svg>';
             
+            function copyToClipboard(text) {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                return navigator.clipboard.writeText(text);
+              }
+              return new Promise((resolve, reject) => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-999999px';
+                document.body.appendChild(textarea);
+                textarea.focus();
+                textarea.select();
+                try {
+                  const successful = document.execCommand('copy');
+                  document.body.removeChild(textarea);
+                  if (successful) resolve();
+                  else reject(new Error('execCommand falhou'));
+                } catch (err) {
+                  document.body.removeChild(textarea);
+                  reject(err);
+                }
+              });
+            }
+            
             fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', {
+              method: 'GET',
               headers: { 'Accept': 'application/json' }
             })
-            .then(r => {
-              if (!r.ok) throw new Error('Erro HTTP');
-              return r.json();
+            .then(response => {
+              if (!response.ok) throw new Error('Erro HTTP: ' + response.status);
+              return response.json();
             })
             .then(data => {
-              if (!data.svg_text) throw new Error('SVG vazio');
-              if (navigator.clipboard && navigator.clipboard.writeText) {
-                return navigator.clipboard.writeText(data.svg_text);
+              if (data.svg_text) {
+                return copyToClipboard(data.svg_text);
+              } else {
+                throw new Error('SVG não encontrado na resposta');
               }
-              const textarea = document.createElement('textarea');
-              textarea.value = data.svg_text;
-              textarea.style.position = 'fixed';
-              textarea.style.left = '-999999px';
-              document.body.appendChild(textarea);
-              textarea.select();
-              document.execCommand('copy');
-              document.body.removeChild(textarea);
             })
             .then(() => {
               btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'24\\' height=\\'24\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'/></svg>';
@@ -210,7 +264,7 @@ Botões aparecem apenas no hover
             })
             .catch(error => {
               console.error('Erro ao copiar:', error);
-              if (typeof showToast === 'function') showToast('Erro ao copiar SVG', 'error');
+              if (typeof showToast === 'function') showToast('Erro ao copiar SVG: ' + error.message, 'error');
               btn.disabled = false;
               btn.innerHTML = originalHTML;
             });

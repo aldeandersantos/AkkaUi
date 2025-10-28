@@ -51,6 +51,19 @@
             <i data-lucide="search" style="width: 20px; height: 20px;"></i>
           </button>
           
+          <!-- Language Selector -->
+          <form action="{% url 'set_language' %}" method="post" style="display: inline-block; margin: 0;">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+            <select name="language" onchange="this.form.submit()" class="btn btn-outline" style="padding: 0.5rem 0.75rem; cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%2712%27 viewBox=%270 0 12 12%27%3e%3cpath fill=%27%23ffffff%27 d=%27M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z%27/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 0.5rem center; padding-right: 2rem;">
+              <option value="en" {% if LANGUAGE_CODE == 'en' %}selected{% endif %}>EN</option>
+              <option value="pt-br" {% if LANGUAGE_CODE == 'pt-br' %}selected{% endif %}>PT</option>
+              <option value="es" {% if LANGUAGE_CODE == 'es' %}selected{% endif %}>ES</option>
+              <option value="it" {% if LANGUAGE_CODE == 'it' %}selected{% endif %}>IT</option>
+              <option value="zh-hans" {% if LANGUAGE_CODE == 'zh-hans' %}selected{% endif %}>中文</option>
+            </select>
+          </form>
+          
           {% if user.is_authenticated %}
             {% if user.admin %}
               <a href="{% url 'core:admin_svg' %}" class="btn btn-secondary">{% trans "Manage SVG" %}</a>

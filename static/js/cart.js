@@ -67,8 +67,12 @@ class CartManager {
     const existingItem = cart.find(i => i.id === item.id);
 
     if (existingItem) {
-      console.log('[CartManager] Item já existe, incrementando quantidade');
-      existingItem.quantity = (existingItem.quantity || 1) + 1;
+      // Não permitir mais de 1 do mesmo SVG
+      console.log('[CartManager] Item já existe no carrinho, não adicionando novamente');
+      if (typeof showToast === 'function') {
+        showToast('Este item já está no seu carrinho', 'info');
+      }
+      return false;
     } else {
       console.log('[CartManager] Adicionando novo item');
       cart.push({

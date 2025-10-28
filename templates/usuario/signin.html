@@ -4,59 +4,59 @@
 {% block title %}{% trans "Sign In" %} — AkkaUi{% endblock %}
 
 {% block content %}
-  <article class="page">
-    <header class="page-header">
-      <h1>{% trans "Sign In" %}</h1>
-      <p class="lead">{% trans "Access your AkkaUi account" %}</p>
-    </header>
+<div class="auth-page">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1>{% trans "Sign In" %}</h1>
+        <p>{% trans "Access your AkkaUi account" %}</p>
+      </div>
 
-    <div class="page-body">
-      <div class="auth-container">
-        {% if messages %}
-          <div class="messages">
-            {% for message in messages %}
-              <div class="message {% if message.tags %}message-{{ message.tags }}{% endif %}">
-                {{ message }}
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
-
-        <form method="post" class="auth-form">
-          {% csrf_token %}
-          
-          <div class="form-group">
-            <label for="username">{% trans "Username" %}</label>
-            <input 
-              type="text" 
-              id="username" 
-              name="username" 
-              value="{{ username|default:'' }}"
-              required
-              placeholder="{% trans "Your username" %}"
-              autocomplete="username"
-            >
-          </div>
-
-          <div class="form-group">
-            <label for="password">{% trans "Password" %}</label>
-            <input 
-              type="password" 
-              id="password" 
-              name="password" 
-              required
-              placeholder="{% trans "Your password" %}"
-              autocomplete="current-password"
-            >
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-block">{% trans "Sign In" %}</button>
-        </form>
-
-        <div class="auth-footer">
-          <p>{% trans "Don't have an account?" %} <a href="{% url 'usuario:signup' %}">{% trans "Create account" %}</a></p>
+      {% if messages %}
+        <div class="auth-messages">
+          {% for message in messages %}
+            <div class="auth-message {% if message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
         </div>
+      {% endif %}
+
+      <form method="post" class="auth-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label for="username">{% trans "Username" %}</label>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            value="{{ username|default:'' }}"
+            required
+            placeholder="{% trans 'Your username' %}"
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">{% trans "Password" %}</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            required
+            placeholder="{% trans 'Your password' %}"
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">{% trans "Sign In" %}</button>
+      </form>
+
+      <div class="auth-footer">
+        <p>{% trans "Don't have an account?" %} <a href="{% url 'usuario:signup' %}">{% trans "Create account" %}</a></p>
       </div>
     </div>
-  </article>
+  </div>
+</div>
 {% endblock %}

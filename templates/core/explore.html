@@ -5,17 +5,17 @@
 {% block title %}{% trans "Explore" %} — AkkaUi{% endblock %}
 
 {% block sidebar %}
-{# Sidebar lateral com filtros - Novo Design #}
-<aside style="position: fixed; left: 0; top: 4rem; bottom: 0; width: 280px; background: var(--bg-gray-900); border-right: 1px solid var(--border-gray-800); padding: 2rem 1.5rem; overflow-y: auto; z-index: 30; display: none;" id="filterSidebar">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-    <h3 style="color: var(--text-white); font-size: 1.125rem; font-weight: 600; margin: 0;">{% trans "Filters" %}</h3>
-    <button onclick="toggleFilters()" style="background: none; border: none; color: var(--text-gray-400); cursor: pointer; font-size: 1.5rem; padding: 0; line-height: 1;">×</button>
+{# Sidebar com todos os filtros (ativado por "More filters") #}
+<aside style="position: fixed; left: 0; top: 4rem; bottom: 0; width: 320px; background: var(--bg-gray-900); border-right: 1px solid var(--border-gray-800); padding: 2rem 1.5rem; overflow-y: auto; z-index: 30; display: none; box-shadow: 4px 0 12px rgba(0,0,0,0.3);" id="filterSidebar">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h3 style="color: var(--text-white); font-size: 1.25rem; font-weight: 700; margin: 0;">{% trans "All Filters" %}</h3>
+    <button onclick="toggleFilters()" style="background: none; border: none; color: var(--text-gray-400); cursor: pointer; font-size: 1.75rem; padding: 0; line-height: 1; transition: var(--transition);" onmouseover="this.style.color='var(--text-white)'" onmouseout="this.style.color='var(--text-gray-400)'">×</button>
   </div>
   
   <form method="get" action="{% url 'core:explore' %}" style="display: flex; flex-direction: column; gap: 1.5rem;">
-    {# Barra de pesquisa #}
+    {# Search #}
     <div>
-      <label for="sidebar-search" style="display: block; color: var(--text-gray-300); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">{% trans "Search" %}</label>
+      <label for="sidebar-search" style="display: block; color: var(--text-white); font-size: 0.875rem; font-weight: 600; margin-bottom: 0.75rem;">{% trans "Search" %}</label>
       <input 
         type="search" 
         name="q" 
@@ -28,31 +28,31 @@
       >
     </div>
     
-    {# Filtro por categoria #}
+    {# Category #}
     <div>
-      <label for="sidebar-category" style="display: block; color: var(--text-gray-300); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">{% trans "Category" %}</label>
+      <label for="sidebar-category" style="display: block; color: var(--text-white); font-size: 0.875rem; font-weight: 600; margin-bottom: 0.75rem;">{% trans "Category" %}</label>
       <select name="category" id="sidebar-category" class="input" style="width: 100%; cursor: pointer;">
-        <option value="">{% trans "All" %}</option>
+        <option value="">{% trans "All categories" %}</option>
         {% for cat in all_categories %}
           <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
         {% endfor %}
       </select>
     </div>
     
-    {# Filtro por tag #}
+    {# Tag #}
     <div>
-      <label for="sidebar-tag" style="display: block; color: var(--text-gray-300); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">{% trans "Tag" %}</label>
+      <label for="sidebar-tag" style="display: block; color: var(--text-white); font-size: 0.875rem; font-weight: 600; margin-bottom: 0.75rem;">{% trans "Tag" %}</label>
       <select name="tag" id="sidebar-tag" class="input" style="width: 100%; cursor: pointer;">
-        <option value="">{% trans "All" %}</option>
+        <option value="">{% trans "All tags" %}</option>
         {% for t in all_tags %}
           <option value="{{ t }}" {% if t == selected_tag %}selected{% endif %}>{{ t }}</option>
         {% endfor %}
       </select>
     </div>
     
-    {# Ordenação #}
+    {# Sort #}
     <div>
-      <label for="sidebar-sort" style="display: block; color: var(--text-gray-300); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">{% trans "Sort" %}</label>
+      <label for="sidebar-sort" style="display: block; color: var(--text-white); font-size: 0.875rem; font-weight: 600; margin-bottom: 0.75rem;">{% trans "Sort by" %}</label>
       <select name="sort" id="sidebar-sort" class="input" style="width: 100%; cursor: pointer;">
         <option value="-uploaded_at" {% if selected_sort == '-uploaded_at' %}selected{% endif %}>{% trans "Most recent" %}</option>
         <option value="uploaded_at" {% if selected_sort == 'uploaded_at' %}selected{% endif %}>{% trans "Oldest" %}</option>
@@ -61,14 +61,14 @@
       </select>
     </div>
     
-    {# Botões #}
-    <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+    {# Actions #}
+    <div style="display: flex; flex-direction: column; gap: 0.75rem; padding-top: 1rem; border-top: 1px solid var(--border-gray-800);">
       <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
-        🔍 {% trans "Search" %}
+        {% trans "Apply Filters" %}
       </button>
       {% if search_query or selected_category or selected_tag or selected_sort != '-uploaded_at' %}
-        <a href="{% url 'core:explore' %}" class="btn btn-secondary" style="width: 100%; justify-content: center; text-align: center;">
-          ✕ {% trans "Clear" %}
+        <a href="{% url 'core:explore' %}" class="btn btn-secondary" style="width: 100%; justify-content: center; text-align: center; text-decoration: none;">
+          {% trans "Clear All" %}
         </a>
       {% endif %}
     </div>
@@ -77,14 +77,68 @@
 {% endblock %}
 
 {% block content %}
-<div style="margin-left: 0; transition: margin-left 0.3s ease;" id="exploreContent">
-  {# Header simples sem filtros visíveis #}
-  <section style="background: var(--bg-black); padding: 3rem 0 2rem;">
+<div style="background: var(--bg-black); min-height: 100vh;">
+  {# Header e Filtros Inline #}
+  <section style="padding: 3rem 0 2rem; border-bottom: 1px solid var(--border-gray-800);">
     <div class="container">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-        <h1 style="color: var(--text-white); font-size: 2rem; font-weight: 700; margin: 0;">{% trans "Explore SVGs" %}</h1>
-        <button onclick="toggleFilters()" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg); color: var(--text-gray-300); cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--border-gray-700)'" onmouseout="this.style.borderColor='var(--border-gray-800)'">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="color: var(--text-white); font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">{% trans "Explore Components" %}</h1>
+        <p style="color: var(--text-gray-400); font-size: 1rem;">{% trans "Browse our extensive library of SVG designs" %}</p>
+      </div>
+      
+      {# Filtros inline estilo badges/pills #}
+      <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center; align-items: center;">
+        {# Search inline #}
+        <form method="get" action="{% url 'core:explore' %}" style="display: inline-flex;">
+          <input type="hidden" name="category" value="{{ selected_category }}">
+          <input type="hidden" name="tag" value="{{ selected_tag }}">
+          <input type="hidden" name="sort" value="{{ selected_sort }}">
+          <input 
+            type="search" 
+            name="q" 
+            value="{{ search_query }}"
+            placeholder="{% trans 'Search...' %}" 
+            style="padding: 0.5rem 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-white); font-size: 0.875rem; width: 200px;"
+          >
+        </form>
+        
+        {# Filtro de categoria como dropdown pill #}
+        <div style="position: relative;" x-data="{ open: false }">
+          <button @click="open = !open" type="button" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-300); font-size: 0.875rem; cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--border-gray-700)'" onmouseout="this.style.borderColor='var(--border-gray-800)'">
+            <span>{% if selected_category %}{{ selected_category }}{% else %}{% trans "Category" %}{% endif %}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div x-show="open" @click.outside="open = false" x-transition style="display: none; position: absolute; top: 100%; left: 0; margin-top: 0.5rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg); min-width: 200px; max-height: 300px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 1000;" x-bind:style="open ? 'display: block' : 'display: none'">
+            <a href="?q={{ search_query }}&tag={{ selected_tag }}&sort={{ selected_sort }}" style="display: block; padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.875rem; border-bottom: 1px solid var(--border-gray-800);" onmouseover="this.style.backgroundColor='var(--bg-gray-800)'" onmouseout="this.style.backgroundColor='transparent'">{% trans "All" %}</a>
+            {% for cat in all_categories %}
+              <a href="?q={{ search_query }}&category={{ cat }}&tag={{ selected_tag }}&sort={{ selected_sort }}" style="display: block; padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.875rem; {% if not forloop.last %}border-bottom: 1px solid var(--border-gray-800);{% endif %}" onmouseover="this.style.backgroundColor='var(--bg-gray-800)'" onmouseout="this.style.backgroundColor='transparent'">{{ cat }}</a>
+            {% endfor %}
+          </div>
+        </div>
+        
+        {# Filtro de tag como dropdown pill #}
+        {% if all_tags %}
+        <div style="position: relative;" x-data="{ open: false }">
+          <button @click="open = !open" type="button" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-300); font-size: 0.875rem; cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--border-gray-700)'" onmouseout="this.style.borderColor='var(--border-gray-800)'">
+            <span>{% if selected_tag %}{{ selected_tag }}{% else %}{% trans "Tag" %}{% endif %}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          <div x-show="open" @click.outside="open = false" x-transition style="display: none; position: absolute; top: 100%; left: 0; margin-top: 0.5rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg); min-width: 200px; max-height: 300px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 1000;" x-bind:style="open ? 'display: block' : 'display: none'">
+            <a href="?q={{ search_query }}&category={{ selected_category }}&sort={{ selected_sort }}" style="display: block; padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.875rem; border-bottom: 1px solid var(--border-gray-800);" onmouseover="this.style.backgroundColor='var(--bg-gray-800)'" onmouseout="this.style.backgroundColor='transparent'">{% trans "All" %}</a>
+            {% for t in all_tags %}
+              <a href="?q={{ search_query }}&category={{ selected_category }}&tag={{ t }}&sort={{ selected_sort }}" style="display: block; padding: 0.75rem 1rem; color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.875rem; {% if not forloop.last %}border-bottom: 1px solid var(--border-gray-800);{% endif %}" onmouseover="this.style.backgroundColor='var(--bg-gray-800)'" onmouseout="this.style.backgroundColor='transparent'">{{ t }}</a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+        
+        {# Botão para mostrar todos os filtros (sidebar) #}
+        <button onclick="toggleFilters()" type="button" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-300); font-size: 0.875rem; cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--border-gray-700)'" onmouseout="this.style.borderColor='var(--border-gray-800)'">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="4" y1="21" x2="4" y2="14"></line>
             <line x1="4" y1="10" x2="4" y2="3"></line>
             <line x1="12" y1="21" x2="12" y2="12"></line>
@@ -95,24 +149,27 @@
             <line x1="9" y1="8" x2="15" y2="8"></line>
             <line x1="17" y1="16" x2="23" y2="16"></line>
           </svg>
-          <span>{% trans "Filters" %}</span>
+          <span>{% trans "More filters" %}</span>
         </button>
+        
+        {# Clear filters se houver algum ativo #}
+        {% if search_query or selected_category or selected_tag or selected_sort != '-uploaded_at' %}
+          <a href="{% url 'core:explore' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: transparent; border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-400); font-size: 0.875rem; cursor: pointer; text-decoration: none; transition: var(--transition);" onmouseover="this.style.borderColor='var(--border-gray-700)'; this.style.color='var(--text-white)'" onmouseout="this.style.borderColor='var(--border-gray-800)'; this.style.color='var(--text-gray-400)'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            <span>{% trans "Clear" %}</span>
+          </a>
+        {% endif %}
       </div>
-      <p style="color: var(--text-gray-400); font-size: 1rem; margin: 0;">{% trans "Discover our collection of SVGs" %}</p>
     </div>
   </section>
 
-  {# Grid de SVGs - design limpo #}
-  <section style="background: var(--bg-black); padding: 2rem 0 4rem;">
+  {# Grid de SVGs #}
+  <section style="padding: 3rem 0 4rem;">
     <div class="container">
       {% if svgfiles %}
-        {# Contador minimalista #}
-        {% if search_query or selected_category or selected_tag %}
-          <p style="color: var(--text-gray-500); margin-bottom: 1.5rem; font-size: 0.875rem;">
-            {% blocktrans count counter=svgfiles|length %}{{ counter }} result{% plural %}{{ counter }} results{% endblocktrans %}
-          </p>
-        {% endif %}
-        
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" style="gap: 1.5rem;">
           {% for item in svgfiles %}
             {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
@@ -130,7 +187,7 @@
             </p>
           {% else %}
             <p style="color: var(--text-gray-400); font-size: 1.125rem;">
-              {% trans "No public SVGs available yet." %}
+              {% trans "No SVGs available yet." %}
             </p>
           {% endif %}
         </div>
@@ -142,40 +199,23 @@
 <script>
   function toggleFilters() {
     const sidebar = document.getElementById('filterSidebar');
-    const content = document.getElementById('exploreContent');
     
     if (sidebar.style.display === 'none' || sidebar.style.display === '') {
       sidebar.style.display = 'block';
-      if (window.innerWidth >= 768) {
-        content.style.marginLeft = '280px';
-      }
     } else {
       sidebar.style.display = 'none';
-      content.style.marginLeft = '0';
     }
   }
   
-  // Close sidebar on mobile when clicking outside
+  // Close sidebar when clicking outside (mobile)
   document.addEventListener('click', function(event) {
-    if (window.innerWidth < 768) {
-      const sidebar = document.getElementById('filterSidebar');
-      const filterButton = event.target.closest('[onclick*="toggleFilters"]');
-      
-      if (!filterButton && !sidebar.contains(event.target) && sidebar.style.display === 'block') {
+    const sidebar = document.getElementById('filterSidebar');
+    const filterButton = event.target.closest('[onclick*="toggleFilters"]');
+    
+    if (!filterButton && !sidebar.contains(event.target) && sidebar.style.display === 'block') {
+      if (window.innerWidth < 1024) {
         sidebar.style.display = 'none';
       }
-    }
-  });
-  
-  // Adjust on window resize
-  window.addEventListener('resize', function() {
-    const sidebar = document.getElementById('filterSidebar');
-    const content = document.getElementById('exploreContent');
-    
-    if (window.innerWidth < 768) {
-      content.style.marginLeft = '0';
-    } else if (sidebar.style.display === 'block') {
-      content.style.marginLeft = '280px';
     }
   });
 </script>

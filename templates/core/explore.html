@@ -78,12 +78,12 @@
 
 {% block content %}
 <div style="margin-left: 0; transition: margin-left 0.3s ease;" id="exploreContent">
-  {# Header com título e botão de filtros #}
+  {# Header simples sem filtros visíveis #}
   <section style="background: var(--bg-black); padding: 3rem 0 2rem;">
     <div class="container">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h1 style="color: var(--text-white); font-size: 2.5rem; font-weight: 700; margin: 0;">{% trans "Explore SVGs" %}</h1>
-        <button onclick="toggleFilters()" class="btn btn-secondary" style="display: flex; align-items: center; gap: 0.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <h1 style="color: var(--text-white); font-size: 2rem; font-weight: 700; margin: 0;">{% trans "Explore SVGs" %}</h1>
+        <button onclick="toggleFilters()" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg); color: var(--text-gray-300); cursor: pointer; transition: var(--transition);" onmouseover="this.style.borderColor='var(--border-gray-700)'" onmouseout="this.style.borderColor='var(--border-gray-800)'">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="4" y1="21" x2="4" y2="14"></line>
             <line x1="4" y1="10" x2="4" y2="3"></line>
@@ -95,34 +95,32 @@
             <line x1="9" y1="8" x2="15" y2="8"></line>
             <line x1="17" y1="16" x2="23" y2="16"></line>
           </svg>
-          {% trans "Filters" %}
+          <span>{% trans "Filters" %}</span>
         </button>
       </div>
-      <p style="color: var(--text-gray-400); font-size: 1rem;">{% trans "Discover our collection of SVGs saved in the system" %}</p>
+      <p style="color: var(--text-gray-400); font-size: 1rem; margin: 0;">{% trans "Discover our collection of SVGs" %}</p>
     </div>
   </section>
 
-  {# Resultados #}
-  <section class="section">
+  {# Grid de SVGs - design limpo #}
+  <section style="background: var(--bg-black); padding: 2rem 0 4rem;">
     <div class="container">
       {% if svgfiles %}
-        {# Contador de resultados #}
-        <p style="color: var(--text-gray-400); margin-bottom: 2rem; font-size: 0.875rem;">
-          {% if search_query or selected_category or selected_tag %}
-            {% blocktrans count counter=svgfiles|length %}Found {{ counter }} result{% plural %}Found {{ counter }} results{% endblocktrans %}
-          {% else %}
-            {% blocktrans count counter=svgfiles|length %}Showing {{ counter }} public SVG{% plural %}Showing {{ counter }} public SVGs{% endblocktrans %}
-          {% endif %}
-        </p>
+        {# Contador minimalista #}
+        {% if search_query or selected_category or selected_tag %}
+          <p style="color: var(--text-gray-500); margin-bottom: 1.5rem; font-size: 0.875rem;">
+            {% blocktrans count counter=svgfiles|length %}{{ counter }} result{% plural %}{{ counter }} results{% endblocktrans %}
+          </p>
+        {% endif %}
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" style="gap: 1.5rem;">
           {% for item in svgfiles %}
             {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
           {% endfor %}
         </div>
       {% else %}
         <div style="text-align: center; padding: 4rem 2rem;">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-gray-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 1.5rem;">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-gray-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 1.5rem; opacity: 0.3;">
             <circle cx="11" cy="11" r="8"></circle>
             <path d="m21 21-4.35-4.35"></path>
           </svg>
@@ -132,7 +130,7 @@
             </p>
           {% else %}
             <p style="color: var(--text-gray-400); font-size: 1.125rem;">
-              {% trans "No public SVGs available yet. Upload the first one!" %}
+              {% trans "No public SVGs available yet." %}
             </p>
           {% endif %}
         </div>

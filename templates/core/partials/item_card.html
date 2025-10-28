@@ -15,7 +15,7 @@ Botões aparecem apenas no hover
         loading="lazy"
         x-show="!imgError"
         @error="imgError = true"
-        style="width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; padding: 1rem;"
+        style="max-width: 80%; max-height: 80%; object-fit: contain; transition: transform 0.3s ease;"
         :style="isHovered && 'transform: scale(1.05)'"
       >
       <div x-show="imgError" style="display:none; text-align: center; color: var(--text-muted); font-size: 0.875rem;">
@@ -29,7 +29,7 @@ Botões aparecem apenas no hover
         loading="lazy"
         x-show="!imgError"
         @error="imgError = true"
-        style="width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; padding: 1rem;"
+        style="max-width: 80%; max-height: 80%; object-fit: contain; transition: transform 0.3s ease;"
         :style="isHovered && 'transform: scale(1.05)'"
       >
       <div x-show="imgError" style="display:none; text-align: center; color: var(--text-muted); font-size: 0.875rem;">
@@ -43,17 +43,19 @@ Botões aparecem apenas no hover
       </div>
     {% endif %}
     
-    {# Overlay com botões - Aparece no hover #}
-    <div x-show="isHovered" x-transition style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 1rem;">
+    {# Overlay com botões - Aparece no hover - BOTÕES ABAIXO #}
+    <div x-show="isHovered" x-transition style="position: absolute; inset: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0.75rem; padding: 1.5rem;">
       {# Botão Visualizar - Apenas ícone #}
       <button 
         @click="showModal = true" 
         class="btn btn-outline"
         type="button"
         title="Visualizar"
-        style="padding: 0.75rem; font-size: 0.875rem; font-weight: 600; border-radius: 8px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); color: white; display: flex; align-items: center; justify-content: center;"
+        style="padding: 0.875rem 1.25rem; font-size: 0.875rem; font-weight: 600; border-radius: 10px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.3); color: white; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; width: 100%;"
+        onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'"
+        onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
       
       {% comment %}Verificar acesso do usuário{% endcomment %}
@@ -64,7 +66,7 @@ Botões aparecem apenas no hover
             const btn = this;
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'10\\'/><polyline points=\\'12 6 12 12 16 14\\'/></svg>';
+            btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'22\\' height=\\'22\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'10\\'/><polyline points=\\'12 6 12 12 16 14\\'/></svg>';
             
             fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', {
               headers: { 'Accept': 'application/json' }
@@ -73,7 +75,7 @@ Botões aparecem apenas no hover
             .then(data => {
               if (data.svg_text) {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                  return navigator.clipboard.writeText(data.svg_text);
+                  return navigator.clipboard.writeText(data.svg_text).then(() => data.svg_text);
                 }
                 const textarea = document.createElement('textarea');
                 textarea.value = data.svg_text;
@@ -83,25 +85,29 @@ Botões aparecem apenas no hover
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
+                return data.svg_text;
               }
             })
             .then(() => {
-              btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'/></svg>';
+              btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'22\\' height=\\'22\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'/></svg>';
+              if (typeof showToast === 'function') showToast('SVG copiado com sucesso!', 'success');
               setTimeout(() => { btn.disabled = false; btn.innerHTML = originalHTML; }, 2000);
             })
             .catch(error => {
-              console.error('Erro:', error);
-              if (typeof showToast === 'function') showToast('Erro ao copiar', 'error');
+              console.error('Erro ao copiar:', error);
+              if (typeof showToast === 'function') showToast('Erro ao copiar SVG', 'error');
               btn.disabled = false;
               btn.innerHTML = originalHTML;
             });
           "
           class="btn btn-primary"
           type="button"
-          title="Copiar"
-          style="padding: 0.75rem; font-size: 0.875rem; font-weight: 600; border-radius: 8px; display: flex; align-items: center; justify-content: center;"
+          title="Copiar SVG"
+          style="padding: 0.875rem 1.25rem; font-size: 0.875rem; font-weight: 600; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; width: 100%;"
+          onmouseover="this.style.transform='scale(1.05)'"
+          onmouseout="this.style.transform='scale(1)'"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </button>
       {% elif item.purchased_by_user or purchased %}
         {# Já comprou - Botão Copiar - Apenas ícone #}
@@ -110,7 +116,7 @@ Botões aparecem apenas no hover
             const btn = this;
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'10\\'/><polyline points=\\'12 6 12 12 16 14\\'/></svg>';
+            btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'22\\' height=\\'22\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'10\\'/><polyline points=\\'12 6 12 12 16 14\\'/></svg>';
             
             fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', {
               headers: { 'Accept': 'application/json' }
@@ -119,7 +125,7 @@ Botões aparecem apenas no hover
             .then(data => {
               if (data.svg_text) {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                  return navigator.clipboard.writeText(data.svg_text);
+                  return navigator.clipboard.writeText(data.svg_text).then(() => data.svg_text);
                 }
                 const textarea = document.createElement('textarea');
                 textarea.value = data.svg_text;
@@ -129,25 +135,29 @@ Botões aparecem apenas no hover
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
+                return data.svg_text;
               }
             })
             .then(() => {
-              btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'/></svg>';
+              btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'22\\' height=\\'22\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'/></svg>';
+              if (typeof showToast === 'function') showToast('SVG copiado com sucesso!', 'success');
               setTimeout(() => { btn.disabled = false; btn.innerHTML = originalHTML; }, 2000);
             })
             .catch(error => {
-              console.error('Erro:', error);
-              if (typeof showToast === 'function') showToast('Erro ao copiar', 'error');
+              console.error('Erro ao copiar:', error);
+              if (typeof showToast === 'function') showToast('Erro ao copiar SVG', 'error');
               btn.disabled = false;
               btn.innerHTML = originalHTML;
             });
           "
           class="btn btn-primary"
           type="button"
-          title="Copiar"
-          style="padding: 0.75rem; font-size: 0.875rem; font-weight: 600; border-radius: 8px; display: flex; align-items: center; justify-content: center;"
+          title="Copiar SVG"
+          style="padding: 0.875rem 1.25rem; font-size: 0.875rem; font-weight: 600; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; width: 100%;"
+          onmouseover="this.style.transform='scale(1.05)'"
+          onmouseout="this.style.transform='scale(1)'"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </button>
       {% elif item.price and item.price > 0 %}
         {# SVG Pago - Botão Adicionar ao Carrinho - Apenas ícone #}
@@ -156,9 +166,11 @@ Botões aparecem apenas no hover
           class="btn btn-primary"
           type="button"
           title="Adicionar ao carrinho"
-          style="padding: 0.75rem; font-size: 0.875rem; font-weight: 600; border-radius: 8px; display: flex; align-items: center; justify-content: center;"
+          style="padding: 0.875rem 1.25rem; font-size: 0.875rem; font-weight: 600; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; width: 100%;"
+          onmouseover="this.style.transform='scale(1.05)'"
+          onmouseout="this.style.transform='scale(1)'"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
         </button>
       {% else %}
         {# SVG Gratuito - Botão Copiar - Apenas ícone #}
@@ -167,7 +179,7 @@ Botões aparecem apenas no hover
             const btn = this;
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'10\\'/><polyline points=\\'12 6 12 12 16 14\\'/></svg>';
+            btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'22\\' height=\\'22\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><circle cx=\\'12\\' cy=\\'12\\' r=\\'10\\'/><polyline points=\\'12 6 12 12 16 14\\'/></svg>';
             
             fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', {
               headers: { 'Accept': 'application/json' }
@@ -176,7 +188,7 @@ Botões aparecem apenas no hover
             .then(data => {
               if (data.svg_text) {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                  return navigator.clipboard.writeText(data.svg_text);
+                  return navigator.clipboard.writeText(data.svg_text).then(() => data.svg_text);
                 }
                 const textarea = document.createElement('textarea');
                 textarea.value = data.svg_text;
@@ -186,25 +198,29 @@ Botões aparecem apenas no hover
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
+                return data.svg_text;
               }
             })
             .then(() => {
-              btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'20\\' height=\\'20\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'/></svg>';
+              btn.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'22\\' height=\\'22\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'/></svg>';
+              if (typeof showToast === 'function') showToast('SVG copiado com sucesso!', 'success');
               setTimeout(() => { btn.disabled = false; btn.innerHTML = originalHTML; }, 2000);
             })
             .catch(error => {
-              console.error('Erro:', error);
-              if (typeof showToast === 'function') showToast('Erro ao copiar', 'error');
+              console.error('Erro ao copiar:', error);
+              if (typeof showToast === 'function') showToast('Erro ao copiar SVG', 'error');
               btn.disabled = false;
               btn.innerHTML = originalHTML;
             });
           "
           class="btn btn-primary"
           type="button"
-          title="Copiar"
-          style="padding: 0.75rem; font-size: 0.875rem; font-weight: 600; border-radius: 8px; display: flex; align-items: center; justify-content: center;"
+          title="Copiar SVG"
+          style="padding: 0.875rem 1.25rem; font-size: 0.875rem; font-weight: 600; border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; width: 100%;"
+          onmouseover="this.style.transform='scale(1.05)'"
+          onmouseout="this.style.transform='scale(1)'"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         </button>
       {% endif %}
     </div>

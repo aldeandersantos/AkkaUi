@@ -4,56 +4,121 @@
 {% block title %}{% trans "Home" %} — AkkaUi{% endblock %}
 
 {% block content %}
-  <div style="width: 100%; background: var(--bg-dark);">
-    <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
-      <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{% trans "Welcome to AkkaUi" %}</h1>
-      <p class="lead" style="font-size: 20px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">{% trans "Your complete catalog of modern and responsive UI design resources with dark theme." %}</p>
-    </header>
+  <!-- Hero Section -->
+  <section class="hero-dark">
+    <div class="container">
+      <h1>
+        {% trans "Ready-to-Use SVG Designs for" %}
+        <br>
+        <span class="muted">{% trans "a Faster Workflow" %}</span>
+      </h1>
+      
+      <div class="search-wrapper">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input type="search" 
+               placeholder="{% trans 'Search...' %}" 
+               class="search-input"
+               onclick="window.location.href='{% url 'core:explore' %}'">
+      </div>
+      
+      <div class="tags">
+        <span class="badge badge-secondary">Ecommerce</span>
+        <span class="badge badge-secondary">Website</span>
+        <span class="badge badge-secondary">Dashboard</span>
+        <span class="badge badge-secondary">App</span>
+        <span class="badge badge-secondary">Landing</span>
+        <span class="badge badge-secondary">Icons</span>
+        <span class="badge badge-secondary">Illustrations</span>
+      </div>
+    </div>
+  </section>
 
-    <section id="svg-tools" style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
-      <h3 style="margin-bottom: 16px; font-size: 28px;">{% trans "Recently saved SVGs" %}</h3>
+  <!-- Latest SVGs Section -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">{% trans "Latest Components" %}</h2>
+      
       {% if svgfiles %}
-        {# Debug: mostrar quantos SVGs estão sendo renderizados #}
-        <p style="color: var(--text-muted); margin-bottom: 16px; font-size: 14px;">
-          {% blocktrans count counter=svgfiles|length %}Showing {{ counter }} public SVG{% plural %}Showing {{ counter }} public SVGs{% endblocktrans %}
-        </p>
-        <div class="container-cards">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {% for item in svgfiles %}
             {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
           {% endfor %}
         </div>
+        
+        <div class="text-center" style="margin-top: 3rem;">
+          <a href="{% url 'core:explore' %}" class="btn btn-primary">
+            {% trans "See more" %}
+          </a>
+        </div>
       {% else %}
-        <p class="muted">{% trans "No SVGs saved yet. Save your first one using the form above." %}</p>
+        <p class="text-center text-muted">{% trans "No SVGs saved yet." %}</p>
       {% endif %}
-    </section>
+    </div>
+  </section>
 
-    <article class="page" style="max-width: 1200px; margin: 0 auto; padding: 0 80px;">
-      <section id="getting-started">
+  <!-- Community CTA Section -->
+  <section class="section">
+    <div class="container">
+      <div class="cta-card">
+        <h2>
+          {% trans "Join our community" %} <span style="color: var(--text-gray-400);">{% trans "and" %}</span>
+          <br>
+          {% trans "claim free products" %}
+        </h2>
+        
+        <p>
+          {% trans "Explore + download + get 28 FREE product templates" %}
+          <br>
+          {% trans "Sign up now and start creating amazing designs" %}
+        </p>
+        
+        <form class="cta-form" action="{% url 'usuario:signup' %}" method="get">
+          <input type="email" 
+                 name="email"
+                 placeholder="{% trans 'Type your email...' %}" 
+                 class="input" 
+                 style="flex: 1; height: 3rem; background-color: var(--bg-gray-800); border-color: var(--border-gray-700);">
+          <button type="submit" class="btn btn-primary" style="height: 3rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <span>{% trans "Subscribe" %}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
 
-      <section id="getting-started">
-        <h2>{% trans "Getting Started" %}</h2>
-        <p>{% trans "Explore our collection of components, patterns and design resources. Browse through categories, see examples and find inspiration for your projects." %}</p>
-      </section>
-
-      <section id="features">
-        <h2>{% trans "Features" %}</h2>
-        <ul>
-          <li>🎨 {% trans "Modern dark theme with customizable color palette" %}</li>
-          <li>📱 {% trans "Fully responsive design" %}</li>
-          <li>⚡ {% trans "Optimized performance" %}</li>
-          <li>🔍 {% trans "Fast and intuitive search" %}</li>
-          <li>🎯 {% trans "Clean and professional interface" %}</li>
-        </ul>
-      </section>
-
-      <section id="about">
-        <h2>{% trans "About AkkaUi" %}</h2>
-        <p>{% trans "AkkaUi is a modern platform inspired by uiwiki.co, focused on content presentation and reading with elegant dark theme. We use colors #7460F3 (primary), #e7e7e7 (text), #7b7b7b (muted) and #0c0c0c (background) to create a unique visual experience." %}</p>
-      </section>
-
-      <footer class="page-footer">
-        <a class="btn" href="{% url 'core:explore' %}">{% trans "Explore Components" %}</a>
-      </footer>
-    </article>
-  </div>
+  <!-- Features Section -->
+  <section class="section" style="padding-top: 2rem;">
+    <div class="container" style="max-width: 800px;">
+      <h2 class="section-title">{% trans "Features" %}</h2>
+      <ul style="list-style: none; padding: 0; display: grid; gap: 1rem;">
+        <li style="padding: 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg);">
+          <span style="font-size: 1.5rem; margin-right: 1rem;">🎨</span>
+          {% trans "Modern dark theme with customizable color palette" %}
+        </li>
+        <li style="padding: 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg);">
+          <span style="font-size: 1.5rem; margin-right: 1rem;">📱</span>
+          {% trans "Fully responsive design" %}
+        </li>
+        <li style="padding: 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg);">
+          <span style="font-size: 1.5rem; margin-right: 1rem;">⚡</span>
+          {% trans "Optimized performance" %}
+        </li>
+        <li style="padding: 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg);">
+          <span style="font-size: 1.5rem; margin-right: 1rem;">🔍</span>
+          {% trans "Fast and intuitive search" %}
+        </li>
+        <li style="padding: 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg);">
+          <span style="font-size: 1.5rem; margin-right: 1rem;">🎯</span>
+          {% trans "Clean and professional interface" %}
+        </li>
+      </ul>
+    </div>
+  </section>
 {% endblock %}

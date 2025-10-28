@@ -4,59 +4,198 @@
 {% block title %}{% trans "Sign In" %} — AkkaUi{% endblock %}
 
 {% block content %}
-  <article class="page">
-    <header class="page-header">
-      <h1>{% trans "Sign In" %}</h1>
-      <p class="lead">{% trans "Access your AkkaUi account" %}</p>
-    </header>
+<style>
+.auth-page {
+  min-height: calc(100vh - 12rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: var(--bg-black);
+}
 
-    <div class="page-body">
-      <div class="auth-container">
-        {% if messages %}
-          <div class="messages">
-            {% for message in messages %}
-              <div class="message {% if message.tags %}message-{{ message.tags }}{% endif %}">
-                {{ message }}
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
+.auth-container {
+  max-width: 450px;
+  width: 100%;
+}
 
-        <form method="post" class="auth-form">
-          {% csrf_token %}
-          
-          <div class="form-group">
-            <label for="username">{% trans "Username" %}</label>
-            <input 
-              type="text" 
-              id="username" 
-              name="username" 
-              value="{{ username|default:'' }}"
-              required
-              placeholder="{% trans "Your username" %}"
-              autocomplete="username"
-            >
-          </div>
+.auth-card {
+  background: var(--bg-gray-900);
+  border: 1px solid var(--border-gray-800);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+}
 
-          <div class="form-group">
-            <label for="password">{% trans "Password" %}</label>
-            <input 
-              type="password" 
-              id="password" 
-              name="password" 
-              required
-              placeholder="{% trans "Your password" %}"
-              autocomplete="current-password"
-            >
-          </div>
+.auth-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
 
-          <button type="submit" class="btn btn-primary btn-block">{% trans "Sign In" %}</button>
-        </form>
+.auth-header h1 {
+  color: var(--text-white);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
 
-        <div class="auth-footer">
-          <p>{% trans "Don't have an account?" %} <a href="{% url 'usuario:signup' %}">{% trans "Create account" %}</a></p>
+.auth-header p {
+  color: var(--text-gray-400);
+  font-size: 1rem;
+}
+
+.auth-messages {
+  margin-bottom: 1.5rem;
+}
+
+.auth-message {
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-lg);
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.auth-message.error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.auth-message.success {
+  background: rgba(163, 230, 53, 0.1);
+  border: 1px solid rgba(163, 230, 53, 0.3);
+  color: var(--primary);
+}
+
+.auth-message.info {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #93c5fd;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  color: var(--text-gray-300);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.form-group input {
+  padding: 0.875rem 1rem;
+  background: var(--bg-gray-800);
+  border: 1px solid var(--border-gray-700);
+  border-radius: var(--radius-lg);
+  color: var(--text-white);
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(163, 230, 53, 0.1);
+}
+
+.form-group input::placeholder {
+  color: var(--text-gray-500);
+}
+
+.btn-block {
+  width: 100%;
+  justify-content: center;
+  padding: 1rem;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-gray-800);
+}
+
+.auth-footer p {
+  color: var(--text-gray-400);
+  font-size: 0.875rem;
+}
+
+.auth-footer a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: var(--transition-fast);
+}
+
+.auth-footer a:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
+}
+</style>
+
+<div class="auth-page">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1>{% trans "Sign In" %}</h1>
+        <p>{% trans "Access your AkkaUi account" %}</p>
+      </div>
+
+      {% if messages %}
+        <div class="auth-messages">
+          {% for message in messages %}
+            <div class="auth-message {% if message.tags %}{{ message.tags }}{% else %}info{% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
         </div>
+      {% endif %}
+
+      <form method="post" class="auth-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label for="username">{% trans "Username" %}</label>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            value="{{ username|default:'' }}"
+            required
+            placeholder="{% trans 'Your username' %}"
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">{% trans "Password" %}</label>
+          <input 
+            type="password" 
+            id="password" 
+            name="password" 
+            required
+            placeholder="{% trans 'Your password' %}"
+            autocomplete="current-password"
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">{% trans "Sign In" %}</button>
+      </form>
+
+      <div class="auth-footer">
+        <p>{% trans "Don't have an account?" %} <a href="{% url 'usuario:signup' %}">{% trans "Create account" %}</a></p>
       </div>
     </div>
-  </article>
+  </div>
+</div>
 {% endblock %}

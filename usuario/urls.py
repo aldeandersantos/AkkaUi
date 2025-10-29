@@ -1,6 +1,7 @@
 from django.urls import path
 from .views.views_usuario import *
 from .views.views_vip import *
+from .views.views_favorites import favoritos, toggle_favorite, get_favorites
 
 app_name = "usuario"
 
@@ -16,4 +17,9 @@ urlpatterns = [
 
     # Pegar token
     path("api/token/", get_token, name="api_token"),
+    
+    # Favoritos
+    path("favoritos/", favoritos, name="favoritos"),
+    path("api/favorites/toggle/", toggle_favorite, name="toggle_favorite"),
+    path("api/favorites/", get_favorites, name="get_favorites"),
 ]

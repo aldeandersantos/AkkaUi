@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
-from .models import CustomUser
+from .models import CustomUser, Favorite
 
 
 @admin.register(CustomUser)
@@ -46,3 +46,17 @@ class CustomUserAdmin(UserAdmin):
         # Usa <code> para facilitar a cópia visual
         return format_html('<code style="word-break:break-all;">{}</code>', obj.hash_id)
     hash_readable.short_description = 'Hash ID'
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    """Admin configuration for Favorite model."""
+    list_display = ['user', 'total_favorites', 'updated_at', 'created_at']
+    search_fields = ['user__username', 'user__email']
+    list_filter = ['updated_at', 'created_at']
+    readonly_fields = ['created_at', 'updated_at']
+    
+    def total_favorites(self, obj):
+        """Mostra o número total de favoritos."""
+        return len(obj.svg_ids) if obj.svg_ids else 0
+    total_favorites.short_description = 'Total de Favoritos'

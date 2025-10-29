@@ -45,6 +45,7 @@
               <a href="{% url 'core:faq' %}" style="color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.9375rem;" onmouseover="this.style.color='var(--text-white)'" onmouseout="this.style.color='var(--text-gray-300)'">FAQ</a>
               {% if user.is_authenticated %}
                 <a href="{% url 'core:minha_biblioteca' %}" style="color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.9375rem;" onmouseover="this.style.color='var(--text-white)'" onmouseout="this.style.color='var(--text-gray-300)'">{% trans "Library" %}</a>
+                <a href="{% url 'usuario:favoritos' %}" style="color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.9375rem;" onmouseover="this.style.color='var(--text-white)'" onmouseout="this.style.color='var(--text-gray-300)'">❤️ Favoritos</a>
               {% endif %}
               {% if user.is_authenticated and user.admin %}
                 <a href="{% url 'core:admin_svg' %}" style="color: var(--text-gray-300); text-decoration: none; transition: var(--transition-fast); font-size: 0.9375rem;" onmouseover="this.style.color='var(--text-white)'" onmouseout="this.style.color='var(--text-gray-300)'">{% trans "Admin" %}</a>
@@ -142,6 +143,7 @@
           <a href="{% url 'core:faq' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">FAQ</a>
           {% if user.is_authenticated %}
             <a href="{% url 'core:minha_biblioteca' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Library" %}</a>
+            <a href="{% url 'usuario:favoritos' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">❤️ Favoritos</a>
             <a href="{% url 'core:cart' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Cart" %}</a>
             <a href="{% url 'usuario:profile' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Profile" %}</a>
             <a href="{% url 'usuario:signout' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem; border-top: 1px solid var(--border-gray-800); margin-top: 0.5rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Sign Out" %}</a>
@@ -505,6 +507,131 @@
           }
         `;
         document.head.appendChild(style);
+      })();
+    </script>
+    
+    <!-- Favorites Management Script -->
+    <script>
+      // Favorites Management
+      (function() {
+        let userFavorites = [];
+        
+        // Load user favorites on page load
+        function loadFavorites() {
+          {% if user.is_authenticated %}
+          fetch('{% url "usuario:get_favorites" %}', {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              userFavorites = data.favorite_ids || [];
+              updateFavoriteIcons();
+            }
+          })
+          .catch(error => console.error('Erro ao carregar favoritos:', error));
+          {% endif %}
+        }
+        
+        // Update favorite icons based on current state
+        function updateFavoriteIcons() {
+          document.querySelectorAll('.favorite-btn').forEach(btn => {
+            const svgId = parseInt(btn.dataset.svgId);
+            const icon = btn.querySelector('.favorite-icon');
+            if (userFavorites.includes(svgId)) {
+              icon.textContent = '❤️';
+            } else {
+              icon.textContent = '🤍';
+            }
+          });
+        }
+        
+        // Toggle favorite
+        window.toggleFavorite = function(svgId, btnElement) {
+          {% if user.is_authenticated %}
+          const icon = btnElement.querySelector('.favorite-icon');
+          const originalIcon = icon.textContent;
+          
+          // Animação de loading
+          icon.textContent = '⏳';
+          btnElement.disabled = true;
+          
+          fetch('{% url "usuario:toggle_favorite" %}', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ svg_id: svgId })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              if (data.is_favorited) {
+                userFavorites.push(svgId);
+                icon.textContent = '❤️';
+                if (typeof showNotification === 'function') {
+                  showNotification('Adicionado aos favoritos!', 'success');
+                }
+              } else {
+                userFavorites = userFavorites.filter(id => id !== svgId);
+                icon.textContent = '🤍';
+                if (typeof showNotification === 'function') {
+                  showNotification('Removido dos favoritos', 'info');
+                }
+                // Se estamos na página de favoritos, recarregar a página
+                if (window.location.pathname.includes('favoritos')) {
+                  setTimeout(() => window.location.reload(), 500);
+                }
+              }
+            } else {
+              icon.textContent = originalIcon;
+              if (typeof showNotification === 'function') {
+                showNotification('Erro ao atualizar favorito', 'error');
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Erro ao favoritar:', error);
+            icon.textContent = originalIcon;
+            if (typeof showNotification === 'function') {
+              showNotification('Erro ao atualizar favorito', 'error');
+            }
+          })
+          .finally(() => {
+            btnElement.disabled = false;
+          });
+          {% else %}
+          // Redirecionar para login se não autenticado
+          window.location.href = '{% url "usuario:signin" %}?next=' + encodeURIComponent(window.location.pathname);
+          {% endif %}
+        };
+        
+        // Get CSRF token from cookies
+        function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+              }
+            }
+          }
+          return cookieValue;
+        }
+        
+        // Initialize on page load
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadFavorites);
+        } else {
+          loadFavorites();
+        }
       })();
     </script>
     

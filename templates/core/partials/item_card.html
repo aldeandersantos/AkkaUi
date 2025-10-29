@@ -5,24 +5,68 @@ Usa Alpine.js para modal de preview e HTMX para carregar SVG via API
 Segurança: usa item.get_sanitized_content que remove <script> e event handlers
 {% endcomment %}
 
+<style>
+  /* Hover overlay e escurecimento da thumb */
+  .card { position: relative; overflow: hidden; }
+  .card-image { position: relative; }
+  .card-image img { display:block; width:100%; height:auto; transition: filter .18s ease, transform .18s ease; position: relative; z-index: 0; }
+  .card:hover .card-image img, .card-image:hover img { filter: brightness(0.45); transform: scale(1.02); }
+  /* posiciona o overlay no centro-baixo da thumb */
+  .card-overlay { position: absolute; inset: 0; display:flex; align-items:flex-end; justify-content:center; gap:0.85rem; opacity:0; pointer-events:none; transition: opacity .18s ease, transform .18s ease; transform: translateY(10px); z-index: 5; padding-bottom: 0.6rem; }
+  .card:hover .card-overlay, .card-image:hover .card-overlay { opacity:1; pointer-events:auto; transform: translateY(0); }
+  .overlay-btn { background: rgba(255,255,255,0.06); border: none; width: 2.86rem; height: 2.86rem; border-radius: 50%; display:flex; align-items:center; justify-content:center; color:var(--text-white); backdrop-filter: blur(6px); transition: transform .12s ease, background .12s ease; }
+  .overlay-btn:hover { transform: scale(1.08); background: rgba(255,255,255,0.12); }
+  .overlay-actions { display:flex; gap:1.2rem; align-items:center; justify-content:center; }
+  .favorite-top-right { position: absolute; top: 0.75rem; right: 0.75rem; }
+</style>
+
 <div class="card" id="svg-card-{{ item.pk }}" x-data="{ showModal: false, imgError: false, svgHtml: '', svgLoading: false }">
-  {# Botão de Favorito - posicionado sobre a imagem #}
-  {% if user.is_authenticated %}
-  <button 
-    class="favorite-btn" 
-    data-svg-id="{{ item.pk }}"
-    onclick="toggleFavorite({{ item.pk }}, this)"
-    style="position: absolute; top: 0.75rem; right: 0.75rem; background: rgba(0, 0, 0, 0.6); border: none; width: 2.5rem; height: 2.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: all 0.2s ease; backdrop-filter: blur(8px);"
-    onmouseover="this.style.background='rgba(0, 0, 0, 0.8)'; this.style.transform='scale(1.1)'"
-    onmouseout="this.style.background='rgba(0, 0, 0, 0.6)'; this.style.transform='scale(1)'"
-    aria-label="Favoritar SVG"
-  >
-    <span class="favorite-icon" style="font-size: 1.25rem;">🤍</span>
-  </button>
-  {% endif %}
+  {# Botão de Favorito: será exibido dentro do overlay ao passar o mouse sobre a thumb #}
   
   {# Preview do SVG #}
   <div class="card-image">
+    {# Overlay de ações que aparece ao passar o mouse #}
+    <div class="card-overlay" aria-hidden="true">
+      <div class="overlay-actions">
+        {% if user.is_authenticated %}
+        <button
+          class="favorite-btn overlay-btn"
+          data-svg-id="{{ item.pk }}"
+          onclick="toggleFavorite({{ item.pk }}, this)"
+          aria-label="Favoritar SVG {{ item.title_name|default:item.filename }}"
+          type="button"
+        >
+          <span class="favorite-icon" style="display:inline-flex; width:1.375rem; height:1.375rem; align-items:center; justify-content:center;">
+            {% if show_favorite %}
+              <!-- Favoritado (true) -->
+              <svg width="30" height="30" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M14.44 0C12.63 0 11.01 0.88 10 2.23C8.99 0.88 7.37 0 5.56 0C2.49 0 0 2.5 0 5.59C0 6.78 0.19 7.88 0.52 8.9C2.1 13.9 6.97 16.89 9.38 17.71C9.72 17.83 10.28 17.83 10.62 17.71C13.03 16.89 17.9 13.9 19.48 8.9C19.81 7.88 20 6.78 20 5.59C20 2.5 17.51 0 14.44 0Z" fill="#7460F3"/>
+              </svg>
+            {% else %}
+              <!-- Não favoritado (false) -->
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                <path d="M16.44 3.1C14.63 3.1 13.01 3.98 12 5.33C10.99 3.98 9.37 3.1 7.56 3.1C4.49 3.1 2 5.6 2 8.69C2 9.88 2.19 10.98 2.52 12C4.1 17 8.97 19.99 11.38 20.81C11.72 20.93 12.28 20.93 12.62 20.81C15.03 19.99 19.9 17 21.48 12C21.81 10.98 22 9.88 22 8.69C22 5.6 19.51 3.1 16.44 3.1Z" fill="#1E1E1E"/>
+              </svg>
+            {% endif %}
+          </span>
+        </button>
+        {% endif %}
+
+        {# Botão Visualizar - mantém o comportamento Alpine.js de abrir modal #}
+        <button
+          class="overlay-btn"
+          type="button"
+          @click="showModal = true"
+          aria-label="Visualizar {{ item.title_name|default:item.filename }}"
+        >
+          <!-- Ícone de visualizar (olho) -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <path d="M12 5C7 5 2.73 8.11 1 12c1.73 3.89 6 7 11 7s9.27-3.11 11-7c-1.73-3.89-6-7-11-7z" fill="rgba(0,0,0,0)" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.4" fill="none" />
+          </svg>
+        </button>
+      </div>
+    </div>
     {% if item.thumbnail %}
       {# Opção 1: Thumbnail existe - usar imagem #}
       <img 
@@ -311,14 +355,41 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
           </button>
         </div>
         <div class="modal-body">
-          <div class="modal-preview" data-copy-url="{% url 'core:copy_svg' %}?id={{ item.pk }}">
-            <div x-show="svgLoading" class="text-muted">Carregando...</div>
-            <div x-html="svgHtml" x-show="!svgLoading"></div>
-            <div x-effect='if (showModal && !svgHtml && !svgLoading) { svgLoading = true; var url = $el.closest("[data-copy-url]") ? $el.closest("[data-copy-url]").dataset.copyUrl : null; if (!url) { svgHtml = "<p class=\"text-muted\">URL não disponível</p>"; svgLoading = false; } else { fetch(url, { method: "GET", headers: { "Accept": "application/json" } }).then(r => { if (!r.ok) throw r; return r.json() }).then(data => { svgHtml = data.svg_text || "<p class=\"text-muted\">Conteúdo SVG não disponível</p>"; svgLoading = false }).catch(e => { svgHtml = "<p class=\"text-muted\">Erro ao carregar SVG</p>"; svgLoading = false }) } }'></div>
+          <div class="modal-grid" style="display:flex; gap:1rem; align-items:flex-start;">
+            <div class="modal-preview-wrap" style="flex:1; min-width:0;">
+              <div class="modal-preview" data-copy-url="{% url 'core:copy_svg' %}?id={{ item.pk }}">
+                {% if item.thumbnail %}
+                  <img src="{{ item.thumbnail.url }}" alt="Preview de {{ item.title_name|default:item.filename }}" style="width:100%; height:auto; max-height:70vh; object-fit:contain; display:block;" />
+                {% elif item.content %}
+                  <div x-show="svgLoading" class="text-muted">Carregando...</div>
+                  <div x-html="svgHtml" x-show="!svgLoading" style="max-width:100%; max-height:70vh; overflow:auto;"></div>
+                  <div x-effect='if (showModal && !svgHtml && !svgLoading) { svgLoading = true; var url = $el.closest("[data-copy-url]") ? $el.closest("[data-copy-url]").dataset.copyUrl : null; if (!url) { svgHtml = "<p class=\"text-muted\">URL não disponível</p>"; svgLoading = false; } else { fetch(url, { method: "GET", headers: { "Accept": "application/json" } }).then(r => { if (!r.ok) throw r; return r.json() }).then(data => { svgHtml = data.svg_text || "<p class=\"text-muted\">Conteúdo SVG não disponível</p>"; svgLoading = false }).catch(e => { svgHtml = "<p class=\"text-muted\">Erro ao carregar SVG</p>"; svgLoading = false }) } }'></div>
+                {% else %}
+                  <p class="text-muted">Sem prévia disponível</p>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="modal-meta" style="width:320px; max-width:40%; display:flex; flex-direction:column; gap:0.75rem;">
+              <div style="display:flex; gap:0.5rem;">
+                {% if item.purchased_by_user or purchased or vip_access %}
+                  <button type="button" class="btn btn-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">Copiar</button>
+                  <button type="button" class="btn btn-secondary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const svg = data.svg_text||''; const a=document.createElement('a'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); a.download = '{{ item.filename|default:item.title_name|default:"svg" }}.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }).then(()=>{ btn.disabled=false; }).catch(e=>{ console.error(e); alert('Erro ao baixar SVG'); btn.disabled=false; }); })(this)">Download</button>
+                {% elif item.price and item.price > 0 %}
+                  <button type="button" class="btn btn-primary" onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price }} )">Adicionar ao carrinho</button>
+                {% else %}
+                  <button type="button" class="btn btn-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">Copiar</button>
+                  <button type="button" class="btn btn-secondary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const svg = data.svg_text||''; const a=document.createElement('a'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); a.download = '{{ item.filename|default:item.title_name|default:"svg" }}.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }).then(()=>{ btn.disabled=false; }).catch(e=>{ console.error(e); alert('Erro ao baixar SVG'); btn.disabled=false; }); })(this)">Download</button>
+                {% endif %}
+              </div>
+
+              <div style="font-weight:600;">{{ item.title_name|default:item.filename|default:"SVG sem nome" }}</div>
+              <div style="color:var(--text-gray-400); font-size:0.95rem;">by AkkaUi</div>
+              {% if item.description %}
+                <div style="margin-top:0.5rem; color: var(--text-gray-400);">{{ item.description }}</div>
+              {% endif %}
+            </div>
           </div>
-          {% if item.description %}
-            <p class="mt-4 text-muted" style="margin-top: 1rem; color: var(--text-gray-400);">{{ item.description }}</p>
-          {% endif %}
         </div>
       </div>
     </div>

@@ -49,6 +49,11 @@
 html {
   overflow-x: hidden;
   max-width: 100vw;
+  /* Evita overscroll horizontal e chaining no mobile (previne faixa cinza ao arrastar)
+     compatível com navegadores modernos; touch-action ajuda em iOS/Android */
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
 }
 
 body {
@@ -61,6 +66,10 @@ body {
   width: 100%;
   max-width: 100vw;
   overflow-x: hidden;
+  /* Garantir que o comportamento de overscroll horizontal seja neutralizado no body também */
+  overscroll-behavior: none;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
   box-sizing: border-box;
 }
 

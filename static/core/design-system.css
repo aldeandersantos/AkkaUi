@@ -46,6 +46,10 @@
 }
 
 /* Global Styles */
+html {
+  overflow-x: hidden;
+}
+
 body {
   background-color: var(--bg-black);
   color: var(--text-white);
@@ -53,6 +57,8 @@ body {
   line-height: 1.6;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Container */
@@ -623,6 +629,12 @@ h4 {
 
 /* Responsive Utilities */
 @media (max-width: 768px) {
+  .container {
+    padding: 0 1rem;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  
   .site-header-dark .nav {
     display: none;
   }
@@ -637,6 +649,11 @@ h4 {
   
   .hero-dark {
     padding: 3rem 0 2rem;
+    overflow-x: hidden;
+  }
+  
+  .hero-dark .container {
+    overflow-x: hidden;
   }
   
   .hero-dark h1 {
@@ -646,6 +663,8 @@ h4 {
   
   .hero-dark .tags {
     gap: 0.375rem;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   
   .hero-dark .badge {
@@ -655,6 +674,7 @@ h4 {
   
   .section {
     padding: 2rem 0;
+    overflow-x: hidden;
   }
   
   .cta-card {
@@ -663,6 +683,10 @@ h4 {
   
   .cta-card h2 {
     font-size: 1.5rem;
+  }
+  
+  .site-footer-dark {
+    overflow-x: hidden;
   }
   
   .site-footer-dark .footer-grid {

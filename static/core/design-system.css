@@ -665,11 +665,6 @@ h4 {
     font-size: 1.5rem;
   }
   
-  .cta-form {
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
   .site-footer-dark .footer-grid {
     grid-template-columns: 1fr;
     gap: 2rem;

@@ -46,10 +46,6 @@
 }
 
 /* Global Styles */
-html {
-  overflow-x: hidden;
-}
-
 body {
   background-color: var(--bg-black);
   color: var(--text-white);
@@ -57,8 +53,12 @@ body {
   line-height: 1.6;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
   width: 100%;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 /* Container */
@@ -632,7 +632,6 @@ h4 {
   .container {
     padding: 0 1rem;
     max-width: 100%;
-    overflow-x: hidden;
   }
   
   .site-header-dark .nav {
@@ -649,11 +648,6 @@ h4 {
   
   .hero-dark {
     padding: 3rem 0 2rem;
-    overflow-x: hidden;
-  }
-  
-  .hero-dark .container {
-    overflow-x: hidden;
   }
   
   .hero-dark h1 {
@@ -674,7 +668,6 @@ h4 {
   
   .section {
     padding: 2rem 0;
-    overflow-x: hidden;
   }
   
   .cta-card {
@@ -685,12 +678,8 @@ h4 {
     font-size: 1.5rem;
   }
   
-  .site-footer-dark {
-    overflow-x: hidden;
-  }
-  
   .site-footer-dark .footer-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     gap: 2rem;
   }
   

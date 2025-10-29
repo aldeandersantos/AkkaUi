@@ -1,7 +1,7 @@
 from django.urls import path
 from payment.views import *
 from payment.views.views_payment import *
-from payment.views.views_webhook import abacatepay_webhook
+from payment.views.views_webhook import abacatepay_webhook, mercadopago_webhook
 from payment.views.views_purchases import purchased_svgs_page, purchased_svgs_api, create_purchase
 
 app_name = "payment"
@@ -15,6 +15,7 @@ urlpatterns = [
     
     # Webhook do AbacatePay para confirmação automática
     path("webhook/abacatepay/", abacatepay_webhook, name="abacatepay_webhook"),
+    path("webhook/mercadopago/", mercadopago_webhook, name="mercadopago_webhook"),
     
     # APIs legadas do Abacate Pay (mantidas para compatibilidade)
     path("abacate-status/", abacate_status, name="abacate_status"),

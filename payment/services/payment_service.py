@@ -287,13 +287,28 @@ class PaymentService:
             try:
                 # Inicializar gateway e criar pagamento
                 gateway = cls.get_gateway(gateway_name)
+                # Construir payload de items para enviar ao gateway. Importante:
+                # usamos apenas os dados validados/processados pelo servidor
+                # (processed_items) e nunca confiamos nos preços/enums vindos do cliente.
+                gateway_items = []
+                for it in processed_items:
+                    gateway_items.append({
+                        'id': it.get('id'),
+                        'title': it.get('name'),
+                        'quantity': int(it.get('quantity', 1)),
+                        'currency_id': currency,
+                        'unit_price': float(it.get('unit_price')),
+                    })
+
+                gateway = cls.get_gateway(gateway_name)
                 gateway_response = gateway.create_payment(
                     amount=float(total_amount),
                     currency=currency,
                     metadata={
                         'transaction_id': payment.transaction_id,
                         'user_id': user.id,
-                        'items_count': len(processed_items)
+                        'items_count': len(processed_items),
+                        'items': gateway_items,
                     }
                 )
                 

@@ -1,0 +1,44 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block title %}Favoritos — AkkaUi{% endblock %}
+
+{% block content %}
+<div style="width: 100%; background: var(--bg-dark);">
+  <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
+    <h1 style="font-size: 48px; margin-bottom: 20px; background: linear-gradient(135deg, #ff4444, #ff6b6b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+      ❤️ Meus Favoritos
+    </h1>
+    <p class="lead" style="font-size: 18px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">
+      Seus SVGs favoritos salvos para acesso rápido
+    </p>
+  </header>
+
+  <section style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
+    
+    {% if favorite_svgs %}
+      <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 24px; margin: 0;">
+          Total: <span style="color: var(--primary);">{{ total_favorites }}</span> {% if total_favorites == 1 %}favorito{% else %}favoritos{% endif %}
+        </h2>
+      </div>
+      
+      <div class="container-cards">
+        {% for svg in favorite_svgs %}
+          {% include 'core/partials/item_card.html' with item=svg show_favorite=True %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 80px 20px; color: var(--text-muted);">
+        <p style="font-size: 64px; margin-bottom: 20px;">❤️</p>
+        <h3 style="font-size: 24px; margin-bottom: 12px;">Nenhum favorito ainda</h3>
+        <p style="margin-bottom: 30px;">Explore nosso catálogo e marque seus SVGs favoritos clicando no ícone de coração!</p>
+        <a href="{% url 'core:explore' %}" class="btn btn-primary" style="font-size: 16px; padding: 12px 32px;">
+          🔍 Explorar SVGs
+        </a>
+      </div>
+    {% endif %}
+
+  </section>
+</div>
+{% endblock %}

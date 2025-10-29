@@ -6,6 +6,21 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
 {% endcomment %}
 
 <div class="card" id="svg-card-{{ item.pk }}" x-data="{ showModal: false, imgError: false, svgHtml: '', svgLoading: false }">
+  {# Botão de Favorito - posicionado sobre a imagem #}
+  {% if user.is_authenticated %}
+  <button 
+    class="favorite-btn" 
+    data-svg-id="{{ item.pk }}"
+    onclick="toggleFavorite({{ item.pk }}, this)"
+    style="position: absolute; top: 0.75rem; right: 0.75rem; background: rgba(0, 0, 0, 0.6); border: none; width: 2.5rem; height: 2.5rem; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 10; transition: all 0.2s ease; backdrop-filter: blur(8px);"
+    onmouseover="this.style.background='rgba(0, 0, 0, 0.8)'; this.style.transform='scale(1.1)'"
+    onmouseout="this.style.background='rgba(0, 0, 0, 0.6)'; this.style.transform='scale(1)'"
+    aria-label="Favoritar SVG"
+  >
+    <span class="favorite-icon" style="font-size: 1.25rem;">🤍</span>
+  </button>
+  {% endif %}
+  
   {# Preview do SVG #}
   <div class="card-image">
     {% if item.thumbnail %}

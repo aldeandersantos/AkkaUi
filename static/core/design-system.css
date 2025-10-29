@@ -46,6 +46,11 @@
 }
 
 /* Global Styles */
+html {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
   background-color: var(--bg-black);
   color: var(--text-white);
@@ -54,6 +59,8 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
   box-sizing: border-box;
 }
 
@@ -252,9 +259,11 @@ h4 {
   top: 0;
   z-index: 50;
   width: 100%;
+  max-width: 100vw;
   border-bottom: 1px solid var(--border-gray-800);
   background-color: rgba(0, 0, 0, 0.95);
   backdrop-filter: blur(12px);
+  overflow-x: hidden;
 }
 
 .site-header-dark .container {
@@ -416,6 +425,9 @@ h4 {
   background-color: var(--bg-black);
   border-top: 1px solid var(--border-gray-900);
   padding: 3rem 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .site-footer-dark .footer-grid {
@@ -423,6 +435,7 @@ h4 {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 2rem;
   margin-bottom: 3rem;
+  width: 100%;
 }
 
 .site-footer-dark h4 {
@@ -629,9 +642,21 @@ h4 {
 
 /* Responsive Utilities */
 @media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+    position: relative;
+  }
+  
   .container {
     padding: 0 1rem;
     max-width: 100%;
+    overflow-x: hidden;
+  }
+  
+  .site-header-dark {
+    max-width: 100vw;
+    overflow-x: hidden;
   }
   
   .site-header-dark .nav {
@@ -648,6 +673,12 @@ h4 {
   
   .hero-dark {
     padding: 3rem 0 2rem;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  .hero-dark .container {
+    max-width: 100%;
   }
   
   .hero-dark h1 {
@@ -668,6 +699,8 @@ h4 {
   
   .section {
     padding: 2rem 0;
+    max-width: 100vw;
+    overflow-x: hidden;
   }
   
   .cta-card {
@@ -676,6 +709,11 @@ h4 {
   
   .cta-card h2 {
     font-size: 1.5rem;
+  }
+  
+  .site-footer-dark {
+    max-width: 100vw;
+    overflow-x: hidden;
   }
   
   .site-footer-dark .footer-grid {

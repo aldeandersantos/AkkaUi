@@ -28,30 +28,6 @@
   margin: 0 auto;
 }
 
-.pricing-toggle {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  margin-bottom: 3rem;
-}
-
-.toggle-btn {
-  padding: 0.75rem 2rem;
-  background: var(--bg-gray-900);
-  border: 1px solid var(--border-gray-800);
-  border-radius: var(--radius-full);
-  color: var(--text-gray-400);
-  cursor: pointer;
-  transition: var(--transition);
-  font-weight: 500;
-}
-
-.toggle-btn.active {
-  background: var(--primary);
-  color: var(--bg-black);
-  border-color: var(--primary);
-}
-
 .pricing-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -299,11 +275,6 @@
     <p>{% trans "Choose the perfect plan for your needs" %}</p>
   </div>
 
-  <div class="pricing-toggle">
-    <button class="toggle-btn active">{% trans "Monthly" %}</button>
-    <button class="toggle-btn">{% trans "Annual (20% off)" %}</button>
-  </div>
-
   <div class="pricing-cards">
     <!-- Free Plan -->
     <div class="pricing-card">
@@ -350,10 +321,10 @@
       </ul>
     </div>
 
-    <!-- Pro Plan -->
+    <!-- Monthly Plan -->
     <div class="pricing-card featured">
       <span class="popular-badge">{% trans "Most Popular" %}</span>
-      <h3 class="plan-name">{% trans "Pro" %}</h3>
+      <h3 class="plan-name">{% trans "Monthly" %}</h3>
       <p class="plan-description">{% trans "For professionals and small teams" %}</p>
       
       <div class="plan-price">
@@ -363,7 +334,7 @@
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta" data-plan="pro" data-month="9.90" data-year="99.90">{% trans "Start Now" %}</button>
+  <button class="plan-cta" data-plan="monthly" data-amount="9.90">{% trans "Start Now" %}</button>
   {% else %}
   <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Now" %}</a>
   {% endif %}
@@ -396,47 +367,47 @@
       </ul>
     </div>
 
-    <!-- Enterprise Plan -->
+    <!-- Annual Plan -->
     <div class="pricing-card">
-      <h3 class="plan-name">{% trans "Enterprise" %}</h3>
-      <p class="plan-description">{% trans "For large teams and companies" %}</p>
+      <h3 class="plan-name">{% trans "Annual" %}</h3>
+      <p class="plan-description">{% trans "Best value - Save with annual plan" %}</p>
       
       <div class="plan-price">
         <span class="price-currency">R$</span>
-        <span class="price-amount">199</span>
-        <span class="price-period">/{% trans "month" %}</span>
+        <span class="price-amount">99</span>
+        <span class="price-period">/{% trans "year" %}</span>
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta outline">{% trans "Contact Sales" %}</button>
+  <button class="plan-cta" data-plan="annual" data-amount="99">{% trans "Start Now" %}</button>
   {% else %}
-  <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Contact Sales" %}</a>
+  <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Now" %}</a>
   {% endif %}
 
       <ul class="plan-features">
         <li>
           <span class="feature-icon">✓</span>
-          <span>{% trans "Everything in Pro" %}</span>
+          <span>{% trans "All components" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>{% trans "Unlimited users" %}</span>
+          <span>{% trans "Unlimited projects" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>{% trans "Integration API" %}</span>
+          <span>{% trans "Code export" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>{% trans "Advanced customization" %}</span>
+          <span>{% trans "Premium templates" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>{% trans "24/7 Support" %}</span>
+          <span>{% trans "Priority support" %}</span>
         </li>
         <li>
           <span class="feature-icon">✓</span>
-          <span>{% trans "Guaranteed SLA" %}</span>
+          <span>{% trans "Save 17% compared to monthly" %}</span>
         </li>
       </ul>
     </div>
@@ -643,26 +614,14 @@
       return match ? match[0] : '/en/';
     };
 
-    // Toggle pricing functionality
-    const toggleBtns = document.querySelectorAll('.toggle-btn');
-    toggleBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        toggleBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-      });
-    });
-
-    // Conectar botões de compra ao modal, respeitando Monthly/Annual
+    // Conectar botões de compra ao modal
     const planCtas = document.querySelectorAll('.plan-cta');
     planCtas.forEach(btn => {
       // apenas para botões (não anchors) que tenham dataset.plan
       if (btn.tagName.toLowerCase() === 'button' && btn.dataset && btn.dataset.plan) {
         btn.addEventListener('click', (e) => {
-          const planBase = btn.dataset.plan; // ex: 'pro'
-          const isAnnual = toggleBtns[1] && toggleBtns[1].classList.contains('active');
-          const period = isAnnual ? 'year' : 'month';
-          const planKey = `${planBase}_${period}`; // ex: 'pro_month'
-          const amount = parseFloat(isAnnual ? btn.dataset.year : btn.dataset.month);
+          const planKey = btn.dataset.plan; // ex: 'monthly' ou 'annual'
+          const amount = parseFloat(btn.dataset.amount);
           openPaymentModal(planKey, amount);
         });
       }
@@ -676,10 +635,8 @@
       const planInfo = document.getElementById('modalPlanInfo');
       
       const planNames = {
-        'pro_month': 'Plano Pro Mensal',
-        'pro_year': 'Plano Pro Anual',
-        'enterprise_month': 'Plano Enterprise Mensal',
-        'enterprise_year': 'Plano Enterprise Anual'
+        'monthly': 'Plano Mensal',
+        'annual': 'Plano Anual'
       };
       
       const planName = planNames[plan] || 'Plano';

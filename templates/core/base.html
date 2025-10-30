@@ -95,12 +95,16 @@
                   {% get_available_languages as LANGUAGES %}
                   {% for lang_code, lang_name in LANGUAGES %}
                   <button type="submit" name="language" value="{{ lang_code }}" 
-                          style="width: 100%; padding: 0.75rem 1.25rem; background: {% if lang_code == LANGUAGE_CODE %}#27272a{% else %}transparent{% endif %}; 
-                                 border: none; color: {% if lang_code == LANGUAGE_CODE %}#a3e635{% else %}#d4d4d8{% endif %}; 
-                                 text-align: left; cursor: pointer; transition: all 0.2s ease; font-size: 0.9375rem; font-weight: {% if lang_code == LANGUAGE_CODE %}600{% else %}400{% endif %}; display: block;"
+                          style="width: 100% !important; padding: 0.75rem 1.25rem !important; background: {% if lang_code == LANGUAGE_CODE %}#27272a{% else %}transparent{% endif %} !important; 
+                                 border: none !important; color: {% if lang_code == LANGUAGE_CODE %}#a3e635{% else %}#d4d4d8{% endif %} !important; 
+                                 text-align: left !important; cursor: pointer !important; transition: all 0.2s ease !important; 
+                                 font-size: 0.9375rem !important; font-weight: {% if lang_code == LANGUAGE_CODE %}600{% else %}400{% endif %} !important; 
+                                 display: flex !important; align-items: center !important; gap: 0.75rem !important; line-height: 1.5 !important;"
                           onmouseover="if('{{ lang_code }}' !== '{{ LANGUAGE_CODE }}') { this.style.background='#27272a'; this.style.color='#ffffff'; }"
                           onmouseout="if('{{ lang_code }}' !== '{{ LANGUAGE_CODE }}') { this.style.background='transparent'; this.style.color='#d4d4d8'; }">
-                    {{ lang_name }}
+                    <span style="font-size: 1.25rem !important;">{{ lang_name|slice:":2" }}</span>
+                    <span style="flex: 1 !important;">{{ lang_name }}</span>
+                    {% if lang_code == LANGUAGE_CODE %}<span style="color: #a3e635 !important; font-size: 1.125rem !important;">✓</span>{% endif %}
                   </button>
                   {% endfor %}
                 </form>

@@ -21,6 +21,19 @@
   <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js"></script>
     <!-- Oculta elementos com x-cloak até o Alpine inicializar -->
     <style>[x-cloak]{display:none!important;}</style>
+    <!-- HTMX + CSRF: garante que requisições HTMX enviem o header X-CSRFToken usando o cookie csrftoken -->
+    <script>
+      function getCookie(name) {
+        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : '';
+      }
+      document.body.addEventListener('htmx:configRequest', function(evt) {
+        const token = getCookie('csrftoken');
+        if (token) {
+          evt.detail.headers['X-CSRFToken'] = token;
+        }
+      });
+    </script>
     
     {% block extra_head %}{% endblock %}
   </head>

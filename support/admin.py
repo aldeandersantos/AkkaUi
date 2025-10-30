@@ -6,12 +6,13 @@ class TicketMessageInline(admin.TabularInline):
     model = TicketMessage
     extra = 0
     readonly_fields = ('created_at',)
+    fields = ('user', 'message', 'is_staff_reply', 'attachment', 'created_at')
 
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
-    list_display = ('id', 'subject', 'user', 'status', 'created_at', 'updated_at')
-    list_filter = ('status', 'created_at')
+    list_display = ('id', 'subject', 'user', 'status', 'allow_client_uploads', 'created_at', 'updated_at')
+    list_filter = ('status', 'created_at', 'allow_client_uploads')
     search_fields = ('subject', 'user__username', 'user__email')
     inlines = [TicketMessageInline]
 

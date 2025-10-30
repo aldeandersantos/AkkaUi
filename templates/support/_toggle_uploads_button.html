@@ -1,0 +1,11 @@
+{% load i18n %}
+<form method="post" hx-post="{% url 'support:ticket_toggle_uploads' ticket.id %}" hx-swap="outerHTML" hx-trigger="submit" action="{% url 'support:ticket_toggle_uploads' ticket.id %}">
+  {% csrf_token %}
+  <button type="submit" class="btn" style="background: transparent; border: 1px solid var(--border-gray-700); color: var(--text-white); padding: 0.4rem 0.6rem; border-radius: 0.5rem; font-size:0.85rem;">
+    {% if ticket.allow_client_uploads %}
+      {% trans "Revogar envio do cliente" %}
+    {% else %}
+      {% trans "Autorizar envio do cliente" %}
+    {% endif %}
+  </button>
+</form>

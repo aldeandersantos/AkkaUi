@@ -33,6 +33,11 @@ class Ticket(models.Model):
         auto_now=True,
         verbose_name='Atualizado em'
     )
+    # Permite que o cliente envie anexos (png/jpg) quando a equipe liberar
+    allow_client_uploads = models.BooleanField(
+        default=False,
+        verbose_name='Permitir uploads do cliente'
+    )
     
     def __str__(self):
         return f"Ticket #{self.id} - {self.subject} ({self.user.username})"
@@ -57,6 +62,13 @@ class TicketMessage(models.Model):
     )
     message = models.TextField(
         verbose_name='Mensagem'
+    )
+    # Anexo opcional (PNG/JPG) enviado junto com a mensagem
+    attachment = models.ImageField(
+        upload_to='ticket_attachments/',
+        null=True,
+        blank=True,
+        verbose_name='Anexo'
     )
     is_staff_reply = models.BooleanField(
         default=False,

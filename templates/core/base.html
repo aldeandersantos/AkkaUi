@@ -87,7 +87,7 @@
               <button onclick="toggleLanguageMenu()" class="icon-button" style="font-size: 0.875rem; gap: 0.25rem; padding: 0.5rem 0.75rem;" title="{% trans 'Change language' %}">
                 🌐 <span style="font-weight: 600;">{{ LANGUAGE_CODE|slice:":2"|upper }}</span>
               </button>
-              <div id="languageDropdown" style="display: none; position: absolute; right: 0; top: calc(100% + 0.5rem); background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg); min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 1000; overflow: hidden;">
+              <div id="languageDropdown" style="display: none; position: absolute; right: 0; top: calc(100% + 0.5rem); background: #1a1a1a; border: 2px solid #3f3f46; border-radius: 8px; min-width: 200px; box-shadow: 0 10px 40px rgba(0,0,0,0.7); z-index: 1000; overflow: hidden; padding: 0.5rem 0;">
                 <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
                   {% csrf_token %}
                   <input name="next" type="hidden" value="{{ request.path }}">
@@ -95,11 +95,11 @@
                   {% get_available_languages as LANGUAGES %}
                   {% for lang_code, lang_name in LANGUAGES %}
                   <button type="submit" name="language" value="{{ lang_code }}" 
-                          style="width: 100%; padding: 0.75rem 1rem; background: {% if lang_code == LANGUAGE_CODE %}var(--bg-gray-800){% else %}transparent{% endif %}; 
-                                 border: none; color: {% if lang_code == LANGUAGE_CODE %}var(--primary){% else %}var(--text-gray-300){% endif %}; 
-                                 text-align: left; cursor: pointer; transition: var(--transition); font-size: 0.875rem; font-weight: {% if lang_code == LANGUAGE_CODE %}600{% else %}400{% endif %};"
-                          onmouseover="if('{{ lang_code }}' !== '{{ LANGUAGE_CODE }}') { this.style.background='var(--bg-gray-850)'; this.style.color='var(--text-white)'; }"
-                          onmouseout="if('{{ lang_code }}' !== '{{ LANGUAGE_CODE }}') { this.style.background='transparent'; this.style.color='var(--text-gray-300)'; }">
+                          style="width: 100%; padding: 0.75rem 1.25rem; background: {% if lang_code == LANGUAGE_CODE %}#27272a{% else %}transparent{% endif %}; 
+                                 border: none; color: {% if lang_code == LANGUAGE_CODE %}#a3e635{% else %}#d4d4d8{% endif %}; 
+                                 text-align: left; cursor: pointer; transition: all 0.2s ease; font-size: 0.9375rem; font-weight: {% if lang_code == LANGUAGE_CODE %}600{% else %}400{% endif %}; display: block;"
+                          onmouseover="if('{{ lang_code }}' !== '{{ LANGUAGE_CODE }}') { this.style.background='#27272a'; this.style.color='#ffffff'; }"
+                          onmouseout="if('{{ lang_code }}' !== '{{ LANGUAGE_CODE }}') { this.style.background='transparent'; this.style.color='#d4d4d8'; }">
                     {{ lang_name }}
                   </button>
                   {% endfor %}

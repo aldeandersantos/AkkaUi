@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'payment',
     'usuario',
     'core',
+    'support',
 ]
 
 MIDDLEWARE = [

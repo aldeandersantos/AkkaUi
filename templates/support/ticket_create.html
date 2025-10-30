@@ -1,0 +1,81 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}Criar Ticket - AkkaUi{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1rem; max-width: 800px;">
+  <div style="margin-bottom: 2rem;">
+    <a href="{% url 'support:ticket_list' %}" 
+       style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray-400); text-decoration: none; font-size: 0.875rem; transition: var(--transition);"
+       onmouseover="this.style.color='var(--text-white)'"
+       onmouseout="this.style.color='var(--text-gray-400)'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Voltar para tickets
+    </a>
+  </div>
+
+  <h1 style="font-size: 2rem; font-weight: 700; color: var(--text-white); margin-bottom: 2rem;">
+    Criar Novo Ticket
+  </h1>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div style="background: {% if message.tags == 'success' %}var(--accent){% else %}var(--danger, #ef4444){% endif %}; color: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" style="background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: 0.75rem; padding: 2rem;">
+    {% csrf_token %}
+    
+    <div style="margin-bottom: 1.5rem;">
+      <label for="subject" style="display: block; font-weight: 600; color: var(--text-white); margin-bottom: 0.5rem;">
+        Assunto *
+      </label>
+      <input 
+        type="text" 
+        id="subject" 
+        name="subject" 
+        required
+        maxlength="200"
+        class="input"
+        placeholder="Descreva brevemente seu problema"
+        style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+      <label for="message" style="display: block; font-weight: 600; color: var(--text-white); margin-bottom: 0.5rem;">
+        Mensagem *
+      </label>
+      <textarea 
+        id="message" 
+        name="message" 
+        required
+        rows="8"
+        class="input"
+        placeholder="Descreva seu problema em detalhes..."
+        style="width: 100%; resize: vertical; font-family: inherit;"></textarea>
+      <p style="font-size: 0.875rem; color: var(--text-gray-400); margin-top: 0.5rem;">
+        Quanto mais detalhes você fornecer, mais rápido poderemos ajudá-lo.
+      </p>
+    </div>
+
+    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+      <a href="{% url 'support:ticket_list' %}" class="btn btn-outline">
+        Cancelar
+      </a>
+      <button type="submit" class="btn btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+          <path d="M22 2L11 13"></path>
+          <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+        </svg>
+        Criar Ticket
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

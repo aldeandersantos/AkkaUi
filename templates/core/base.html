@@ -145,6 +145,7 @@
             <a href="{% url 'core:minha_biblioteca' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Library" %}</a>
             <a href="{% url 'usuario:favoritos' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">❤️ Favoritos</a>
             <a href="{% url 'core:cart' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Cart" %}</a>
+            <a href="{% url 'support:ticket_list' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">💬 {% trans "Support" %}</a>
             <a href="{% url 'usuario:profile' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Profile" %}</a>
             <a href="{% url 'usuario:signout' %}" style="padding: 0.875rem 1rem; color: var(--text-gray-300); text-decoration: none; border-radius: 0.5rem; transition: var(--transition-fast); font-size: 1rem; border-top: 1px solid var(--border-gray-800); margin-top: 0.5rem;" onmouseover="this.style.backgroundColor='var(--bg-gray-900)'; this.style.color='var(--text-white)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-gray-300)'">{% trans "Sign Out" %}</a>
             {% if user.admin %}
@@ -226,6 +227,9 @@
               <li><a href="#">{% trans "About" %}</a></li>
               <li><a href="#">{% trans "Contact" %}</a></li>
               <li><a href="#">{% trans "Terms" %}</a></li>
+              {% if user.is_authenticated %}
+                <li><a href="{% url 'support:ticket_list' %}" style="color: var(--accent); font-weight: 600;">💬 {% trans "Support" %}</a></li>
+              {% endif %}
             </ul>
           </div>
           

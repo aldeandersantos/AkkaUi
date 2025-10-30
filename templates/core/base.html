@@ -85,7 +85,7 @@
             <!-- Language Switcher -->
             <div class="language-switcher" style="position: relative; display: inline-block;" x-data="{ open: false }">
               <button @click="open = !open" class="icon-button" style="font-size: 0.875rem; gap: 0.25rem; padding: 0.5rem 0.75rem;" title="{% trans 'Change language' %}">
-                🌐 <span style="font-weight: 600;">{{ LANGUAGE_CODE|upper }}</span>
+                🌐 <span style="font-weight: 600;">{{ LANGUAGE_CODE|slice:":2"|upper }}</span>
               </button>
                 <div x-cloak x-show="open" @click.away="open = false" x-transition style="position: absolute; right: 0; top: calc(100% + 0.5rem); background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg); min-width: 180px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 1000; overflow: hidden;">
                 <form action="{% url 'set_language' %}" method="post" style="margin: 0;">

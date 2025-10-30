@@ -273,6 +273,7 @@ h4 {
   background-color: rgba(0, 0, 0, 0.95);
   backdrop-filter: blur(12px);
   overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .site-header-dark .container {

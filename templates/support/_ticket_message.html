@@ -1,0 +1,34 @@
+{% comment %}Partial para uma mensagem de ticket. Espera 'msg' no contexto.{% endcomment %}
+<div class="ticket-message-item" style="background: {% if msg.is_staff_reply %}var(--bg-gray-800){% else %}var(--bg-gray-900){% endif %}; border: 1px solid var(--border-gray-800); border-radius: 0.75rem; padding: 1.5rem; {% if msg.is_staff_reply %}border-left: 3px solid var(--accent);{% endif %}">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <div style="width: 2rem; height: 2rem; background: {% if msg.is_staff_reply %}var(--accent){% else %}var(--primary){% endif %}; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--bg-black); font-weight: 600; font-size: 0.875rem;">
+        {% if msg.is_staff_reply %}
+          <span class="brand-icon" style="font-size:0.9rem; line-height:1;">A</span>
+        {% else %}
+          {{ msg.user.username|slice:":1"|upper }}
+        {% endif %}
+      </div>
+      <div>
+        <div style="font-weight: 600; color: var(--text-white); font-size: 0.9375rem;">
+          {% if msg.is_staff_reply %}
+            <span style="background: var(--accent); color: var(--bg-black); padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; margin-left: 0.5rem; font-weight: 700;">SUPORTE</span>
+          {% else %}
+            {{ msg.user.username }}
+          {% endif %}
+        </div>
+        <div style="font-size: 0.8125rem; color: var(--text-gray-400);">
+          {{ msg.created_at|date:"d/m/Y H:i" }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="color: var(--text-gray-300); line-height: 1.6; white-space: pre-wrap;">{{ msg.message }}</div>
+  {% if msg.attachment %}
+  <div style="margin-top: 0.75rem;">
+    <a href="{{ msg.attachment.url }}" target="_blank" style="display: inline-block; border-radius: 0.5rem; overflow: hidden; border: 1px solid var(--border-gray-800);">
+      <img src="{{ msg.attachment.url }}" alt="Anexo" style="max-width: 360px; max-height: 240px; display: block;" />
+    </a>
+  </div>
+  {% endif %}
+</div>

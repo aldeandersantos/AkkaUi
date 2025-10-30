@@ -1,0 +1,132 @@
+{% extends "core/base.html" %}
+{% load i18n %}
+
+{% block title %}Ticket #{{ ticket.id }} - AkkaUi{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 1rem; max-width: 1000px;">
+  <div style="margin-bottom: 2rem;">
+    <a href="{% url 'support:ticket_list' %}" 
+       style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--text-gray-400); text-decoration: none; font-size: 0.875rem; transition: var(--transition);"
+       onmouseover="this.style.color='var(--text-white)'"
+       onmouseout="this.style.color='var(--text-gray-400)'">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+      Voltar para tickets
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div style="background: {% if message.tags == 'success' %}var(--accent){% else %}var(--danger, #ef4444){% endif %}; color: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Header do Ticket -->
+  <div style="background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: 0.75rem; padding: 2rem; margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: start; gap: 2rem; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 300px;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+          <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-white); margin: 0;">
+            Ticket #{{ ticket.id }}
+          </h1>
+          <span style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; 
+                       {% if ticket.status == 'open' %}background: rgba(59, 130, 246, 0.1); color: #3b82f6;
+                       {% elif ticket.status == 'in_progress' %}background: rgba(251, 191, 36, 0.1); color: #fbbf24;
+                       {% else %}background: rgba(34, 197, 94, 0.1); color: #22c55e;{% endif %}">
+            {{ ticket.get_status_display }}
+          </span>
+        </div>
+        <h2 style="font-size: 1.25rem; font-weight: 600; color: var(--text-gray-200); margin-bottom: 1rem;">
+          {{ ticket.subject }}
+        </h2>
+        <div style="display: flex; gap: 2rem; font-size: 0.875rem; color: var(--text-gray-400);">
+          <span>👤 {{ ticket.user.username }}</span>
+          <span>📅 {{ ticket.created_at|date:"d/m/Y H:i" }}</span>
+          <span>🕐 Atualizado: {{ ticket.updated_at|date:"d/m/Y H:i" }}</span>
+        </div>
+      </div>
+
+      {% if user.admin %}
+      <div>
+        <form method="post" action="{% url 'support:ticket_update_status' ticket.id %}" style="display: inline-block;">
+          {% csrf_token %}
+          <select name="status" 
+                  onchange="this.form.submit()"
+                  style="padding: 0.5rem 1rem; background: var(--bg-gray-800); border: 1px solid var(--border-gray-700); border-radius: 0.5rem; color: var(--text-white); font-size: 0.875rem; cursor: pointer;">
+            <option value="open" {% if ticket.status == 'open' %}selected{% endif %}>Aberto</option>
+            <option value="in_progress" {% if ticket.status == 'in_progress' %}selected{% endif %}>Em Andamento</option>
+            <option value="closed" {% if ticket.status == 'closed' %}selected{% endif %}>Fechado</option>
+          </select>
+        </form>
+        <div style="display:inline-block; margin-left:0.5rem;">
+          {% include 'support/_toggle_uploads_button.html' with ticket=ticket %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Mensagens -->
+  <div style="margin-bottom: 2rem;">
+    <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-white); margin-bottom: 1.5rem;">
+      Conversa
+    </h3>
+    
+    <div id="messagesList" style="display: flex; flex-direction: column; gap: 1rem;">
+      {% for msg in ticket_messages %}
+        {% include 'support/_ticket_message.html' with msg=msg %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Formulário de Resposta -->
+  {% if can_reply and ticket.status != 'closed' %}
+  <div style="background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: 0.75rem; padding: 2rem;">
+    <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--text-white); margin-bottom: 1rem;">
+      Enviar Mensagem
+    </h3>
+    
+  <form id="replyForm" method="post" enctype="multipart/form-data" action="{% url 'support:ticket_reply' ticket.id %}"
+    hx-post="{% url 'support:ticket_reply' ticket.id %}" hx-swap="beforeend" hx-target="#messagesList" hx-trigger="submit">
+      {% csrf_token %}
+      <textarea 
+        name="message" 
+        required
+        rows="5"
+        class="input"
+        placeholder="Digite sua mensagem..."
+        style="width: 100%; margin-bottom: 1rem; resize: vertical; font-family: inherit;"></textarea>
+      
+      {# Mostrar campo de arquivo apenas se o cliente tiver permissão ou se for staff #}
+      {% if user.admin or ticket.allow_client_uploads %}
+      <div style="margin-bottom: 1rem;">
+        <label style="font-size:0.875rem; color:var(--text-gray-300); display:block; margin-bottom:0.25rem;">Anexo (PNG/JPG)</label>
+        <input type="file" name="attachment" accept="image/png,image/jpeg" />
+      </div>
+      {% endif %}
+
+      <div style="display: flex; justify-content: flex-end;">
+        <button type="submit" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+            <path d="M22 2L11 13"></path>
+            <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+          </svg>
+          Enviar Mensagem
+        </button>
+      </div>
+    </form>
+  </div>
+  {% elif ticket.status == 'closed' %}
+  <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 0.75rem; padding: 1.5rem; text-align: center; color: #22c55e;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 0.5rem;">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>
+    <p style="font-weight: 600; margin: 0;">Este ticket foi fechado</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

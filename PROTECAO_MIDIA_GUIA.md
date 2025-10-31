@@ -283,38 +283,56 @@ curl -I http://localhost:8000/guardian/thumbnail/1/
 
 **Causa**: Django não serve arquivos estáticos quando DEBUG=False por padrão.
 
-**✅ SOLUÇÃO CORRIGIDA** (Commit atual):
+**✅ SOLUÇÃO RECOMENDADA: WhiteNoise**
 
-Agora usa `django.contrib.staticfiles.views.serve` que procura arquivos em:
-- `STATIC_ROOT` (arquivos coletados via collectstatic)
-- `STATICFILES_DIRS` (arquivos do projeto)
+A melhor solução é usar o pacote WhiteNoise, que serve static files de forma eficiente:
 
-**Como usar com DEBUG=False:**
+**Passo 1 - Instalar WhiteNoise:**
+```bash
+pip install whitenoise
+```
 
-**Passo 1 - Coletar arquivos estáticos:**
+**Passo 2 - Adicionar ao MIDDLEWARE (settings.py):**
+```python
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # ← Logo após SecurityMiddleware
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    # ... resto dos middlewares
+]
+```
+
+**Passo 3 - Coletar static files:**
 ```bash
 python manage.py collectstatic --noinput
 ```
 
-**Passo 2 - Habilitar servir via Django:**
+**Passo 4 - Rodar com DEBUG=False:**
 ```bash
-# No terminal (Linux/Mac):
-export DEBUG=False
-export SERVE_STATIC=true
-python manage.py runserver
-
-# No Windows (CMD):
+# Windows CMD:
 set DEBUG=False
-set SERVE_STATIC=true
 python manage.py runserver
 
-# No Windows (PowerShell):
+# Windows PowerShell:
 $env:DEBUG="False"
-$env:SERVE_STATIC="true"
+python manage.py runserver
+
+# Linux/Mac:
+export DEBUG=False
 python manage.py runserver
 ```
 
-**Importante**: Esta solução é para **testes locais**. Em produção real, use Nginx:
+**Vantagens do WhiteNoise:**
+- ✅ Funciona automaticamente com DEBUG=False
+- ✅ Não precisa SERVE_STATIC=true
+- ✅ Compressão e cache automáticos
+- ✅ Recomendado pela Django para produção simples
+
+**Alternativa sem WhiteNoise:**
+
+Se preferir não usar WhiteNoise, use a solução anterior com SERVE_STATIC=true (ver documentação anterior).
+
+**Importante**: Em produção com Nginx, desabilite WhiteNoise e use Nginx para servir static files:
 
 ```nginx
 location /static/ {

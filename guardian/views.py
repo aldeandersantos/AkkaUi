@@ -51,6 +51,8 @@ def protected_thumbnail(request, svg_id):
     2. Valida permissões baseadas no tipo de SVG
     """
     from core.models import SvgFile
+    from django.http import FileResponse
+    import mimetypes
     
     svg = get_object_or_404(SvgFile, id=svg_id)
     
@@ -64,7 +66,8 @@ def protected_thumbnail(request, svg_id):
     
     # Bloqueia acesso direto - apenas permite se vier de uma página do site
     # Ou se for uma requisição autenticada de usuário com permissão especial
-    is_from_site = referer and host in referer
+    # Verifica se referer contém o host (mais permissivo para suportar diferentes paths)
+    is_from_site = referer and (host in referer or f"://{host}" in referer)
     
     if not is_from_site:
         # Acesso direto - verifica se usuário tem permissão especial
@@ -91,7 +94,12 @@ def protected_thumbnail(request, svg_id):
         # Usa o caminho do arquivo da thumbnail
         file_path = svg.thumbnail.path
         if os.path.exists(file_path):
-            return FileResponse(open(file_path, 'rb'))
+            # Detecta o tipo MIME do arquivo
+            content_type, _ = mimetypes.guess_type(file_path)
+            response = FileResponse(open(file_path, 'rb'))
+            if content_type:
+                response['Content-Type'] = content_type
+            return response
         raise Http404("Thumbnail não encontrada")
     
     # Em produção, usa X-Accel-Redirect para Nginx servir o arquivo

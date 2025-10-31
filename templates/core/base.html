@@ -39,9 +39,9 @@
   </head>
   <body>
     <!-- Notification Toast Container -->
-    <div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 10000; display: flex; flex-direction: column; gap: 0.5rem;"></div>
+    <div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 0.5rem;"></div>
     
-    <header class="site-header-dark">
+    <header class="site-header-dark" style="position: relative; z-index: 100;">
       <div class="container">
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
           <!-- Logo e Navegação Desktop -->
@@ -100,7 +100,7 @@
               <button onclick="toggleLanguageMenu()" class="icon-button" style="font-size: 0.875rem; gap: 0.25rem; padding: 0.5rem 0.75rem;" title="{% trans 'Change language' %}">
                 🌐 <span style="font-weight: 600;">{{ LANGUAGE_CODE|slice:":2"|upper }}</span>
               </button>
-              <div id="languageDropdown" style="display: none; position: fixed; background: #1a1a1a; border: 2px solid #3f3f46; border-radius: 8px; min-width: 200px; box-shadow: 0 10px 40px rgba(0,0,0,0.7); z-index: 10001; overflow: hidden; padding: 0.5rem 0;">
+              <div id="languageDropdown" style="display: none; position: fixed; background: #1a1a1a; border: 2px solid #3f3f46; border-radius: 8px; min-width: 200px; box-shadow: 0 10px 40px rgba(0,0,0,0.7); z-index: 10002; overflow: hidden; padding: 0.5rem 0;">
                 <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
                   {% csrf_token %}
                   <input name="next" type="hidden" value="{{ request.path }}">
@@ -108,12 +108,15 @@
                   {% get_available_languages as LANGUAGES %}
                   {% for lang_code, lang_name in LANGUAGES %}
                   <button type="submit" name="language" value="{{ lang_code }}" 
-                          style="width: 100%; padding: 0.75rem 1.25rem; background: {% if lang_code == LANGUAGE_CODE %}#27272a{% else %}transparent{% endif %}; 
-                                 border: none; color: {% if lang_code == LANGUAGE_CODE %}#a3e635{% else %}#d4d4d8{% endif %}; 
-                                 text-align: left; cursor: pointer; transition: all 0.2s ease; font-size: 0.9375rem; font-weight: {% if lang_code == LANGUAGE_CODE %}600{% else %}400{% endif %}; display: block;"
+                          style="width: 100% !important; padding: 0.75rem 1.25rem !important; background: {% if lang_code == LANGUAGE_CODE %}#27272a{% else %}transparent{% endif %} !important; 
+                                 border: none !important; color: {% if lang_code == LANGUAGE_CODE %}#a3e635{% else %}#d4d4d8{% endif %} !important; 
+                                 text-align: left !important; cursor: pointer !important; transition: all 0.2s ease !important; 
+                                 font-size: 0.9375rem !important; font-weight: {% if lang_code == LANGUAGE_CODE %}600{% else %}400{% endif %} !important; 
+                                 display: flex !important; align-items: center !important; gap: 0.75rem !important; line-height: 1.5 !important;"
                           onmouseover="if('{{ lang_code }}' !== '{{ LANGUAGE_CODE }}') { this.style.background='#27272a'; this.style.color='#ffffff'; }"
                           onmouseout="if('{{ lang_code }}' !== '{{ LANGUAGE_CODE }}') { this.style.background='transparent'; this.style.color='#d4d4d8'; }">
-                    {{ lang_name }}
+                    <span style="flex: 1 !important;">{{ lang_name }}</span>
+                    {% if lang_code == LANGUAGE_CODE %}<span style="color: #a3e635 !important; font-size: 1.125rem !important;">✓</span>{% endif %}
                   </button>
                   {% endfor %}
                 </form>
@@ -358,6 +361,7 @@
           // Calcular posição do botão
           const rect = button.getBoundingClientRect();
           dropdown.style.top = (rect.bottom + 8) + 'px';
+          dropdown.style.left = '';
           dropdown.style.right = (window.innerWidth - rect.right) + 'px';
           dropdown.style.display = 'block';
         } else {

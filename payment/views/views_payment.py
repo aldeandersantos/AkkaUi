@@ -1,6 +1,7 @@
 import json
 import logging
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
+from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from ..models import Payment
@@ -11,9 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 @csrf_exempt
-@login_required
 def create_payment(request):
     """Cria um novo pagamento (suporta plano único ou carrinho com múltiplos itens)"""
+    # API: retornar JSON claro quando não autenticado em vez de redirecionar para login
+    if not getattr(request, 'user', None) or not request.user.is_authenticated:
+        return JsonResponse({"error": "not_authenticated"}, status=401)
     if request.method != "POST":
         return JsonResponse({"error": "invalid_method"}, status=405)
     
@@ -80,6 +83,63 @@ def create_payment(request):
 
         notify_discord(request.user, "generated_buy", payment.amount, "created")
 
+        # Se o gateway retornou um link de checkout (init_point), redirecionar o usuário
+        gateway_response = getattr(payment, 'gateway_response', None) or {}
+        # Caso gateway_response seja string, tentar desserializar
+        if isinstance(gateway_response, str):
+            try:
+                gateway_response = json.loads(gateway_response)
+            except Exception:
+                # mantem como string se não for JSON
+                gateway_response = {"raw": gateway_response}
+
+        init_point = None
+        if isinstance(gateway_response, dict):
+            # Usar sempre o `init_point` quando disponível; se ausente,
+            # cair para `sandbox_init_point` como fallback.
+            init_point = gateway_response.get('init_point')
+
+        if init_point:
+
+            # Garantir que o objeto gateway_response retornado ao cliente contenha
+            # a chave `payment_url` usada pelo frontend existente.
+            payment_gateway_response = {}
+            if isinstance(gateway_response, dict):
+                payment_gateway_response.update(gateway_response)
+            else:
+                # gateway_response pode ser string ou None; normalizar para dict
+                payment_gateway_response["raw"] = gateway_response
+
+            # Inserir payment_url apontando para init_point (compatibilidade frontend)
+            payment_gateway_response["payment_url"] = init_point
+
+            # Construir payload incluindo o objeto `payment` esperado pelo frontend
+            resp = JsonResponse({
+                "status": "success",
+                "redirect_url": init_point,
+                "payment_gateway_response": payment_gateway_response,
+                "payment": {
+                    "transaction_id": payment.transaction_id,
+                    "gateway": payment.gateway,
+                    "plan": payment.plan,
+                    "amount": f"{payment.amount:.2f}",
+                    "currency": payment.currency,
+                    "status": payment.status,
+                    "gateway_payment_id": payment.gateway_payment_id,
+                    "gateway_response": payment_gateway_response,
+                    "items": payment_items,
+                    "created_at": payment.created_at.isoformat(),
+                }
+            }, status=201)
+
+            # Incluir header Location para clientes que checam o header
+            resp["Location"] = init_point
+            return resp
+
+            # Requisição normal de navegador -> 302
+            return HttpResponseRedirect(init_point)
+
+        # Caso não haja init_point, retorna o JSON com os detalhes do pagamento
         return JsonResponse({
             "status": "success",
             "payment": {
@@ -243,3 +303,6 @@ def list_user_payments(request):
             for p in payments
         ]
     })
+
+
+# A view de simulação do Mercado Pago foi removida: preferir redirecionar para init_point/sandbox_init_point

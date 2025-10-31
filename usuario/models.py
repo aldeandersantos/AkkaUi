@@ -48,3 +48,30 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = "Usuário"
         verbose_name_plural = "Usuários"
+
+
+class Favorite(models.Model):
+    """
+    Modelo para armazenar os SVGs favoritos de cada usuário.
+    Usa JSONField para armazenar os IDs dos SVGs favoritos.
+    """
+    user = models.OneToOneField(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='favorites',
+        verbose_name="Usuário"
+    )
+    svg_ids = models.JSONField(
+        default=list,
+        verbose_name="IDs dos SVGs favoritos",
+        help_text="Lista de IDs dos SVGs marcados como favoritos"
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Favoritos de {self.user.username}"
+
+    class Meta:
+        verbose_name = "Favorito"
+        verbose_name_plural = "Favoritos"

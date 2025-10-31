@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'payment',
     'usuario',
     'core',
+    'support',
 ]
 
 MIDDLEWARE = [
@@ -197,6 +198,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('FILE_UPLOAD_MAX_MEMORY_SIZE', str(5
 # Environment-specific API keys
 ABACATE_API_TEST_KEY = os.getenv('ABACATE_API_TEST_KEY')
 ABACATE_API_PROD_KEY = os.getenv('ABACATE_API_PROD_KEY')
+MERCADOPAGO_ACCESS_TOKEN = os.getenv('MERCADOPAGO_ACCESS_TOKEN')
 
 
 # Discord Webhook URLs

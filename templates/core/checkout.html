@@ -188,8 +188,16 @@
           
           // Clear cart
           localStorage.removeItem('akka_cart');
-          
-          // Show payment details
+
+          // Se for Mercado Pago e houver payment_url, redirecionar automaticamente para o checkout do gateway
+          const paymentUrl = data.payment?.gateway_response?.payment_url;
+          if (gateway === 'mercadopago' && paymentUrl) {
+            // Redireciona na mesma aba para o link do gateway
+            window.location.href = paymentUrl;
+            return;
+          }
+
+          // Caso contrário, comportamento antigo (alert + retorno à home)
           setTimeout(() => {
             alert(`{% trans "Payment ID" %}: ${data.payment.transaction_id}\n{% trans "Amount" %}: R$ ${data.payment.amount}\n\n{% trans "Please complete the payment through your selected gateway." %}`);
             window.location.href = '{% url "core:home" %}';

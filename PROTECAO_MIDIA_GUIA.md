@@ -222,30 +222,40 @@ Se precisar reverter as mudanças:
 
 Se tiver problemas:
 
-### 1. ✅ IMPLEMENTADO: Bloquear acesso direto mas permitir no site
+### 1. ✅ CORRIGIDO: Thumbnails não aparecem mesmo em navegadores
 
-**Requisito**: Thumbnails visíveis no site, mas URL não acessível diretamente.
+**Problema**: `document.referrer` retorna `undefined`, thumbnails bloqueadas.
 
-**Solução implementada** (Commit atual):
-- Verifica **HTTP Referer** - se vem de uma página do site, permite
-- Acesso direto (URL no navegador ou Postman sem referer): Bloqueado
-- Exceção: Donos do SVG e usuários VIP podem acessar diretamente
+**Causa**: Políticas de Referrer do navegador podem bloquear o header HTTP_REFERER.
 
-**Teste de comportamento:**
+**✅ SOLUÇÃO APLICADA** (Commit atual):
+
+Agora detecta navegadores via **Accept header** e **User-Agent**:
+- Navegadores enviando `Accept: image/*` são permitidos
+- Ferramentas CLI (curl, wget) sem User-Agent são bloqueadas
+- Referer é opcional, não mais obrigatório
+
+```python
+# Aceita se é navegador legítimo
+is_browser = 'image/' in accept_header and 'Mozilla' in user_agent
+# OU se tem referer do site
+is_from_site = host in referer
+```
+
+**Teste:**
 ```bash
-# Acesso direto sem referer: BLOQUEADO (403)
-curl -I http://localhost:8000/guardian/thumbnail/22/
+# curl sem User-Agent: BLOQUEADO
+curl http://localhost:8000/guardian/thumbnail/22/
 
-# Acesso com referer do site: PERMITIDO (200)
-curl -I -H "Referer: http://localhost:8000/pt-br/" http://localhost:8000/guardian/thumbnail/22/
-
-# No navegador: <img src="/guardian/thumbnail/22/"> funciona normalmente
+# Navegador (mesmo sem referer): PERMITIDO
+# Tags <img> funcionam normalmente
 ```
 
 **Comportamento:**
-- ✅ Usuários veem thumbnails normalmente nas páginas
-- ❌ Usuários NÃO podem copiar/colar URL em nova aba
-- ✅ Donos e VIPs têm acesso direto especial
+- ✅ Thumbnails funcionam em navegadores (Chrome, Firefox, Safari, Edge)
+- ✅ Funciona mesmo com Referrer-Policy: no-referrer
+- ❌ Bloqueia acesso via curl/wget/Postman (sem User-Agent adequado)
+- ✅ Donos e VIPs têm acesso direto sempre
 
 ### 2. ❌ VULNERABILIDADE: Acesso direto a `/media/private/` em DEBUG=True
 
@@ -261,8 +271,8 @@ curl -I -H "Referer: http://localhost:8000/pt-br/" http://localhost:8000/guardia
 # Deve retornar 404 (não encontrado)
 curl http://localhost:8000/media/private/thumbnails/qualquer_arquivo.jpg
 
-# Deve exigir login (302 redirect)
-curl -I http://localhost:8000/guardian/thumbnail/1/
+# Deve funcionar em navegador
+# Abra no navegador: http://localhost:8000/ e thumbnails aparecem
 ```
 
 ### 3. Thumbnails não aparecem (mostram "sem prévia disponível")

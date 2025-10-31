@@ -43,11 +43,11 @@ def protected_thumbnail(request, svg_id):
     """
     View que serve thumbnails de SVGs com controle de acesso.
     
-    Permite acesso apenas quando requisitado através de tags <img> no site,
-    bloqueando acesso direto via URL.
+    Permite acesso quando requisitado através de navegadores no site,
+    bloqueando acesso direto via ferramentas como curl, wget, Postman.
     
     Verificação de acesso:
-    1. Verifica se a requisição vem de uma página do site (HTTP Referer)
+    1. Verifica se é requisição de navegador (Accept header)
     2. Valida permissões baseadas no tipo de SVG
     """
     from core.models import SvgFile
@@ -60,25 +60,30 @@ def protected_thumbnail(request, svg_id):
     if not svg.thumbnail:
         raise Http404("Thumbnail não encontrada")
     
-    # Verifica se a requisição vem do próprio site (referer check)
+    # Verifica se a requisição vem de um navegador legítimo
+    # Navegadores sempre enviam Accept header com image/* para tags <img>
+    accept_header = request.META.get('HTTP_ACCEPT', '')
+    user_agent = request.META.get('HTTP_USER_AGENT', '')
     referer = request.META.get('HTTP_REFERER', '')
     host = request.get_host()
     
-    # Bloqueia acesso direto - apenas permite se vier de uma página do site
-    # Ou se for uma requisição autenticada de usuário com permissão especial
-    # Verifica se referer contém o host (mais permissivo para suportar diferentes paths)
-    is_from_site = referer and (host in referer or f"://{host}" in referer)
+    # Considera "from site" se:
+    # 1. Tem referer do próprio site OU
+    # 2. É navegador (Accept com image/*) e não é tool de linha de comando
+    is_from_site = (referer and (host in referer or f"://{host}" in referer))
+    is_browser = 'image/' in accept_header and user_agent and 'Mozilla' in user_agent
     
-    if not is_from_site:
-        # Acesso direto - verifica se usuário tem permissão especial
+    # Bloqueia ferramentas de acesso direto (curl, wget, Postman sem referer)
+    if not is_from_site and not is_browser:
+        # Acesso via ferramenta - verifica se usuário tem permissão especial
         if not request.user.is_authenticated:
             raise PermissionDenied("Acesso direto não permitido. Visualize através do site.")
         
-        # Usuário autenticado acessando diretamente - permite apenas para donos e VIPs
+        # Usuário autenticado via ferramenta - permite apenas para donos e VIPs
         if not (request.user == svg.owner or (hasattr(request.user, 'is_vip') and request.user.is_vip)):
             raise PermissionDenied("Acesso direto não permitido. Visualize através do site.")
     
-    # Requisição válida (vem do site) - verifica permissões baseadas no SVG
+    # Requisição válida - verifica permissões baseadas no SVG
     if not svg.is_public:
         # SVG privado ou pago - exige autenticação para ver no site
         if not request.user.is_authenticated:

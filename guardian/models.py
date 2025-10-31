@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
 import os
+from pathlib import Path
 
 
 def validate_file_path(value):
@@ -22,6 +23,21 @@ def validate_file_path(value):
     # Verifica se contém .. que poderia escapar do MEDIA_ROOT
     if normalized.startswith('..') or '/..' in normalized or '\\..' in normalized:
         raise ValidationError("O caminho do arquivo não pode conter '..' (directory traversal).")
+    
+    # Validação adicional: verifica se o caminho resolvido está dentro do MEDIA_ROOT
+    try:
+        media_root = Path(settings.MEDIA_ROOT).resolve()
+        full_path = (media_root / normalized).resolve()
+        
+        # Verifica se o caminho resolvido está dentro do MEDIA_ROOT
+        # commonpath retorna o caminho comum entre dois paths
+        common = Path(os.path.commonpath([media_root, full_path]))
+        if common != media_root:
+            raise ValidationError(
+                "O caminho do arquivo resolve para fora do MEDIA_ROOT (possível symlink ou ataque)."
+            )
+    except (ValueError, OSError) as e:
+        raise ValidationError(f"Erro ao validar caminho do arquivo: {str(e)}")
     
     return normalized
 

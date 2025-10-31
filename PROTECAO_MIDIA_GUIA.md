@@ -77,11 +77,18 @@ Implementamos proteção completa para **todos os arquivos de mídia**, incluind
 3. Registro no banco aponta para o caminho privado
 
 ### Acesso à Thumbnail
+
+**IMPORTANTE: TODAS as thumbnails exigem autenticação**
+
 1. Template usa `{{ item.get_thumbnail_url }}`
 2. Gera URL: `/guardian/thumbnail/<id>/`
-3. Guardian valida acesso baseado nas regras do SVG
-4. Se autorizado, retorna X-Accel-Redirect
-5. Nginx serve o arquivo (usuário nunca vê caminho real)
+3. Guardian **SEMPRE exige login** (decorator @login_required)
+4. Após autenticação, valida acesso baseado nas regras do SVG:
+   - **SVG público**: Qualquer usuário autenticado pode ver
+   - **SVG privado**: Apenas usuários autenticados (sem compra)
+   - **SVG pago**: Apenas donos, compradores ou VIPs
+5. Se autorizado, serve o arquivo (DEBUG=True) ou retorna X-Accel-Redirect (DEBUG=False)
+6. Usuário nunca vê caminho real do arquivo
 
 ## Passo a Passo para Deploy
 
@@ -209,11 +216,34 @@ Se precisar reverter as mudanças:
 
 Se tiver problemas:
 
-### 1. ❌ VULNERABILIDADE: Acesso direto a `/media/private/` em DEBUG=True
+### 1. ❌ CRÍTICO: Thumbnails acessíveis sem autenticação
+
+**Problema**: GET request para `/guardian/thumbnail/<id>/` retorna 200 OK sem login.
+
+**✅ CORRIGIDO** (Commit atual):
+- Adicionado decorator `@login_required` na view `protected_thumbnail`
+- **TODAS** as thumbnails agora exigem autenticação, incluindo SVGs públicos
+- Usuários não-autenticados são redirecionados para login
+
+**Teste após correção:**
+```bash
+# Sem autenticação: Deve redirecionar para login (302)
+curl -I http://localhost:8000/guardian/thumbnail/22/
+
+# Com autenticação: Deve retornar 200 OK
+curl -I -H "Cookie: sessionid=SEU_SESSION_ID" http://localhost:8000/guardian/thumbnail/22/
+```
+
+**Novas regras de acesso:**
+- ✅ **Login obrigatório** para TODAS as thumbnails
+- ✅ Após autenticação, SVGs públicos: acesso liberado
+- ✅ Após autenticação, SVGs privados/pagos: verifica permissões específicas
+
+### 2. ❌ VULNERABILIDADE: Acesso direto a `/media/private/` em DEBUG=True
 
 **Problema**: Consegue acessar `http://localhost:8000/media/private/thumbnails/arquivo.jpg`
 
-**✅ CORRIGIDO** (Commit atual):
+**✅ CORRIGIDO**:
 - Custom view em `server/urls.py` bloqueia acesso a `private/`
 - Retorna 404 para qualquer arquivo em `/media/private/`
 - Apenas via guardian com validação de permissões
@@ -223,24 +253,25 @@ Se tiver problemas:
 # Deve retornar 404 (não encontrado)
 curl http://localhost:8000/media/private/thumbnails/qualquer_arquivo.jpg
 
-# Deve funcionar se tiver permissão
-curl http://localhost:8000/guardian/thumbnail/1/
+# Deve exigir login (302 redirect)
+curl -I http://localhost:8000/guardian/thumbnail/1/
 ```
 
-### 2. Thumbnails não aparecem (mostram "sem prévia disponível")
+### 3. Thumbnails não aparecem (mostram "sem prévia disponível")
 
 **Em Desenvolvimento (DEBUG=True):**
 - ✅ **Correção aplicada**: Views agora servem arquivos diretamente via FileResponse
 - Verifique se executou o script de migração: `python migrate_thumbnails_to_private.py`
 - Confirme que os arquivos existem em `media/private/thumbnails/`
 - Verifique o console do navegador (F12) para erros específicos
+- **Importante**: Usuário deve estar logado para ver thumbnails
 
 **Em Produção (DEBUG=False com Nginx):**
 - Confirme que Nginx está configurado corretamente
 - Verifique logs: `tail -f /var/log/nginx/error.log`
 - Teste o X-Accel-Redirect: `curl -I http://seu-site.com/guardian/thumbnail/1/`
 
-### 3. CSS não carrega quando DEBUG=False
+### 4. CSS não carrega quando DEBUG=False
 
 **Causa**: Django não serve arquivos estáticos quando DEBUG=False.
 

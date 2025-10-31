@@ -39,12 +39,15 @@ def protected_media(request, file_id):
     return response
 
 
+@login_required
 def protected_thumbnail(request, svg_id):
     """
     View que serve thumbnails de SVGs com controle de acesso.
     
-    Regras de acesso:
-    - SVGs públicos: qualquer um pode ver a thumbnail
+    TODAS as thumbnails exigem autenticação.
+    
+    Regras de acesso adicionais após autenticação:
+    - SVGs públicos (is_public=True): usuário autenticado pode ver
     - SVGs privados: apenas usuários autenticados podem ver
     - SVGs pagos: apenas donos, compradores ou VIPs podem ver
     """
@@ -56,15 +59,14 @@ def protected_thumbnail(request, svg_id):
     if not svg.thumbnail:
         raise Http404("Thumbnail não encontrada")
     
-    # Verifica acesso baseado nas regras do SvgFile
+    # Usuário já está autenticado devido ao @login_required
+    # Agora verifica se tem acesso baseado nas regras do SvgFile
+    
+    # SVG público: qualquer usuário autenticado pode ver
     if svg.is_public:
-        # SVG público - qualquer um pode ver
-        pass
-    elif not request.user.is_authenticated:
-        # SVG privado e usuário não autenticado
-        raise PermissionDenied("Autenticação necessária para visualizar esta thumbnail.")
+        pass  # Usuário autenticado tem acesso
     else:
-        # SVG privado ou pago - verifica se tem acesso
+        # SVG privado ou pago - verifica se tem acesso específico
         access_type = svg.user_access_type(request.user)
         if access_type == 'locked':
             raise PermissionDenied("Você não tem acesso a esta thumbnail.")

@@ -4,6 +4,8 @@ import os
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_URL = os.getenv('BASE_URL')
+
 
 env_path = BASE_DIR / 'env/.env'
 # Use python-dotenv to load environment variables from .env without
@@ -25,24 +27,9 @@ if not SECRET_KEY:
     else:
         raise RuntimeError("SECRET_KEY not found in environment; set it in .env for production")
 
-raw_allowed = os.getenv('ALLOWED_HOSTS', '').strip()
-if raw_allowed:
-    try:
-        import json
+ALLOWED_HOSTS= os.getenv('ALLOWED_HOSTS', '').split(',')
 
-        parsed = json.loads(raw_allowed)
-        if isinstance(parsed, (list, tuple)):
-            ALLOWED_HOSTS = [str(h).strip() for h in parsed if str(h).strip()]
-        else:
-            # If JSON parsed to a single value, fall back to comma-split
-            ALLOWED_HOSTS = [p.strip() for p in str(parsed).split(',') if p.strip()]
-    except Exception:
-        # Not JSON: parse as comma-separated string
-        ALLOWED_HOSTS = [h.strip() for h in raw_allowed.split(',') if h.strip()]
-else:
-    ALLOWED_HOSTS = []
-
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 
 # Application definition
@@ -155,7 +142,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 # URL to use when referring to static files located in STATIC_ROOT.
-STATIC_URL = 'static/'
+# Use a leading slash to produce absolute URLs (recommended for production).
+STATIC_URL = '/static/'
 
 # During development, collect static files from the project-level `static/`
 # directory. We'll organize static files by app under `static/<app_name>/`.

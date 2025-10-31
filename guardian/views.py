@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 
 from .models import FileAsset
 from .utils import build_internal_media_url
@@ -18,7 +19,7 @@ def protected_media(request, file_id):
     
     # Verifica se o usuário é o dono do arquivo
     if file_asset.owner != request.user:
-        raise Http404("Arquivo não encontrado ou você não tem permissão para acessá-lo.")
+        raise PermissionDenied("Você não tem permissão para acessar este arquivo.")
     
     # Constrói o caminho interno do Nginx usando o utilitário seguro
     redirect_path = build_internal_media_url(file_asset.file_path)

@@ -23,11 +23,11 @@ def build_internal_media_url(file_path: str) -> str:
         internal_url += '/'
     
     # Normaliza o file_path para prevenir directory traversal
+    # os.path.normpath já lida com separadores de path multiplataforma
     normalized_path = os.path.normpath(file_path)
     
-    # Remove barras iniciais
-    normalized_path = normalized_path.lstrip('/')
-    normalized_path = normalized_path.lstrip('\\')
+    # Remove separadores de path iniciais
+    normalized_path = normalized_path.lstrip(os.sep)
     
     # Verifica se o caminho normalizado não tenta escapar
     if normalized_path.startswith('..'):

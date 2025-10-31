@@ -8,35 +8,36 @@ from pathlib import Path
 def validate_file_path(value):
     """
     Valida que o caminho do arquivo é relativo e não contém tentativas de
-    directory traversal (.., absolute paths, etc.)
+    directory traversal. Usa Path.resolve() para validação robusta.
     """
     if not value:
         raise ValidationError("O caminho do arquivo não pode estar vazio.")
     
-    # Normaliza o caminho para detectar tentativas de directory traversal
+    # Normaliza o caminho
     normalized = os.path.normpath(value)
     
-    # Verifica se é um caminho absoluto
+    # Verifica se é um caminho absoluto (verificação rápida antes de resolve)
     if os.path.isabs(normalized):
         raise ValidationError("O caminho do arquivo deve ser relativo ao MEDIA_ROOT.")
     
-    # Verifica se contém .. que poderia escapar do MEDIA_ROOT
-    if normalized.startswith('..') or '/..' in normalized or '\\..' in normalized:
-        raise ValidationError("O caminho do arquivo não pode conter '..' (directory traversal).")
-    
-    # Validação adicional: verifica se o caminho resolvido está dentro do MEDIA_ROOT
+    # Validação principal: verifica se o caminho resolvido está dentro do MEDIA_ROOT
+    # Esta validação cobre directory traversal, symlinks e outros ataques
     try:
         media_root = Path(settings.MEDIA_ROOT).resolve()
         full_path = (media_root / normalized).resolve()
         
         # Verifica se o caminho resolvido está dentro do MEDIA_ROOT
-        # commonpath retorna o caminho comum entre dois paths
-        common = Path(os.path.commonpath([media_root, full_path]))
-        if common != media_root:
-            raise ValidationError(
-                "O caminho do arquivo resolve para fora do MEDIA_ROOT (possível symlink ou ataque)."
-            )
-    except (ValueError, OSError) as e:
+        # relative_to lança ValueError se full_path não está dentro de media_root
+        full_path.relative_to(media_root)
+        
+    except ValueError as e:
+        # ValueError indica que o caminho está fora do MEDIA_ROOT ou em drive diferente
+        raise ValidationError(
+            "O caminho do arquivo resolve para fora do MEDIA_ROOT. "
+            "Possível tentativa de directory traversal, symlink malicioso ou paths em drives diferentes."
+        )
+    except OSError as e:
+        # OSError para problemas de I/O ou sistema de arquivos
         raise ValidationError(f"Erro ao validar caminho do arquivo: {str(e)}")
     
     return normalized

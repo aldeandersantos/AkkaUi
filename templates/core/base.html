@@ -361,7 +361,7 @@
           // Calcular posição do botão
           const rect = button.getBoundingClientRect();
           dropdown.style.top = (rect.bottom + 8) + 'px';
-          dropdown.style.left = '';
+          dropdown.style.removeProperty('left');
           dropdown.style.right = (window.innerWidth - rect.right) + 'px';
           dropdown.style.display = 'block';
         } else {

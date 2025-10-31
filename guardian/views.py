@@ -1,10 +1,9 @@
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
-from django.conf import settings
-import os
 
 from .models import FileAsset
+from .utils import build_internal_media_url
 
 
 @login_required
@@ -21,15 +20,8 @@ def protected_media(request, file_id):
     if file_asset.owner != request.user:
         raise Http404("Arquivo não encontrado ou você não tem permissão para acessá-lo.")
     
-    # Constrói o caminho interno do Nginx
-    # INTERNAL_MEDIA_URL é o prefixo interno configurado no Nginx (ex: /internal_media/)
-    internal_url = getattr(settings, 'INTERNAL_MEDIA_URL', '/internal_media/')
-    if not internal_url.endswith('/'):
-        internal_url += '/'
-    
-    # Garante que o file_path não tenha barra inicial
-    file_path = file_asset.file_path.lstrip('/')
-    redirect_path = f"{internal_url}{file_path}"
+    # Constrói o caminho interno do Nginx usando o utilitário seguro
+    redirect_path = build_internal_media_url(file_asset.file_path)
     
     # Retorna uma resposta vazia com o cabeçalho X-Accel-Redirect
     response = HttpResponse()

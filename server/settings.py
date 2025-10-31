@@ -15,8 +15,16 @@ if env_path.exists():
     # ensures we do not overwrite already-set environment variables.
     load_dotenv(dotenv_path=str(env_path), override=False)
 
-# Read DEBUG first so we can decide how strict to be when SECRET_KEY is missing.
-DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes', 'on')
+def raw_bool(value):
+    if isinstance(value, str):
+        bool_value = value.lower() in ('1', 'true', 'yes', 'on')
+    else:
+        bool_value = bool(value)
+    return bool_value
+_raw_debug = os.getenv('DEBUG', 'False')
+DEBUG = raw_bool(_raw_debug)
+_raw_serve_static = os.getenv('SERVE_STATIC', str(DEBUG))
+SERVE_STATIC = raw_bool(_raw_serve_static)
 
 # production (DEBUG=False) we require SECRET_KEY to be set.
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -57,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
 ROOT_URLCONF = 'server.urls'

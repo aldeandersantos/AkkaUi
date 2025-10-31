@@ -1,7 +1,9 @@
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, FileResponse
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.conf import settings
+import os
 
 from .models import FileAsset
 from .utils import build_internal_media_url
@@ -21,10 +23,15 @@ def protected_media(request, file_id):
     if file_asset.owner != request.user:
         raise PermissionDenied("Você não tem permissão para acessar este arquivo.")
     
-    # Constrói o caminho interno do Nginx usando o utilitário seguro
-    redirect_path = build_internal_media_url(file_asset.file_path)
+    # Em desenvolvimento, serve o arquivo diretamente
+    if settings.DEBUG:
+        file_path = os.path.join(settings.MEDIA_ROOT, file_asset.file_path)
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'))
+        raise Http404("Arquivo não encontrado")
     
-    # Retorna uma resposta vazia com o cabeçalho X-Accel-Redirect
+    # Em produção, usa X-Accel-Redirect para Nginx servir o arquivo
+    redirect_path = build_internal_media_url(file_asset.file_path)
     response = HttpResponse()
     response['X-Accel-Redirect'] = redirect_path
     response['Content-Type'] = ''  # Deixa o Nginx determinar o tipo
@@ -62,10 +69,16 @@ def protected_thumbnail(request, svg_id):
         if access_type == 'locked':
             raise PermissionDenied("Você não tem acesso a esta thumbnail.")
     
-    # Constrói o caminho interno do Nginx
-    redirect_path = build_internal_media_url(svg.thumbnail.name)
+    # Em desenvolvimento, serve o arquivo diretamente
+    if settings.DEBUG:
+        # Usa o caminho do arquivo da thumbnail
+        file_path = svg.thumbnail.path
+        if os.path.exists(file_path):
+            return FileResponse(open(file_path, 'rb'))
+        raise Http404("Thumbnail não encontrada")
     
-    # Retorna resposta com X-Accel-Redirect
+    # Em produção, usa X-Accel-Redirect para Nginx servir o arquivo
+    redirect_path = build_internal_media_url(svg.thumbnail.name)
     response = HttpResponse()
     response['X-Accel-Redirect'] = redirect_path
     response['Content-Type'] = ''  # Deixa o Nginx determinar o tipo

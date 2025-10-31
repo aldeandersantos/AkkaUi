@@ -13,6 +13,8 @@ Implementamos proteção completa para **todos os arquivos de mídia**, incluind
 
 ### 2. Guardian Views (`guardian/views.py`)
 - ✅ Nova view `protected_thumbnail(request, svg_id)` para servir thumbnails
+- ✅ **Suporte a desenvolvimento**: Em DEBUG=True, serve arquivos diretamente via FileResponse
+- ✅ **Suporte a produção**: Em DEBUG=False, usa X-Accel-Redirect para Nginx
 - ✅ Regras de acesso baseadas em:
   - SVG público: qualquer um pode ver
   - SVG privado: apenas usuários autenticados
@@ -25,21 +27,35 @@ Implementamos proteção completa para **todos os arquivos de mídia**, incluind
 - ✅ Substituído `{{ item.thumbnail.url }}` por `{{ item.get_thumbnail_url }}`
 - ✅ Aplicado em 2 localizações: card preview e modal preview
 
-### 5. Nginx (`nginx_protected_media.conf`)
+### 5. Server URLs (`server/urls.py`)
+- ✅ Adicionado suporte para servir static files quando DEBUG=False (via SERVE_STATIC env var)
+- ✅ Útil para testes locais com DEBUG=False
+
+### 6. Nginx (`nginx_protected_media.conf`)
 - ✅ Documentação atualizada sobre bloqueio de `/media/`
 - ✅ Instruções claras sobre proteção completa
 
-### 6. Script de Migração (`migrate_thumbnails_to_private.py`)
+### 7. Script de Migração (`migrate_thumbnails_to_private.py`)
 - ✅ Move thumbnails existentes de `thumbnails/` para `private/thumbnails/`
 - ✅ Atualiza banco de dados automaticamente
 - ✅ Remove diretório antigo se vazio
 
-### 7. Documentação (`guardian/README.md`)
+### 8. Documentação (`guardian/README.md`)
 - ✅ Seção completa sobre proteção de thumbnails
 - ✅ Exemplos de uso
 - ✅ Regras de acesso documentadas
 
 ## Como Funciona Agora
+
+### Desenvolvimento (DEBUG=True)
+1. Views do guardian servem arquivos diretamente via FileResponse
+2. Thumbnails funcionam imediatamente sem configurar Nginx
+3. CSS e static files servidos automaticamente pelo Django
+
+### Produção (DEBUG=False)
+1. Views do guardian retornam X-Accel-Redirect
+2. Nginx intercepta e serve os arquivos protegidos
+3. CSS e static files devem ser coletados e servidos pelo Nginx
 
 ### Upload de Novo SVG
 1. Usuário faz upload de SVG com thumbnail
@@ -179,19 +195,80 @@ Se precisar reverter as mudanças:
 
 Se tiver problemas:
 
-1. **Thumbnails não aparecem:**
-   - Verifique se executou o script de migração
-   - Confirme que Nginx está configurado corretamente
-   - Verifique logs: `tail -f /var/log/nginx/error.log`
+### 1. Thumbnails não aparecem (mostram "sem prévia disponível")
 
-2. **403 Forbidden:**
-   - Verifique regras de acesso do SVG (is_public, is_paid, etc.)
-   - Confirme que usuário tem permissões adequadas
+**Em Desenvolvimento (DEBUG=True):**
+- ✅ **Correção aplicada**: Views agora servem arquivos diretamente via FileResponse
+- Verifique se executou o script de migração: `python migrate_thumbnails_to_private.py`
+- Confirme que os arquivos existem em `media/private/thumbnails/`
+- Verifique o console do navegador (F12) para erros específicos
 
-3. **X-Accel-Redirect não funciona:**
-   - Confirme que `internal` está presente no location /internal_media/
-   - Verifique se o alias aponta para MEDIA_ROOT correto
+**Em Produção (DEBUG=False com Nginx):**
+- Confirme que Nginx está configurado corretamente
+- Verifique logs: `tail -f /var/log/nginx/error.log`
+- Teste o X-Accel-Redirect: `curl -I http://seu-site.com/guardian/thumbnail/1/`
+
+### 2. CSS não carrega quando DEBUG=False
+
+**Causa**: Django não serve arquivos estáticos quando DEBUG=False.
+
+**Soluções:**
+
+**Opção A - Para Testes Locais:**
+```bash
+# Define variável de ambiente para servir static files
+export SERVE_STATIC=true
+python manage.py runserver
+```
+
+**Opção B - Para Produção:**
+```bash
+# 1. Coletar arquivos estáticos
+python manage.py collectstatic --noinput
+
+# 2. Configurar Nginx para servir static files
+# Adicione no seu nginx.conf:
+location /static/ {
+    alias /caminho/para/staticfiles/;
+}
+
+# 3. Recarregar Nginx
+sudo systemctl reload nginx
+```
+
+### 3. 403 Forbidden ao acessar thumbnails
+- Verifique regras de acesso do SVG (is_public, is_paid, etc.)
+- Confirme que usuário tem permissões adequadas
+- Para SVGs pagos, verifique se usuário comprou ou tem acesso VIP
+
+### 4. X-Accel-Redirect não funciona em produção
+- Confirme que `internal` está presente no location /internal_media/
+- Verifique se o alias aponta para MEDIA_ROOT correto
+- Teste se DEBUG=False está ativo (views devem retornar X-Accel-Redirect)
+
+## Diferenças Desenvolvimento vs Produção
+
+### Desenvolvimento (DEBUG=True)
+```python
+# guardian/views.py serve arquivos diretamente
+if settings.DEBUG:
+    return FileResponse(open(file_path, 'rb'))
+```
+- ✅ Funciona imediatamente sem Nginx
+- ✅ Thumbnails aparecem normalmente
+- ✅ Static/CSS funcionam automaticamente
+
+### Produção (DEBUG=False)
+```python
+# guardian/views.py retorna X-Accel-Redirect
+response['X-Accel-Redirect'] = redirect_path
+```
+- ⚠️ Requer Nginx configurado
+- ⚠️ Requer `collectstatic` para CSS
+- ✅ Melhor performance (Nginx serve arquivos)
 
 ## Conclusão
 
 Todos os arquivos de mídia (thumbnails e FileAssets) agora estão **completamente protegidos**. O acesso é validado pelo Django antes do Nginx servir os arquivos, garantindo segurança sem sacrificar performance.
+
+**Versão atualizada** suporta tanto desenvolvimento quanto produção automaticamente.

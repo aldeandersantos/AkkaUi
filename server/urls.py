@@ -16,6 +16,7 @@ urlpatterns += i18n_patterns(
     path('usuario/', include('usuario.urls')),
     path('payment/', include('payment.urls')),
     path('support/', include('support.urls')),
+    path('guardian/', include('guardian.urls')),
     path('', include('core.urls')),
     prefix_default_language=True,
 )

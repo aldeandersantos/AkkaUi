@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'usuario',
     'core',
     'support',
+    'guardian',
 ]
 
 MIDDLEWARE = [
@@ -172,6 +173,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # externo e não sirva media diretamente pelo Django.
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Guardian: URL interna do Nginx para arquivos protegidos
+# Esta é a localização interna que o Nginx irá usar para servir arquivos
+# quando o Django retornar um X-Accel-Redirect
+INTERNAL_MEDIA_URL = '/internal_media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

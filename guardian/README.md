@@ -94,7 +94,7 @@ url = reverse('guardian:protected_media', args=[file_asset.id])
 
 - **Usuário autenticado e dono**: Recebe o arquivo via X-Accel-Redirect
 - **Usuário não autenticado**: Redirecionado para login
-- **Usuário autenticado mas não dono**: Recebe erro 404
+- **Usuário autenticado mas não dono**: Recebe erro 403 (Forbidden)
 
 ## Modelo FileAsset
 
@@ -118,11 +118,11 @@ def protected_media(request, file_id):
     file_asset = get_object_or_404(FileAsset, id=file_id)
     
     if file_asset.owner != request.user:
-        raise Http404("Sem permissão")
+        raise PermissionDenied("Sem permissão")
     
     # Retorna cabeçalho X-Accel-Redirect
     response = HttpResponse()
-    response['X-Accel-Redirect'] = f"{INTERNAL_MEDIA_URL}{file_asset.file_path}"
+    response['X-Accel-Redirect'] = build_internal_media_url(file_asset.file_path)
     return response
 ```
 

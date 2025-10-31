@@ -352,6 +352,7 @@ h4 {
   overflow: hidden;
   background-color: var(--bg-black);
   padding: 5rem 0 4rem;
+  z-index: 1;
 }
 
 .hero-dark::before,

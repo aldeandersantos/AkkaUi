@@ -39,17 +39,16 @@ def protected_media(request, file_id):
     return response
 
 
-@login_required
 def protected_thumbnail(request, svg_id):
     """
     View que serve thumbnails de SVGs com controle de acesso.
     
-    TODAS as thumbnails exigem autenticação.
+    Permite acesso apenas quando requisitado através de tags <img> no site,
+    bloqueando acesso direto via URL.
     
-    Regras de acesso adicionais após autenticação:
-    - SVGs públicos (is_public=True): usuário autenticado pode ver
-    - SVGs privados: apenas usuários autenticados podem ver
-    - SVGs pagos: apenas donos, compradores ou VIPs podem ver
+    Verificação de acesso:
+    1. Verifica se a requisição vem de uma página do site (HTTP Referer)
+    2. Valida permissões baseadas no tipo de SVG
     """
     from core.models import SvgFile
     
@@ -59,14 +58,30 @@ def protected_thumbnail(request, svg_id):
     if not svg.thumbnail:
         raise Http404("Thumbnail não encontrada")
     
-    # Usuário já está autenticado devido ao @login_required
-    # Agora verifica se tem acesso baseado nas regras do SvgFile
+    # Verifica se a requisição vem do próprio site (referer check)
+    referer = request.META.get('HTTP_REFERER', '')
+    host = request.get_host()
     
-    # SVG público: qualquer usuário autenticado pode ver
-    if svg.is_public:
-        pass  # Usuário autenticado tem acesso
-    else:
-        # SVG privado ou pago - verifica se tem acesso específico
+    # Bloqueia acesso direto - apenas permite se vier de uma página do site
+    # Ou se for uma requisição autenticada de usuário com permissão especial
+    is_from_site = referer and host in referer
+    
+    if not is_from_site:
+        # Acesso direto - verifica se usuário tem permissão especial
+        if not request.user.is_authenticated:
+            raise PermissionDenied("Acesso direto não permitido. Visualize através do site.")
+        
+        # Usuário autenticado acessando diretamente - permite apenas para donos e VIPs
+        if not (request.user == svg.owner or (hasattr(request.user, 'is_vip') and request.user.is_vip)):
+            raise PermissionDenied("Acesso direto não permitido. Visualize através do site.")
+    
+    # Requisição válida (vem do site) - verifica permissões baseadas no SVG
+    if not svg.is_public:
+        # SVG privado ou pago - exige autenticação para ver no site
+        if not request.user.is_authenticated:
+            raise PermissionDenied("Autenticação necessária para visualizar esta thumbnail.")
+        
+        # Verifica se tem acesso específico
         access_type = svg.user_access_type(request.user)
         if access_type == 'locked':
             raise PermissionDenied("Você não tem acesso a esta thumbnail.")

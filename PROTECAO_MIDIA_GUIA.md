@@ -78,17 +78,23 @@ Implementamos proteção completa para **todos os arquivos de mídia**, incluind
 
 ### Acesso à Thumbnail
 
-**IMPORTANTE: TODAS as thumbnails exigem autenticação**
+**IMPORTANTE: Proteção contra acesso direto via URL**
 
 1. Template usa `{{ item.get_thumbnail_url }}`
 2. Gera URL: `/guardian/thumbnail/<id>/`
-3. Guardian **SEMPRE exige login** (decorator @login_required)
-4. Após autenticação, valida acesso baseado nas regras do SVG:
-   - **SVG público**: Qualquer usuário autenticado pode ver
-   - **SVG privado**: Apenas usuários autenticados (sem compra)
-   - **SVG pago**: Apenas donos, compradores ou VIPs
-5. Se autorizado, serve o arquivo (DEBUG=True) ou retorna X-Accel-Redirect (DEBUG=False)
-6. Usuário nunca vê caminho real do arquivo
+3. Guardian valida acesso baseado em **HTTP Referer**:
+   - **Vem do site** (tag `<img>` na página): Permite e valida permissões do SVG
+   - **Acesso direto** (URL no navegador): Bloqueado com PermissionDenied
+4. Regras de acesso quando vem do site:
+   - **SVG público**: Qualquer um pode ver (inclusive não-autenticados)
+   - **SVG privado/pago**: Apenas usuários autenticados com permissão
+5. Exceção para acesso direto: Apenas donos do SVG ou usuários VIP
+6. Se autorizado, serve o arquivo (DEBUG=True) ou retorna X-Accel-Redirect (DEBUG=False)
+
+**Resultado**: 
+- ✅ Usuários veem thumbnails normalmente no site
+- ❌ Usuários NÃO podem acessar URLs diretamente
+- ✅ Sistema serve imagens sem expor caminhos reais
 
 ## Passo a Passo para Deploy
 
@@ -216,28 +222,30 @@ Se precisar reverter as mudanças:
 
 Se tiver problemas:
 
-### 1. ❌ CRÍTICO: Thumbnails acessíveis sem autenticação
+### 1. ✅ IMPLEMENTADO: Bloquear acesso direto mas permitir no site
 
-**Problema**: GET request para `/guardian/thumbnail/<id>/` retorna 200 OK sem login.
+**Requisito**: Thumbnails visíveis no site, mas URL não acessível diretamente.
 
-**✅ CORRIGIDO** (Commit atual):
-- Adicionado decorator `@login_required` na view `protected_thumbnail`
-- **TODAS** as thumbnails agora exigem autenticação, incluindo SVGs públicos
-- Usuários não-autenticados são redirecionados para login
+**Solução implementada** (Commit atual):
+- Verifica **HTTP Referer** - se vem de uma página do site, permite
+- Acesso direto (URL no navegador ou Postman sem referer): Bloqueado
+- Exceção: Donos do SVG e usuários VIP podem acessar diretamente
 
-**Teste após correção:**
+**Teste de comportamento:**
 ```bash
-# Sem autenticação: Deve redirecionar para login (302)
+# Acesso direto sem referer: BLOQUEADO (403)
 curl -I http://localhost:8000/guardian/thumbnail/22/
 
-# Com autenticação: Deve retornar 200 OK
-curl -I -H "Cookie: sessionid=SEU_SESSION_ID" http://localhost:8000/guardian/thumbnail/22/
+# Acesso com referer do site: PERMITIDO (200)
+curl -I -H "Referer: http://localhost:8000/pt-br/" http://localhost:8000/guardian/thumbnail/22/
+
+# No navegador: <img src="/guardian/thumbnail/22/"> funciona normalmente
 ```
 
-**Novas regras de acesso:**
-- ✅ **Login obrigatório** para TODAS as thumbnails
-- ✅ Após autenticação, SVGs públicos: acesso liberado
-- ✅ Após autenticação, SVGs privados/pagos: verifica permissões específicas
+**Comportamento:**
+- ✅ Usuários veem thumbnails normalmente nas páginas
+- ❌ Usuários NÃO podem copiar/colar URL em nova aba
+- ✅ Donos e VIPs têm acesso direto especial
 
 ### 2. ❌ VULNERABILIDADE: Acesso direto a `/media/private/` em DEBUG=True
 

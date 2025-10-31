@@ -97,7 +97,7 @@
             
             <!-- Language Switcher -->
             <div class="language-switcher" style="position: relative; display: inline-block;" id="languageSwitcher">
-              <button onclick="toggleLanguageMenu()" class="icon-button" style="font-size: 0.875rem; gap: 0.25rem; padding: 0.5rem 0.75rem;" title="{% trans 'Change language' %}">
+              <button onclick="toggleLanguageMenu(event)" class="icon-button" style="font-size: 0.875rem; gap: 0.25rem; padding: 0.5rem 0.75rem;" title="{% trans 'Change language' %}">
                 🌐 <span style="font-weight: 600;">{{ LANGUAGE_CODE|slice:":2"|upper }}</span>
               </button>
               <div id="languageDropdown" style="display: none; position: fixed; background: #1a1a1a; border: 2px solid #3f3f46; border-radius: 8px; min-width: 200px; box-shadow: 0 10px 40px rgba(0,0,0,0.7); z-index: 10002; overflow: hidden; padding: 0.5rem 0;">
@@ -353,17 +353,45 @@
       }
 
       // Language menu toggle
-      function toggleLanguageMenu() {
-        const button = event.target.closest('button');
+      function toggleLanguageMenu(evt) {
+        const button = evt ? evt.target.closest('button') : null;
         const dropdown = document.getElementById('languageDropdown');
-        
+        if (!dropdown) return;
+
+        // Move para body na primeira vez para evitar clipping por parents
+        if (!dropdown.dataset.moved) {
+          dropdown.dataset.moved = 'true';
+          document.body.appendChild(dropdown);
+        }
+
+        // Toggle
         if (dropdown.style.display === 'none' || dropdown.style.display === '') {
-          // Calcular posição do botão
-          const rect = button.getBoundingClientRect();
+          const rect = button ? button.getBoundingClientRect() : { bottom: 48, left: 16 };
+
+          // Preparar para medir: mostrar invisível para obter offsetWidth
+          dropdown.style.position = 'fixed';
           dropdown.style.top = (rect.bottom + 8) + 'px';
-          dropdown.style.removeProperty('left');
-          dropdown.style.right = (window.innerWidth - rect.right) + 'px';
+          dropdown.style.left = '0px';
+          dropdown.style.right = 'auto';
+          dropdown.style.visibility = 'hidden';
           dropdown.style.display = 'block';
+
+          // Medir largura real
+          const ddWidth = dropdown.offsetWidth || 220; // fallback
+          const margin = 8; // margem da borda da janela
+          const extraScrollbarPadding = 12; // compensar barra lateral / overlay
+
+          // Calcular left garantindo que não ultrapasse as bordas.
+          // Subtraímos um padding extra quando perto da borda para evitar sobreposição com a barra lateral.
+          let left = rect.left;
+          if (left + ddWidth > window.innerWidth - margin) {
+            left = window.innerWidth - ddWidth - margin - extraScrollbarPadding;
+          }
+          if (left < margin) left = margin;
+
+          dropdown.style.left = left + 'px';
+          dropdown.style.right = 'auto';
+          dropdown.style.visibility = 'visible';
         } else {
           dropdown.style.display = 'none';
         }
@@ -378,16 +406,21 @@
         const languageSwitcher = document.getElementById('languageSwitcher');
         const languageButton = event.target.closest('[onclick*="toggleLanguageMenu"]');
         const languageDropdown = document.getElementById('languageDropdown');
-        
-        if (!menuButton && !mobileMenu.contains(event.target)) {
+
+        // Mobile menu
+        if (mobileMenu && !menuButton && !mobileMenu.contains(event.target)) {
           mobileMenu.style.display = 'none';
         }
-        
-        if (!searchButton && !searchForm.contains(event.target)) {
+
+        // Search form
+        if (searchForm && !searchButton && !searchForm.contains(event.target)) {
           searchForm.style.display = 'none';
         }
-        
-        if (!languageButton && languageSwitcher && !languageSwitcher.contains(event.target)) {
+
+        // Language dropdown: se o clique não for no botão nem dentro do próprio dropdown, fechar
+        const clickedInsideDropdown = languageDropdown && languageDropdown.contains(event.target);
+        const clickedInsideSwitcher = languageSwitcher && languageSwitcher.contains(event.target);
+        if (!languageButton && !clickedInsideDropdown && !clickedInsideSwitcher) {
           if (languageDropdown) languageDropdown.style.display = 'none';
         }
       });

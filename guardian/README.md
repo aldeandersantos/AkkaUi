@@ -4,23 +4,36 @@
 
 O app `guardian` implementa uma solução completa para proteger arquivos de mídia privados usando o método de serviço controlado por aplicação (X-Accel-Redirect) para Nginx.
 
+**ATUALIZAÇÃO**: Agora protege **todos os arquivos de mídia**, incluindo thumbnails de SVGs.
+
 ## Funcionalidades
 
-- **Controle de Acesso**: Apenas usuários autenticados e donos do arquivo podem acessá-lo
+- **Controle de Acesso para FileAsset**: Apenas usuários autenticados e donos podem acessar
+- **Controle de Acesso para Thumbnails**: Baseado nas regras do SvgFile (público, privado, pago)
 - **X-Accel-Redirect**: Usa o Nginx para servir arquivos de forma eficiente após validação
 - **Modelo FileAsset**: Armazena metadados dos arquivos protegidos
-- **View Protegida**: View `protected_media` com `@login_required`
+- **Views Protegidas**: `protected_media` e `protected_thumbnail`
 
 ## Arquitetura
 
 ```
-Cliente → Django (autenticação) → X-Accel-Redirect → Nginx (serve arquivo)
+Cliente → Django (validação de acesso) → X-Accel-Redirect → Nginx (serve arquivo)
 ```
 
+### Fluxo para FileAsset:
 1. Cliente solicita arquivo via `/guardian/download/<file_id>/`
 2. Django valida se usuário está autenticado e é dono do arquivo
 3. Django retorna cabeçalho `X-Accel-Redirect` com caminho interno
 4. Nginx intercepta e serve o arquivo diretamente do disco
+
+### Fluxo para Thumbnails:
+1. Cliente solicita thumbnail via `/guardian/thumbnail/<svg_id>/`
+2. Django valida acesso baseado nas regras do SvgFile:
+   - SVG público: qualquer um pode ver
+   - SVG privado: apenas usuários autenticados
+   - SVG pago: apenas donos, compradores ou VIPs
+3. Django retorna X-Accel-Redirect
+4. Nginx serve a thumbnail
 
 ## Configuração
 
@@ -56,17 +69,32 @@ location /internal_media/ {
     alias /path/to/your/project/media/;
 }
 
-# Opcional: Bloquear acesso direto a /media/
+# IMPORTANTE: Bloquear acesso direto a todos os arquivos de mídia
 location /media/ {
     return 403;
 }
 ```
 
-**IMPORTANTE**: Ajuste o caminho `alias` para corresponder ao seu `MEDIA_ROOT`.
+**IMPORTANTE**: 
+- Ajuste o caminho `alias` para corresponder ao seu `MEDIA_ROOT`
+- O bloqueio `/media/` garante que todos os arquivos sejam servidos via guardian
+
+### 4. Migração de Thumbnails Existentes
+
+Se você já tem thumbnails antigas na pasta `thumbnails/`, execute o script de migração:
+
+```bash
+python migrate_thumbnails_to_private.py
+```
+
+Este script:
+- Move thumbnails de `media/thumbnails/` para `media/private/thumbnails/`
+- Atualiza os registros no banco de dados
+- Remove o diretório antigo se estiver vazio
 
 ## Uso
 
-### 1. Criar um FileAsset
+### 1. Proteção de FileAsset
 
 ```python
 from guardian.models import FileAsset
@@ -80,21 +108,34 @@ file_asset = FileAsset.objects.create(
     file_path='private/documento.pdf',  # Relativo ao MEDIA_ROOT
     owner=user
 )
-```
 
-### 2. Acessar o arquivo protegido
-
-```python
 # Em um template ou view
 url = reverse('guardian:protected_media', args=[file_asset.id])
 # URL resultante: /guardian/download/1/
 ```
 
-### 3. Como funciona
-
+**Regras de acesso FileAsset:**
 - **Usuário autenticado e dono**: Recebe o arquivo via X-Accel-Redirect
 - **Usuário não autenticado**: Redirecionado para login
 - **Usuário autenticado mas não dono**: Recebe erro 403 (Forbidden)
+
+### 2. Proteção de Thumbnails
+
+Thumbnails agora são automaticamente protegidas. No template:
+
+```django
+{% if item.thumbnail %}
+    <img src="{{ item.get_thumbnail_url }}" alt="...">
+{% endif %}
+```
+
+O método `get_thumbnail_url()` retorna a URL protegida via guardian.
+
+**Regras de acesso Thumbnail:**
+- **SVG público (`is_public=True`)**: Qualquer um pode ver a thumbnail
+- **SVG privado (`is_public=False`)**: Apenas usuários autenticados
+- **SVG pago**: Apenas donos, compradores ou usuários VIP
+- **SVG sem acesso**: Retorna 403 (Forbidden)
 
 ## Modelo FileAsset
 

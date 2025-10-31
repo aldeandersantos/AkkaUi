@@ -27,9 +27,12 @@ Implementamos proteção completa para **todos os arquivos de mídia**, incluind
 - ✅ Substituído `{{ item.thumbnail.url }}` por `{{ item.get_thumbnail_url }}`
 - ✅ Aplicado em 2 localizações: card preview e modal preview
 
-### 5. Server URLs (`server/urls.py`)
-- ✅ Adicionado suporte para servir static files quando DEBUG=False (via SERVE_STATIC env var)
-- ✅ Útil para testes locais com DEBUG=False
+### 5. Server URLs (`server/urls.py`) - CRÍTICO
+- ✅ **Proteção de arquivos privados em desenvolvimento**: Custom view bloqueia acesso direto a `/media/private/`
+- ✅ Em DEBUG=True, apenas arquivos NÃO-privados são servidos diretamente
+- ✅ Arquivos em `/media/private/` sempre exigem passar pelo guardian
+- ✅ Static files servidos automaticamente em DEBUG=True
+- ✅ Suporte para SERVE_STATIC env var quando DEBUG=False
 
 ### 6. Nginx (`nginx_protected_media.conf`)
 - ✅ Documentação atualizada sobre bloqueio de `/media/`
@@ -48,14 +51,25 @@ Implementamos proteção completa para **todos os arquivos de mídia**, incluind
 ## Como Funciona Agora
 
 ### Desenvolvimento (DEBUG=True)
-1. Views do guardian servem arquivos diretamente via FileResponse
-2. Thumbnails funcionam imediatamente sem configurar Nginx
-3. CSS e static files servidos automaticamente pelo Django
+1. Views do guardian servem arquivos protegidos diretamente via FileResponse
+2. **SEGURANÇA**: Arquivos em `/media/private/` NÃO são acessíveis diretamente - sempre via guardian
+3. Arquivos públicos em `/media/` (exceto private/) podem ser acessados normalmente
+4. CSS e static files servidos automaticamente pelo Django
+5. Thumbnails funcionam imediatamente sem configurar Nginx
 
 ### Produção (DEBUG=False)
 1. Views do guardian retornam X-Accel-Redirect
 2. Nginx intercepta e serve os arquivos protegidos
-3. CSS e static files devem ser coletados e servidos pelo Nginx
+3. Nginx bloqueia TODO acesso direto a `/media/` (retorna 403)
+4. CSS e static files devem ser coletados e servidos pelo Nginx
+
+### Proteção de Arquivos Privados
+
+**Em qualquer modo (desenvolvimento ou produção):**
+- ✅ Arquivos em `/media/private/` **nunca** são servidos diretamente
+- ✅ Acesso a `/media/private/thumbnails/arquivo.jpg` retorna 404
+- ✅ Único acesso: via `/guardian/thumbnail/<id>/` com validação
+- ✅ Guardian verifica permissões antes de servir
 
 ### Upload de Novo SVG
 1. Usuário faz upload de SVG com thumbnail
@@ -195,7 +209,25 @@ Se precisar reverter as mudanças:
 
 Se tiver problemas:
 
-### 1. Thumbnails não aparecem (mostram "sem prévia disponível")
+### 1. ❌ VULNERABILIDADE: Acesso direto a `/media/private/` em DEBUG=True
+
+**Problema**: Consegue acessar `http://localhost:8000/media/private/thumbnails/arquivo.jpg`
+
+**✅ CORRIGIDO** (Commit atual):
+- Custom view em `server/urls.py` bloqueia acesso a `private/`
+- Retorna 404 para qualquer arquivo em `/media/private/`
+- Apenas via guardian com validação de permissões
+
+**Teste de Segurança:**
+```bash
+# Deve retornar 404 (não encontrado)
+curl http://localhost:8000/media/private/thumbnails/qualquer_arquivo.jpg
+
+# Deve funcionar se tiver permissão
+curl http://localhost:8000/guardian/thumbnail/1/
+```
+
+### 2. Thumbnails não aparecem (mostram "sem prévia disponível")
 
 **Em Desenvolvimento (DEBUG=True):**
 - ✅ **Correção aplicada**: Views agora servem arquivos diretamente via FileResponse
@@ -208,20 +240,28 @@ Se tiver problemas:
 - Verifique logs: `tail -f /var/log/nginx/error.log`
 - Teste o X-Accel-Redirect: `curl -I http://seu-site.com/guardian/thumbnail/1/`
 
-### 2. CSS não carrega quando DEBUG=False
+### 3. CSS não carrega quando DEBUG=False
 
 **Causa**: Django não serve arquivos estáticos quando DEBUG=False.
 
-**Soluções:**
+**✅ Solução Aplicada:**
 
-**Opção A - Para Testes Locais:**
+Em `server/urls.py`, static files agora são servidos automaticamente em DEBUG=True, incluindo de STATICFILES_DIRS.
+
+**Para DEBUG=False (produção ou testes):**
+
+**Opção A - Testes Locais com Django:**
 ```bash
-# Define variável de ambiente para servir static files
+# 1. Coletar static files
+python manage.py collectstatic --noinput
+
+# 2. Habilitar servir static via Django (apenas para testes!)
+export DEBUG=False
 export SERVE_STATIC=true
 python manage.py runserver
 ```
 
-**Opção B - Para Produção:**
+**Opção B - Produção com Nginx (recomendado):**
 ```bash
 # 1. Coletar arquivos estáticos
 python manage.py collectstatic --noinput

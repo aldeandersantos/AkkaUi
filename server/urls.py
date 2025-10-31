@@ -1,11 +1,26 @@
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, re_path
 from django.urls import include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
 from django.views.i18n import set_language
+from django.views.static import serve
+from django.http import Http404
 import os
+
+# Custom view to serve only non-protected media files in development
+def serve_public_media(request, path):
+    """
+    Serve media files in development, but block access to private directory.
+    In production, Nginx should handle all /media/ requests and return 403.
+    """
+    # Block access to private files even in development
+    if path.startswith('private/'):
+        raise Http404("File not found")
+    
+    # Serve non-private media files
+    return serve(request, path, document_root=settings.MEDIA_ROOT)
 
 urlpatterns = [
     path('i18n/setlang/', set_language, name='set_language'),
@@ -21,14 +36,22 @@ urlpatterns += i18n_patterns(
     prefix_default_language=True,
 )
 
-# Serve media files during development or when SERVE_MEDIA is enabled
-if settings.DEBUG or os.environ.get('SERVE_MEDIA', 'true').lower() in ('1', 'true', 'yes'):
-    # Serve media files during development. In production use a proper storage
-    # (S3, CDN, etc.). You can disable this behavior by setting
-    # SERVE_MEDIA=0 in the environment.
+# Serve media files during development with protection for private files
+if settings.DEBUG:
+    # Use custom view that blocks private/ directory
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve_public_media),
+    ]
+elif os.environ.get('SERVE_MEDIA', 'false').lower() in ('1', 'true', 'yes'):
+    # Allow serving all media only when explicitly enabled (not recommended)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Serve static files during development or when explicitly enabled
-# In production, static files should be collected with collectstatic and served by Nginx
-if settings.DEBUG or os.environ.get('SERVE_STATIC', 'false').lower() in ('1', 'true', 'yes'):
+if settings.DEBUG:
+    # Always serve static files in development
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # Also serve from STATICFILES_DIRS
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static')
+elif os.environ.get('SERVE_STATIC', 'false').lower() in ('1', 'true', 'yes'):
+    # In production with DEBUG=False, only serve if explicitly requested
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

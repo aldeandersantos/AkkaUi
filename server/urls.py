@@ -50,8 +50,10 @@ elif os.environ.get('SERVE_MEDIA', 'false').lower() in ('1', 'true', 'yes'):
 if settings.DEBUG:
     # Always serve static files in development
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    # Also serve from STATICFILES_DIRS
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.BASE_DIR / 'static')
 elif os.environ.get('SERVE_STATIC', 'false').lower() in ('1', 'true', 'yes'):
-    # In production with DEBUG=False, only serve if explicitly requested
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # In production with DEBUG=False, serve static files via Django
+    # This uses Django's staticfiles app to serve from both STATIC_ROOT and STATICFILES_DIRS
+    from django.contrib.staticfiles.views import serve as staticfiles_serve
+    urlpatterns += [
+        re_path(r'^static/(?P<path>.*)$', staticfiles_serve),
+    ]

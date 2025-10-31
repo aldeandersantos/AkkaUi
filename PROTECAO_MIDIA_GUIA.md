@@ -281,41 +281,53 @@ curl -I http://localhost:8000/guardian/thumbnail/1/
 
 ### 4. CSS não carrega quando DEBUG=False
 
-**Causa**: Django não serve arquivos estáticos quando DEBUG=False.
+**Causa**: Django não serve arquivos estáticos quando DEBUG=False por padrão.
 
-**✅ Solução Aplicada:**
+**✅ SOLUÇÃO CORRIGIDA** (Commit atual):
 
-Em `server/urls.py`, static files agora são servidos automaticamente em DEBUG=True, incluindo de STATICFILES_DIRS.
+Agora usa `django.contrib.staticfiles.views.serve` que procura arquivos em:
+- `STATIC_ROOT` (arquivos coletados via collectstatic)
+- `STATICFILES_DIRS` (arquivos do projeto)
 
-**Para DEBUG=False (produção ou testes):**
+**Como usar com DEBUG=False:**
 
-**Opção A - Testes Locais com Django:**
+**Passo 1 - Coletar arquivos estáticos:**
 ```bash
-# 1. Coletar static files
 python manage.py collectstatic --noinput
+```
 
-# 2. Habilitar servir static via Django (apenas para testes!)
+**Passo 2 - Habilitar servir via Django:**
+```bash
+# No terminal (Linux/Mac):
 export DEBUG=False
 export SERVE_STATIC=true
 python manage.py runserver
+
+# No Windows (CMD):
+set DEBUG=False
+set SERVE_STATIC=true
+python manage.py runserver
+
+# No Windows (PowerShell):
+$env:DEBUG="False"
+$env:SERVE_STATIC="true"
+python manage.py runserver
 ```
 
-**Opção B - Produção com Nginx (recomendado):**
-```bash
-# 1. Coletar arquivos estáticos
-python manage.py collectstatic --noinput
+**Importante**: Esta solução é para **testes locais**. Em produção real, use Nginx:
 
-# 2. Configurar Nginx para servir static files
-# Adicione no seu nginx.conf:
+```nginx
 location /static/ {
-    alias /caminho/para/staticfiles/;
+    alias /caminho/completo/para/staticfiles/;
 }
-
-# 3. Recarregar Nginx
-sudo systemctl reload nginx
 ```
 
-### 3. 403 Forbidden ao acessar thumbnails
+**Se ainda não funcionar:**
+1. Verifique se `django.contrib.staticfiles` está em INSTALLED_APPS
+2. Execute `python manage.py findstatic nome_do_arquivo.css` para diagnosticar
+3. Verifique o console do navegador (F12) para erros específicos
+
+### 5. 403 Forbidden ao acessar thumbnails
 - Verifique regras de acesso do SVG (is_public, is_paid, etc.)
 - Confirme que usuário tem permissões adequadas
 - Para SVGs pagos, verifique se usuário comprou ou tem acesso VIP

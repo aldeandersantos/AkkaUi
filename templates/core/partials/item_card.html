@@ -72,7 +72,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       <img 
         src="{{ item.thumbnail.url }}" 
         alt="Preview de {{ item.title_name|default:item.filename }}"
-        loading="lazy"
+        loading="{% if card_index < 4 %}eager{% else %}lazy{% endif %}"
         x-show="!imgError"
         @error="imgError = true"
       >
@@ -84,7 +84,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       <img 
         src="data:image/svg+xml;base64,{{ item.get_sanitized_content|base64_encode }}"
         alt="Preview de {{ item.title_name|default:item.filename }}"
-        loading="lazy"
+        loading="{% if card_index < 4 %}eager{% else %}lazy{% endif %}"
         x-show="!imgError"
         @error="imgError = true"
       >

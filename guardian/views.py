@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 import os
+from server.settings import USE_NGINX
 
 from .models import FileAsset
 from .utils import build_internal_media_url
@@ -30,6 +31,9 @@ def protected_media(request, file_id):
     # Verifica se o usuário é o dono do arquivo
     if file_asset.owner != request.user:
         raise PermissionDenied("Você não tem permissão para acessar este arquivo.")
+    
+    # Verifica se está usando Nginx via variável de ambiente
+    use_nginx = USE_NGINX
     
     # Serve arquivo diretamente se não estiver usando Nginx
     if not _use_nginx():
@@ -97,8 +101,12 @@ def protected_thumbnail(request, svg_id):
         if access_type == 'locked':
             raise PermissionDenied("Você não tem acesso a esta thumbnail.")
     
-    # Serve arquivo diretamente se não estiver usando Nginx
-    if not _use_nginx():
+    # Verifica se está usando Nginx via variável de ambiente
+    # Se USE_NGINX=true, usa X-Accel-Redirect. Caso contrário, serve diretamente.
+    use_nginx = USE_NGINX
+    
+    # Serve arquivo diretamente se não estiver usando Nginx (desenvolvimento ou runserver)
+    if not use_nginx:
         # Usa o caminho do arquivo da thumbnail
         file_path = svg.thumbnail.path
         if os.path.exists(file_path):

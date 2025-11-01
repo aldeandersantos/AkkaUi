@@ -1,26 +1,29 @@
-# Integração Stripe - Sistema de Assinaturas VIP
+# Integração Stripe - Sistema de Assinaturas VIP e Compras Únicas
 
 ## Visão Geral
 
-Este sistema integra o gateway de pagamento Stripe ao aplicativo Django usando o pacote `dj-stripe`, permitindo cobranças recorrentes e gerenciamento automático do status VIP dos usuários.
+Este sistema integra o gateway de pagamento Stripe ao aplicativo Django usando o pacote `dj-stripe`, permitindo tanto **cobranças recorrentes (assinaturas)** quanto **compras únicas de SVGs**.
 
 ## Como Funciona Agora: 3 Formas de Pagamento
 
 O sistema agora suporta **três métodos de pagamento**:
 
-### 1. **AbacatePay** (já existente)
+### 1. **AbacatePay** (PIX - Apenas Compras Únicas)
 - Gateway brasileiro para pagamentos via PIX
-- Usado para compras únicas de SVGs
+- **Usado apenas para compras únicas de SVGs**
+- ❌ Não suporta assinaturas recorrentes (limitação do PIX)
 - Webhooks em: `/payment/webhook/abacatepay/`
 
-### 2. **Mercado Pago** (já existente)
+### 2. **Mercado Pago** (Compras Únicas e Assinaturas)
 - Gateway latino-americano
-- Usado para compras únicas de SVGs
+- ✅ **Usado para compras únicas de SVGs**
+- ✅ **Suporta assinaturas recorrentes**
 - Webhooks em: `/payment/webhook/mercadopago/`
 
-### 3. **Stripe** (NOVO - Assinaturas Recorrentes)
+### 3. **Stripe** (NOVO - Compras Únicas e Assinaturas)
 - Gateway internacional
-- **Focado em assinaturas VIP recorrentes (mensal/anual)**
+- ✅ **Usado para compras únicas de SVGs**
+- ✅ **Assinaturas VIP recorrentes (mensal/anual)**
 - Atualiza automaticamente o status `is_vip` e `vip_expiration` do usuário
 - Webhooks gerenciados pelo dj-stripe em: `/payment/stripe/` e `/payment/stripe/webhook/`
 
@@ -74,12 +77,31 @@ O sistema escuta os seguintes eventos do Stripe:
 ### 4. Endpoints da API
 
 #### **POST /payment/stripe/checkout/**
-Cria uma sessão de checkout do Stripe.
+Cria uma sessão de checkout do Stripe (assinaturas ou compras únicas).
 
-**Request:**
+**Request para Assinatura:**
 ```json
 {
+  "mode": "subscription",
   "price_id": "price_1ABC123...",
+  "success_url": "http://exemplo.com/success",
+  "cancel_url": "http://exemplo.com/cancel"
+}
+```
+
+**Request para Compra Única:**
+```json
+{
+  "mode": "payment",
+  "currency": "BRL",
+  "items": [
+    {
+      "name": "SVG Premium",
+      "description": "Arquivo SVG de alta qualidade",
+      "unit_price": 5.00,
+      "quantity": 1
+    }
+  ],
   "success_url": "http://exemplo.com/success",
   "cancel_url": "http://exemplo.com/cancel"
 }
@@ -89,7 +111,8 @@ Cria uma sessão de checkout do Stripe.
 ```json
 {
   "checkout_url": "https://checkout.stripe.com/...",
-  "session_id": "cs_test_..."
+  "session_id": "cs_test_...",
+  "mode": "subscription" | "payment"
 }
 ```
 
@@ -187,12 +210,13 @@ customer = get_or_create_stripe_customer(request.user)
 
 | Característica | AbacatePay | Mercado Pago | Stripe |
 |----------------|------------|--------------|--------|
-| **Tipo** | Único (PIX) | Único | Recorrente |
-| **Uso** | Compra SVGs | Compra SVGs | Assinaturas VIP |
+| **Tipo** | Único (PIX) | Único + Assinatura | Único + Assinatura |
+| **Uso Primário** | Compra SVGs | Compra SVGs + VIP | Compra SVGs + VIP |
 | **Região** | Brasil | América Latina | Internacional |
-| **Atualiza VIP?** | ❌ Não | ❌ Não | ✅ Sim (automático) |
+| **Atualiza VIP?** | ❌ Não | ✅ Sim (manual) | ✅ Sim (automático) |
 | **Webhooks** | Manual | Manual | Automático (dj-stripe) |
-| **Renovação** | ❌ Não | ❌ Não | ✅ Automática |
+| **Renovação** | ❌ Não | ✅ Sim | ✅ Automática |
+| **Compras Únicas** | ✅ Sim | ✅ Sim | ✅ Sim |
 
 ## Modelo de Dados: CustomUser
 

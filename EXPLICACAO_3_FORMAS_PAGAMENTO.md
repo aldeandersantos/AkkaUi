@@ -2,7 +2,7 @@
 
 ## 📊 Visão Geral do Sistema
 
-Seu sistema agora possui **3 gateways de pagamento**, cada um com seu propósito específico:
+Seu sistema agora possui **3 gateways de pagamento**, cada um com funcionalidades específicas:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -15,20 +15,19 @@ Seu sistema agora possui **3 gateways de pagamento**, cada um com seu propósito
         ▼                     ▼                     ▼
 ┌───────────────┐    ┌───────────────┐    ┌───────────────┐
 │  AbacatePay   │    │ Mercado Pago  │    │    Stripe     │
-│   (PIX) 🇧🇷   │    │     💳 🌎     │    │  💳🔄 🌍     │
+│   (PIX) 🇧🇷   │    │     💳 🌎     │    │   💳🔄 🌍    │
 └───────────────┘    └───────────────┘    └───────────────┘
         │                     │                     │
         ▼                     ▼                     ▼
 ┌───────────────┐    ┌───────────────┐    ┌───────────────┐
-│ Compra única  │    │ Compra única  │    │  Assinatura   │
-│   de SVGs     │    │   de SVGs     │    │  VIP Mensal   │
-│               │    │               │    │  ou Anual     │
+│ ❌ Assinatura │    │ ✅ Assinatura │    │ ✅ Assinatura │
+│ ✅ Compra SVG │    │ ✅ Compra SVG │    │ ✅ Compra SVG │
 └───────────────┘    └───────────────┘    └───────────────┘
         │                     │                     │
         ▼                     ▼                     ▼
 ┌───────────────┐    ┌───────────────┐    ┌───────────────┐
-│ NÃO atualiza  │    │ NÃO atualiza  │    │ ✅ ATUALIZA   │
-│   status VIP  │    │   status VIP  │    │  is_vip auto  │
+│ NÃO atualiza  │    │ Pode atualizar│    │ ✅ ATUALIZA   │
+│   status VIP  │    │ VIP (manual)  │    │  is_vip auto  │
 └───────────────┘    └───────────────┘    └───────────────┘
 ```
 
@@ -94,27 +93,38 @@ def handle_stripe_webhook(sender, event, **kwargs):
 
 ### Cenário 1: Cliente Quer Comprar 1 SVG Específico
 ```
-Cliente → Escolhe SVG → Usa AbacatePay ou Mercado Pago
+Cliente → Escolhe SVG 
+        → Pode usar: AbacatePay (PIX), Mercado Pago ou Stripe
         → Paga R$ 5,00 (exemplo)
         → SVG liberado
-        → is_vip permanece False
+        → is_vip permanece False (exceto se comprar via assinatura)
 ```
 
-### Cenário 2: Cliente Quer Acesso Ilimitado (VIP)
+### Cenário 2: Cliente Quer Acesso Ilimitado (VIP via Assinatura)
 ```
-Cliente → Escolhe "Pro Mensal" → Usa Stripe
+Cliente → Escolhe "Pro Mensal" 
+        → Pode usar: Mercado Pago ou Stripe
         → Assina R$ 29,90/mês
-        → is_vip vira True automaticamente ✨
+        → is_vip vira True automaticamente (Stripe) ✨
         → Acesso a TODOS os SVGs
         → Renovação automática todo mês
 ```
 
-### Cenário 3: Cliente Cancela Assinatura
+### Cenário 3: Cliente Quer Comprar Múltiplos SVGs de Uma Vez
 ```
-Cliente → Cancela no Stripe Dashboard
-        → Stripe envia webhook "subscription.deleted"
+Cliente → Adiciona vários SVGs ao carrinho
+        → Pode usar: AbacatePay (PIX), Mercado Pago ou Stripe
+        → Paga total do carrinho
+        → Todos os SVGs são liberados
+        → is_vip permanece False (compra única, não assinatura)
+```
+
+### Cenário 4: Cliente Cancela Assinatura
+```
+Cliente → Cancela no dashboard do gateway (Stripe ou Mercado Pago)
+        → Gateway envia webhook de cancelamento
         → Sistema recebe webhook
-        → is_vip vira False automaticamente ❌
+        → is_vip vira False automaticamente (Stripe) ❌
         → vip_expiration = None
 ```
 
@@ -197,20 +207,23 @@ python manage.py test payment.test_stripe
 ### AbacatePay:
 - ✅ PIX instantâneo
 - ✅ Brasileiro
-- ❌ Sem renovação automática
+- ✅ Compras únicas
+- ❌ Sem assinaturas (limitação do PIX)
 
 ### Mercado Pago:
 - ✅ Popular na América Latina
 - ✅ Múltiplas formas de pagamento
-- ❌ Sem renovação automática
+- ✅ Compras únicas
+- ✅ Suporte a assinaturas recorrentes
 
 ### Stripe (NOVO):
-- ✅ Renovação automática 🔄
+- ✅ Renovação automática de assinaturas 🔄
 - ✅ Gerenciamento VIP automático ⚙️
 - ✅ Dashboard completo 📊
 - ✅ Suporte global 🌍
 - ✅ Testes incluídos ✅
 - ✅ Sem código adicional de webhook ⚡
+- ✅ Suporta compras únicas E assinaturas 💳
 
 ## 🎯 Resultado Final
 

@@ -16,11 +16,16 @@ logger = logging.getLogger(__name__)
 @require_http_methods(["POST"])
 def create_checkout_session(request):
     """
-    Cria uma sessão de checkout do Stripe para assinatura.
+    Cria uma sessão de checkout do Stripe.
+    Suporta tanto assinaturas recorrentes quanto compras únicas.
     
     Espera JSON body:
     {
-        "price_id": "price_xxx",  # ID do preço no Stripe
+        "mode": "subscription" | "payment",  # Modo de checkout
+        "price_id": "price_xxx",  # ID do preço (para subscription)
+        "amount": 100.00,  # Valor (para payment único)
+        "currency": "BRL",  # Moeda
+        "items": [...],  # Lista de itens (opcional, para carrinho)
         "success_url": "http://example.com/success",
         "cancel_url": "http://example.com/cancel"
     }
@@ -28,13 +33,10 @@ def create_checkout_session(request):
     try:
         data = json.loads(request.body)
         
-        price_id = data.get('price_id')
+        mode = data.get('mode', 'subscription')  # Padrão é assinatura
         base_url = settings.BASE_URL or 'http://localhost:8000'
         success_url = data.get('success_url', f"{base_url}/payment/success/")
         cancel_url = data.get('cancel_url', f"{base_url}/payment/cancel/")
-        
-        if not price_id:
-            return JsonResponse({'error': 'price_id é obrigatório'}, status=400)
         
         # Garante que o usuário tem um Customer no Stripe
         customer = get_or_create_stripe_customer(request.user)
@@ -42,26 +44,67 @@ def create_checkout_session(request):
         # Configura a API do Stripe
         stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY if settings.STRIPE_LIVE_MODE else settings.STRIPE_TEST_SECRET_KEY
         
-        # Cria a sessão de checkout
-        checkout_session = stripe.checkout.Session.create(
-            customer=customer.id,
-            payment_method_types=['card'],
-            line_items=[{
-                'price': price_id,
-                'quantity': 1,
-            }],
-            mode='subscription',
-            success_url=success_url,
-            cancel_url=cancel_url,
-            metadata={
-                'user_id': request.user.id,
-                'user_email': request.user.email,
-            }
-        )
+        if mode == 'subscription':
+            # Modo assinatura recorrente
+            price_id = data.get('price_id')
+            if not price_id:
+                return JsonResponse({'error': 'price_id é obrigatório para modo subscription'}, status=400)
+            
+            checkout_session = stripe.checkout.Session.create(
+                customer=customer.id,
+                payment_method_types=['card'],
+                line_items=[{
+                    'price': price_id,
+                    'quantity': 1,
+                }],
+                mode='subscription',
+                success_url=success_url,
+                cancel_url=cancel_url,
+                metadata={
+                    'user_id': request.user.id,
+                    'user_email': request.user.email,
+                    'mode': 'subscription',
+                }
+            )
+        else:
+            # Modo pagamento único
+            items = data.get('items')
+            if not items:
+                return JsonResponse({'error': 'items é obrigatório para modo payment'}, status=400)
+            
+            # Converter items para formato do Stripe
+            line_items = []
+            for item in items:
+                line_items.append({
+                    'price_data': {
+                        'currency': data.get('currency', 'brl').lower(),
+                        'unit_amount': int(float(item.get('unit_price', 0)) * 100),  # Centavos
+                        'product_data': {
+                            'name': item.get('name', 'Item'),
+                            'description': item.get('description', ''),
+                        },
+                    },
+                    'quantity': item.get('quantity', 1),
+                })
+            
+            checkout_session = stripe.checkout.Session.create(
+                customer=customer.id,
+                payment_method_types=['card'],
+                line_items=line_items,
+                mode='payment',
+                success_url=success_url,
+                cancel_url=cancel_url,
+                metadata={
+                    'user_id': request.user.id,
+                    'user_email': request.user.email,
+                    'mode': 'payment',
+                }
+            )
         
         return JsonResponse({
             'checkout_url': checkout_session.url,
-            'session_id': checkout_session.id
+            'session_id': checkout_session.id,
+            'mode': mode
         })
     
     except json.JSONDecodeError:

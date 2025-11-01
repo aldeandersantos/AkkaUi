@@ -672,6 +672,14 @@
       try {
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
         const languagePrefix = getLanguagePrefix();
+        
+        // Mapear nomes de plano do frontend para backend
+        const planMap = {
+          'monthly': 'pro_month',
+          'annual': 'pro_year'
+        };
+        const backendPlan = planMap[currentPlan] || currentPlan;
+        
         const response = await fetch(`${languagePrefix}payment/create/`, {
           method: 'POST',
           headers: {
@@ -680,7 +688,7 @@
           },
           body: JSON.stringify({
             gateway: gateway,
-            plan: currentPlan,
+            plan: backendPlan,
             currency: 'BRL'
           })
         });
@@ -688,9 +696,21 @@
         const data = await response.json();
 
         if (response.ok && data.status === 'success') {
+          const payment = data.payment;
+          
+          // Para Mercado Pago e Stripe, redirecionar automaticamente se houver payment_url
+          const paymentUrl = payment.gateway_response?.payment_url || data.redirect_url;
+          if ((payment.gateway === 'mercadopago' || payment.gateway === 'stripe') && paymentUrl) {
+            status.className = 'payment-status success';
+            status.innerHTML = '✓ Redirecionando para pagamento...';
+            setTimeout(() => {
+              window.location.href = paymentUrl;
+            }, 500);
+            return;
+          }
+          
           status.className = 'payment-status success';
           
-          const payment = data.payment;
           let message = '';
           
           // Mensagem específica para AbacatePay/PIX

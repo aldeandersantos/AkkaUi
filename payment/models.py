@@ -7,7 +7,7 @@ class Payment(models.Model):
     GATEWAY_CHOICES = [
         ('abacatepay', 'Abacate Pay'),
         ('mercadopago', 'Mercado Pago'),
-        ('paypal', 'PayPal'),
+        ('stripe', 'Stripe'),
     ]
     
     STATUS_CHOICES = [

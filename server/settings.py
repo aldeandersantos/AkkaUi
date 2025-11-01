@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'djstripe',
     'payment',
     'usuario',
     'core',
@@ -216,3 +217,13 @@ DISCORD_WEBHOOK_CONFIRMOU_PAGAMENTO = os.getenv('WEBHOOK_DISCORD_CONFIRMOU_PAGAM
 DISCORD_WEBHOOK_ENTROU_PRECO = os.getenv('WEBHOOK_DISCORD_ENTROU_PRECO')
 DISCORD_WEBHOOK_CRIOU_CONTA = os.getenv('WEBHOOK_DISCORD_CRIOU_CONTA')
 DISCORD_WEBHOOK_ADQUIRIU_ASSINATURA = os.getenv('WEBHOOK_DISCORD_ADQUIRIU_ASSINATURA')
+
+# Stripe/dj-stripe Configuration
+STRIPE_LIVE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', '')
+STRIPE_LIVE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
+STRIPE_TEST_PUBLIC_KEY = os.getenv('STRIPE_TEST_PUBLIC_KEY', '')
+STRIPE_TEST_SECRET_KEY = os.getenv('STRIPE_TEST_SECRET_KEY', '')
+STRIPE_LIVE_MODE = os.getenv('STRIPE_LIVE_MODE', 'False').lower() in ('true', '1', 'yes')
+DJSTRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
+DJSTRIPE_USE_NATIVE_JSONFIELD = True

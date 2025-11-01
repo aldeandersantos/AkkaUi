@@ -8,7 +8,7 @@ from ..models import Payment, PaymentItem
 from ..gateways import PaymentGateway
 from ..gateways.abacate_gateway import AbacatePayGateway
 from ..gateways.mercadopago_gateway import MercadoPagoGateway
-from ..gateways.paypal_gateway import PayPalGateway
+from ..gateways.stripe_gateway import StripeGateway
 from message.views import notify_discord
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,7 @@ class PaymentService:
     GATEWAY_MAP = {
         'abacatepay': AbacatePayGateway,
         'mercadopago': MercadoPagoGateway,
-        'paypal': PayPalGateway,
+        'stripe': StripeGateway,
     }
     
     PLAN_PRICES = {

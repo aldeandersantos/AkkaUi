@@ -2,10 +2,12 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from djstripe.models import Price
+from djstripe.models import Price, Subscription
 from payment.services.stripe_service import get_or_create_stripe_customer
+from datetime import datetime
 import stripe
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -24,12 +26,12 @@ def create_checkout_session(request):
     }
     """
     try:
-        import json
         data = json.loads(request.body)
         
         price_id = data.get('price_id')
-        success_url = data.get('success_url', f"{settings.BASE_URL}/payment/success/")
-        cancel_url = data.get('cancel_url', f"{settings.BASE_URL}/payment/cancel/")
+        base_url = settings.BASE_URL or 'http://localhost:8000'
+        success_url = data.get('success_url', f"{base_url}/payment/success/")
+        cancel_url = data.get('cancel_url', f"{base_url}/payment/cancel/")
         
         if not price_id:
             return JsonResponse({'error': 'price_id é obrigatório'}, status=400)
@@ -111,23 +113,31 @@ def user_subscription_status(request):
         customer = get_or_create_stripe_customer(request.user)
         
         # Busca assinaturas do customer
-        from djstripe.models import Subscription
         subscriptions = Subscription.objects.filter(
             customer=customer
         ).order_by('-created')
         
         subscription_list = []
         for sub in subscriptions:
-            # Acessa dados do Stripe através do stripe_data
-            stripe_data = sub.stripe_data if hasattr(sub, 'stripe_data') else {}
-            status = stripe_data.get('status', 'unknown')
-            current_period_end = stripe_data.get('current_period_end')
+            # Busca dados atualizados do Stripe
+            try:
+                stripe_sub = sub.api_retrieve()
+                status = stripe_sub.get('status', 'unknown')
+                current_period_end = stripe_sub.get('current_period_end')
+                cancel_at_period_end = stripe_sub.get('cancel_at_period_end', False)
+            except Exception as e:
+                logger.warning(f"Erro ao buscar dados da subscription {sub.id}: {e}")
+                # Fallback para dados locais
+                stripe_data = getattr(sub, 'stripe_data', {})
+                status = stripe_data.get('status', 'unknown')
+                current_period_end = stripe_data.get('current_period_end')
+                cancel_at_period_end = stripe_data.get('cancel_at_period_end', False)
             
             subscription_list.append({
                 'id': sub.id,
                 'status': status,
                 'current_period_end': datetime.fromtimestamp(current_period_end).isoformat() if current_period_end else None,
-                'cancel_at_period_end': stripe_data.get('cancel_at_period_end', False),
+                'cancel_at_period_end': cancel_at_period_end,
             })
         
         return JsonResponse({

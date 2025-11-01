@@ -52,9 +52,15 @@ def handle_invoice_payment_succeeded(event):
         # Atualizar status VIP
         user.is_vip = True
         
-        # Calcular data de expiração baseada no período da assinatura
-        stripe_data = subscription.stripe_data if hasattr(subscription, 'stripe_data') else {}
-        current_period_end = stripe_data.get('current_period_end')
+        # Buscar dados atualizados do Stripe
+        try:
+            stripe_sub = subscription.api_retrieve()
+            current_period_end = stripe_sub.get('current_period_end')
+        except Exception as e:
+            logger.warning(f"Erro ao buscar dados da subscription: {e}")
+            # Fallback para dados locais
+            stripe_data = getattr(subscription, 'stripe_data', {})
+            current_period_end = stripe_data.get('current_period_end')
         
         if current_period_end:
             user.vip_expiration = datetime.fromtimestamp(current_period_end).date()
@@ -128,8 +134,16 @@ def handle_subscription_updated(event):
         # Atualizar status VIP baseado no status da assinatura
         if status in ['active', 'trialing']:
             user.is_vip = True
-            stripe_data = subscription.stripe_data if hasattr(subscription, 'stripe_data') else {}
-            current_period_end = stripe_data.get('current_period_end')
+            # Buscar dados atualizados do Stripe
+            try:
+                stripe_sub = subscription.api_retrieve()
+                current_period_end = stripe_sub.get('current_period_end')
+            except Exception as e:
+                logger.warning(f"Erro ao buscar dados da subscription: {e}")
+                # Fallback para dados locais
+                stripe_data = getattr(subscription, 'stripe_data', {})
+                current_period_end = stripe_data.get('current_period_end')
+            
             if current_period_end:
                 user.vip_expiration = datetime.fromtimestamp(current_period_end).date()
         elif status in ['canceled', 'unpaid', 'incomplete_expired']:

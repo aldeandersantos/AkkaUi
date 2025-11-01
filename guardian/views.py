@@ -10,6 +10,14 @@ from .models import FileAsset
 from .utils import build_internal_media_url
 
 
+def _use_nginx():
+    """
+    Verifica se deve usar X-Accel-Redirect (produção com Nginx).
+    Por padrão, serve arquivos diretamente via FileResponse.
+    """
+    return os.getenv('USE_NGINX', 'false').lower() in ('true', '1', 'yes')
+
+
 @login_required
 def protected_media(request, file_id):
     """
@@ -28,7 +36,7 @@ def protected_media(request, file_id):
     use_nginx = USE_NGINX
     
     # Serve arquivo diretamente se não estiver usando Nginx
-    if not use_nginx:
+    if not _use_nginx():
         file_path = os.path.join(settings.MEDIA_ROOT, file_asset.file_path)
         if os.path.exists(file_path):
             return FileResponse(open(file_path, 'rb'))

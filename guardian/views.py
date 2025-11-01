@@ -9,6 +9,14 @@ from .models import FileAsset
 from .utils import build_internal_media_url
 
 
+def _use_nginx():
+    """
+    Verifica se deve usar X-Accel-Redirect (produção com Nginx).
+    Por padrão, serve arquivos diretamente via FileResponse.
+    """
+    return os.getenv('USE_NGINX', 'false').lower() in ('true', '1', 'yes')
+
+
 @login_required
 def protected_media(request, file_id):
     """
@@ -23,11 +31,8 @@ def protected_media(request, file_id):
     if file_asset.owner != request.user:
         raise PermissionDenied("Você não tem permissão para acessar este arquivo.")
     
-    # Verifica se está usando Nginx via variável de ambiente
-    use_nginx = os.getenv('USE_NGINX', 'false').lower() in ('true', '1', 'yes')
-    
     # Serve arquivo diretamente se não estiver usando Nginx
-    if not use_nginx:
+    if not _use_nginx():
         file_path = os.path.join(settings.MEDIA_ROOT, file_asset.file_path)
         if os.path.exists(file_path):
             return FileResponse(open(file_path, 'rb'))
@@ -92,12 +97,8 @@ def protected_thumbnail(request, svg_id):
         if access_type == 'locked':
             raise PermissionDenied("Você não tem acesso a esta thumbnail.")
     
-    # Verifica se está usando Nginx via variável de ambiente
-    # Se USE_NGINX=true, usa X-Accel-Redirect. Caso contrário, serve diretamente.
-    use_nginx = os.getenv('USE_NGINX', 'false').lower() in ('true', '1', 'yes')
-    
-    # Serve arquivo diretamente se não estiver usando Nginx (desenvolvimento ou runserver)
-    if not use_nginx:
+    # Serve arquivo diretamente se não estiver usando Nginx
+    if not _use_nginx():
         # Usa o caminho do arquivo da thumbnail
         file_path = svg.thumbnail.path
         if os.path.exists(file_path):

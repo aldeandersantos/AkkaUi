@@ -61,21 +61,16 @@ def protected_thumbnail(request, svg_id):
         raise Http404("Thumbnail não encontrada")
     
     # Verifica se a requisição vem de um navegador legítimo
-    # Navegadores sempre enviam Accept header com image/* para tags <img>
-    accept_header = request.META.get('HTTP_ACCEPT', '')
+    # Navegadores sempre têm User-Agent com "Mozilla"
     user_agent = request.META.get('HTTP_USER_AGENT', '')
-    referer = request.META.get('HTTP_REFERER', '')
-    host = request.get_host()
     
-    # Considera "from site" se:
-    # 1. Tem referer do próprio site OU
-    # 2. É navegador (Accept com image/*) e não é tool de linha de comando
-    is_from_site = (referer and (host in referer or f"://{host}" in referer))
-    is_browser = 'image/' in accept_header and user_agent and 'Mozilla' in user_agent
+    # Considera navegador se User-Agent contém "Mozilla" (todos navegadores modernos)
+    # Ferramentas CLI (curl, wget, Postman) não têm "Mozilla" no User-Agent por padrão
+    is_browser = 'Mozilla' in user_agent
     
-    # Bloqueia ferramentas de acesso direto (curl, wget, Postman sem referer)
-    if not is_from_site and not is_browser:
-        # Acesso via ferramenta - verifica se usuário tem permissão especial
+    # Bloqueia ferramentas de acesso direto (curl, wget, Postman)
+    if not is_browser:
+        # Acesso via ferramenta sem User-Agent de navegador
         if not request.user.is_authenticated:
             raise PermissionDenied("Acesso direto não permitido. Visualize através do site.")
         

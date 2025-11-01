@@ -673,6 +673,72 @@
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
         const languagePrefix = getLanguagePrefix();
         
+        // Para Stripe, usar endpoint de subscription com price_id
+        if (gateway === 'stripe') {
+          // Mapear planos para Stripe Price IDs (você precisa criar esses no dashboard do Stripe)
+          const stripePriceMap = {
+            'monthly': 'price_pro_month',  // Substitua pelo price_id real do Stripe Dashboard
+            'annual': 'price_pro_year'      // Substitua pelo price_id real do Stripe Dashboard
+          };
+          
+          const priceId = stripePriceMap[currentPlan];
+          if (!priceId) {
+            throw new Error('Plano não configurado no Stripe');
+          }
+          
+          // Calcular próxima data de cobrança (30 dias para mensal, 365 para anual)
+          const today = new Date();
+          const nextBillingDate = new Date(today);
+          if (currentPlan === 'monthly') {
+            nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+          } else {
+            nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
+          }
+          const formattedDate = nextBillingDate.toLocaleDateString('pt-BR');
+          
+          // Mostrar aviso sobre recorrência
+          const confirmMsg = `⚠️ Assinatura Recorrente\n\n` +
+            `Este é um plano de assinatura que será renovado automaticamente.\n\n` +
+            `• Primeira cobrança: Hoje (R$ ${currentAmount.toFixed(2)})\n` +
+            `• Próxima cobrança: ${formattedDate}\n` +
+            `• Renovação: ${currentPlan === 'monthly' ? 'Mensal' : 'Anual'}\n\n` +
+            `Você poderá cancelar a qualquer momento no painel do Stripe.\n\n` +
+            `Deseja continuar?`;
+          
+          if (!confirm(confirmMsg)) {
+            status.style.display = 'none';
+            return;
+          }
+          
+          const response = await fetch(`${languagePrefix}payment/stripe/checkout/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+              mode: 'subscription',
+              price_id: priceId,
+              success_url: window.location.origin + languagePrefix + 'payment/success/',
+              cancel_url: window.location.origin + languagePrefix + 'pricing/'
+            })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok && data.checkout_url) {
+            status.className = 'payment-status success';
+            status.innerHTML = '✓ Redirecionando para checkout do Stripe...';
+            setTimeout(() => {
+              window.location.href = data.checkout_url;
+            }, 500);
+            return;
+          } else {
+            throw new Error(data.error || 'Erro ao criar checkout');
+          }
+        }
+        
+        // Para outros gateways (AbacatePay, Mercado Pago), usar endpoint original
         // Mapear nomes de plano do frontend para backend
         const planMap = {
           'monthly': 'pro_month',

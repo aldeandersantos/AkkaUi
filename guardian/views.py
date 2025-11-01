@@ -23,14 +23,17 @@ def protected_media(request, file_id):
     if file_asset.owner != request.user:
         raise PermissionDenied("Você não tem permissão para acessar este arquivo.")
     
-    # Em desenvolvimento, serve o arquivo diretamente
-    if settings.DEBUG:
+    # Verifica se está usando Nginx via variável de ambiente
+    use_nginx = os.getenv('USE_NGINX', 'false').lower() in ('true', '1', 'yes')
+    
+    # Serve arquivo diretamente se não estiver usando Nginx
+    if not use_nginx:
         file_path = os.path.join(settings.MEDIA_ROOT, file_asset.file_path)
         if os.path.exists(file_path):
             return FileResponse(open(file_path, 'rb'))
         raise Http404("Arquivo não encontrado")
     
-    # Em produção, usa X-Accel-Redirect para Nginx servir o arquivo
+    # Em produção com Nginx, usa X-Accel-Redirect para Nginx servir o arquivo
     redirect_path = build_internal_media_url(file_asset.file_path)
     response = HttpResponse()
     response['X-Accel-Redirect'] = redirect_path
@@ -89,8 +92,12 @@ def protected_thumbnail(request, svg_id):
         if access_type == 'locked':
             raise PermissionDenied("Você não tem acesso a esta thumbnail.")
     
-    # Em desenvolvimento, serve o arquivo diretamente
-    if settings.DEBUG:
+    # Verifica se está usando Nginx via variável de ambiente
+    # Se USE_NGINX=true, usa X-Accel-Redirect. Caso contrário, serve diretamente.
+    use_nginx = os.getenv('USE_NGINX', 'false').lower() in ('true', '1', 'yes')
+    
+    # Serve arquivo diretamente se não estiver usando Nginx (desenvolvimento ou runserver)
+    if not use_nginx:
         # Usa o caminho do arquivo da thumbnail
         file_path = svg.thumbnail.path
         if os.path.exists(file_path):
@@ -102,7 +109,7 @@ def protected_thumbnail(request, svg_id):
             return response
         raise Http404("Thumbnail não encontrada")
     
-    # Em produção, usa X-Accel-Redirect para Nginx servir o arquivo
+    # Em produção com Nginx, usa X-Accel-Redirect para Nginx servir o arquivo
     redirect_path = build_internal_media_url(svg.thumbnail.name)
     response = HttpResponse()
     response['X-Accel-Redirect'] = redirect_path

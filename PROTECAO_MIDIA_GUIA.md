@@ -13,12 +13,14 @@ Implementamos proteção completa para **todos os arquivos de mídia**, incluind
 
 ### 2. Guardian Views (`guardian/views.py`)
 - ✅ Nova view `protected_thumbnail(request, svg_id)` para servir thumbnails
-- ✅ **Suporte a desenvolvimento**: Em DEBUG=True, serve arquivos diretamente via FileResponse
-- ✅ **Suporte a produção**: Em DEBUG=False, usa X-Accel-Redirect para Nginx
+- ✅ **Suporte a desenvolvimento E produção com runserver**: Detecta `USE_NGINX` env var
+- ✅ **Sem Nginx (padrão)**: Serve arquivos diretamente via FileResponse
+- ✅ **Com Nginx (USE_NGINX=true)**: Usa X-Accel-Redirect
 - ✅ Regras de acesso baseadas em:
   - SVG público: qualquer um pode ver
   - SVG privado: apenas usuários autenticados
   - SVG pago: apenas donos, compradores ou VIPs
+- ✅ **Hotlink Protection**: Bloqueia curl/wget/Postman (detecta User-Agent sem "Mozilla")
 
 ### 3. Guardian URLs (`guardian/urls.py`)
 - ✅ Nova rota: `/guardian/thumbnail/<int:svg_id>/`
@@ -50,18 +52,26 @@ Implementamos proteção completa para **todos os arquivos de mídia**, incluind
 
 ## Como Funciona Agora
 
-### Desenvolvimento (DEBUG=True)
+### Desenvolvimento (sem Nginx)
+**Cenário padrão: DEBUG=True ou DEBUG=False com `python manage.py runserver`**
+
 1. Views do guardian servem arquivos protegidos diretamente via FileResponse
 2. **SEGURANÇA**: Arquivos em `/media/private/` NÃO são acessíveis diretamente - sempre via guardian
 3. Arquivos públicos em `/media/` (exceto private/) podem ser acessados normalmente
-4. CSS e static files servidos automaticamente pelo Django
+4. CSS e static files servidos por WhiteNoise middleware
 5. Thumbnails funcionam imediatamente sem configurar Nginx
 
-### Produção (DEBUG=False)
+**✅ Funciona com DEBUG=True**
+**✅ Funciona com DEBUG=False** (diferente do comportamento anterior!)
+
+### Produção (com Nginx)
+**Quando USE_NGINX=true (variável de ambiente)**
+
 1. Views do guardian retornam X-Accel-Redirect
 2. Nginx intercepta e serve os arquivos protegidos
 3. Nginx bloqueia TODO acesso direto a `/media/` (retorna 403)
 4. CSS e static files devem ser coletados e servidos pelo Nginx
+5. Melhor performance - Nginx serve arquivos diretamente após validação
 
 ### Proteção de Arquivos Privados
 
@@ -70,6 +80,7 @@ Implementamos proteção completa para **todos os arquivos de mídia**, incluind
 - ✅ Acesso a `/media/private/thumbnails/arquivo.jpg` retorna 404
 - ✅ Único acesso: via `/guardian/thumbnail/<id>/` com validação
 - ✅ Guardian verifica permissões antes de servir
+- ✅ Hotlink protection: bloqueia ferramentas CLI (curl, wget, Postman)
 
 ### Upload de Novo SVG
 1. Usuário faz upload de SVG com thumbnail
@@ -98,13 +109,52 @@ Implementamos proteção completa para **todos os arquivos de mídia**, incluind
 
 ## Passo a Passo para Deploy
 
-### 1. Aplicar Migrations
+### Modo 1: Desenvolvimento ou Testes com runserver (DEBUG=False)
+
+**✅ Recomendado para testar em modo produção sem Nginx**
+
+```bash
+# Windows CMD
+set DEBUG=False
+set SECRET_KEY=sua-chave-secreta-aqui
+python manage.py collectstatic --noinput
+python manage.py runserver
+
+# Windows PowerShell
+$env:DEBUG="False"
+$env:SECRET_KEY="sua-chave-secreta-aqui"
+python manage.py collectstatic --noinput
+python manage.py runserver
+
+# Linux/Mac
+export DEBUG=False
+export SECRET_KEY=sua-chave-secreta-aqui
+python manage.py collectstatic --noinput
+python manage.py runserver
+```
+
+**O que acontece:**
+- ✅ Guardian serve arquivos diretamente via FileResponse
+- ✅ WhiteNoise serve static files (CSS, JS)
+- ✅ Thumbnails funcionam normalmente
+- ✅ Proteção contra acesso direto ativa
+- ✅ Hotlink protection ativa (bloqueia curl/wget/Postman)
+
+**Não precisa de:**
+- ❌ Nginx configurado
+- ❌ Variável USE_NGINX
+
+### Modo 2: Produção com Nginx (Recomendado)
+
+**✅ Para deploy real em servidor de produção**
+
+#### 1. Aplicar Migrations
 ```bash
 cd /path/to/AkkaUi
 python manage.py migrate core
 ```
 
-### 2. Migrar Thumbnails Existentes
+#### 2. Migrar Thumbnails Existentes
 ```bash
 python migrate_thumbnails_to_private.py
 ```
@@ -115,7 +165,12 @@ python migrate_thumbnails_to_private.py
 - Remove diretório antigo se estiver vazio
 - Mostra relatório detalhado de migração
 
-### 3. Configurar Nginx
+#### 3. Coletar Static Files
+```bash
+python manage.py collectstatic --noinput
+```
+
+#### 4. Configurar Nginx
 
 Atualize sua configuração do Nginx:
 
@@ -130,6 +185,11 @@ location /internal_media/ {
 location /media/ {
     return 403;
 }
+
+# Servir static files
+location /static/ {
+    alias /caminho/absoluto/para/staticfiles/;
+}
 ```
 
 **Atenção:**
@@ -137,13 +197,30 @@ location /media/ {
 - Exemplo: `/home/user/AkkaUi/media/`
 - O bloqueio `/media/` é ESSENCIAL para segurança
 
-### 4. Recarregar Nginx
+#### 5. Configurar Variáveis de Ambiente
+
+No servidor de produção:
+
+```bash
+export DEBUG=False
+export USE_NGINX=true  # ← IMPORTANTE: Ativa X-Accel-Redirect
+export SECRET_KEY=sua-chave-secreta-forte
+export ALLOWED_HOSTS=seudominio.com,www.seudominio.com
+```
+
+**O que acontece:**
+- ✅ Guardian retorna X-Accel-Redirect (não serve arquivos diretamente)
+- ✅ Nginx serve arquivos após validação
+- ✅ Melhor performance
+- ✅ Mesmas proteções de segurança
+
+#### 6. Recarregar Nginx
 ```bash
 sudo nginx -t  # Testa configuração
 sudo systemctl reload nginx
 ```
 
-### 5. Testar
+### 7. Testar
 
 #### Teste 1: Upload de Novo SVG
 1. Faça login na aplicação
@@ -154,10 +231,20 @@ sudo systemctl reload nginx
 
 #### Teste 2: Acesso Direto Bloqueado
 1. Tente acessar diretamente: `http://seu-site.com/media/private/thumbnails/arquivo.jpg`
-2. Deve receber **403 Forbidden**
+2. **Com Nginx**: Deve receber **403 Forbidden**
+3. **Sem Nginx (runserver)**: Deve receber **404 Not Found**
 
-#### Teste 3: Regras de Acesso
-- **SVG Público**: Thumbnail visível para todos
+#### Teste 3: Hotlink Protection
+```bash
+# Deve falhar - sem User-Agent de navegador
+curl http://seu-site.com/guardian/thumbnail/1/
+
+# Deve funcionar - com User-Agent de navegador
+curl -H "User-Agent: Mozilla/5.0" http://seu-site.com/guardian/thumbnail/1/
+```
+
+#### Teste 4: Regras de Acesso
+- **SVG Público**: Thumbnail visível para todos (navegadores apenas)
 - **SVG Privado**: Thumbnail apenas para usuários autenticados
 - **SVG Pago**: Thumbnail apenas para donos/compradores/VIPs
 
@@ -222,7 +309,34 @@ Se precisar reverter as mudanças:
 
 Se tiver problemas:
 
-### 1. ✅ CORRIGIDO: Thumbnails não aparecem mesmo em navegadores
+### 1. ✅ CORRIGIDO: Thumbnails não aparecem com DEBUG=False
+
+**Problema**: Com `DEBUG=False` e `python manage.py runserver`, thumbnails não aparecem.
+
+**Causa**: View retornava `X-Accel-Redirect` mas `runserver` não processa esse header (apenas Nginx faz).
+
+**✅ SOLUÇÃO APLICADA** (Commit atual):
+
+Agora detecta se está usando Nginx via variável `USE_NGINX`:
+- **Sem `USE_NGINX` (padrão)**: Serve arquivos diretamente via FileResponse
+- **Com `USE_NGINX=true`**: Retorna X-Accel-Redirect para Nginx
+
+```python
+use_nginx = os.getenv('USE_NGINX', 'false').lower() in ('true', '1', 'yes')
+
+if not use_nginx:
+    # Serve diretamente - funciona com DEBUG=True e DEBUG=False
+    return FileResponse(open(file_path, 'rb'))
+else:
+    # Produção com Nginx - retorna X-Accel-Redirect
+    response['X-Accel-Redirect'] = redirect_path
+```
+
+**Como usar:**
+- ✅ **Desenvolvimento/Testes**: Não configure `USE_NGINX` → Funciona automaticamente
+- ✅ **Produção com Nginx**: Configure `USE_NGINX=true` → Usa X-Accel-Redirect
+
+### 2. ✅ CORRIGIDO: Hotlink protection e detecção de navegador
 
 **Problema**: `document.referrer` retorna `undefined`, thumbnails bloqueadas.
 
@@ -230,13 +344,18 @@ Se tiver problemas:
 
 **✅ SOLUÇÃO APLICADA** (Commit atual):
 
-Agora detecta navegadores via **Accept header** e **User-Agent**:
-- Navegadores enviando `Accept: image/*` são permitidos
-- Ferramentas CLI (curl, wget) sem User-Agent são bloqueadas
-- Referer é opcional, não mais obrigatório
+Agora detecta navegadores via **User-Agent**:
+- Navegadores têm "Mozilla" no User-Agent → Permitidos
+- Ferramentas CLI (curl, wget) sem "Mozilla" → Bloqueadas
+- Referer não é mais necessário
 
 ```python
-# Aceita se é navegador legítimo
+is_browser = 'Mozilla' in user_agent
+
+if not is_browser:
+    # Bloqueia ferramentas CLI
+    raise PermissionDenied("Acesso direto não permitido")
+```
 is_browser = 'image/' in accept_header and 'Mozilla' in user_agent
 # OU se tem referer do site
 is_from_site = host in referer

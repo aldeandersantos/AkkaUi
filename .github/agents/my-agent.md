@@ -57,6 +57,7 @@ Formato de relatório (JSON)
 - errors: [ { message, context } ]
 - duration_ms: int
 - meta: { git_branch, node_version?, python_version? }
+- evitar criar arquivos .md e colocar no código, isso deixa o código poluído. Explicar o que foi feito no próprio PR.
 
 Convenções de nomenclatura e arquivos
 - Component: PascalCase (ex.: LoginForm)

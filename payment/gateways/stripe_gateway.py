@@ -1,4 +1,5 @@
 import logging
+import json
 from typing import Dict, Any, Optional
 from .base import PaymentGateway
 from django.conf import settings
@@ -27,11 +28,22 @@ class StripeGateway(PaymentGateway):
         logger.info(f"Creating Stripe payment: {amount} {currency}")
         
         try:
+            # Converter metadata complexo para strings (Stripe só aceita strings em metadata)
+            stripe_metadata = {}
+            if metadata:
+                for key, value in metadata.items():
+                    if isinstance(value, (dict, list)):
+                        # Converter objetos complexos para JSON string
+                        stripe_metadata[key] = json.dumps(value)
+                    else:
+                        # Converter para string simples
+                        stripe_metadata[key] = str(value)
+            
             # Criar Payment Intent para pagamento único
             payment_intent = stripe.PaymentIntent.create(
                 amount=int(amount * 100),  # Stripe usa centavos
                 currency=currency.lower(),
-                metadata=metadata or {},
+                metadata=stripe_metadata,
                 automatic_payment_methods={
                     'enabled': True,
                 },
@@ -47,7 +59,7 @@ class StripeGateway(PaymentGateway):
                 # ou criar uma Checkout Session separadamente
             }
             
-        except stripe.error.StripeError as e:
+        except stripe.StripeError as e:
             logger.error(f"Erro ao criar pagamento no Stripe: {e}")
             return {
                 "id": None,
@@ -82,7 +94,7 @@ class StripeGateway(PaymentGateway):
                 "currency": payment_intent.currency.upper(),
             }
             
-        except stripe.error.StripeError as e:
+        except stripe.StripeError as e:
             logger.error(f"Erro ao verificar status no Stripe: {e}")
             return {
                 "id": payment_id,
@@ -113,7 +125,7 @@ class StripeGateway(PaymentGateway):
                 "currency": payment_intent.currency.upper(),
             }
             
-        except stripe.error.StripeError as e:
+        except stripe.StripeError as e:
             logger.error(f"Erro ao simular confirmação no Stripe: {e}")
             return {
                 "id": payment_id,

@@ -4,6 +4,8 @@ import os
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_URL = os.getenv('BASE_URL')
+
 
 env_path = BASE_DIR / 'env/.env'
 # Use python-dotenv to load environment variables from .env without
@@ -13,8 +15,16 @@ if env_path.exists():
     # ensures we do not overwrite already-set environment variables.
     load_dotenv(dotenv_path=str(env_path), override=False)
 
-# Read DEBUG first so we can decide how strict to be when SECRET_KEY is missing.
-DEBUG = os.getenv('DEBUG', 'True').lower() in ('1', 'true', 'yes', 'on')
+def raw_bool(value):
+    if isinstance(value, str):
+        bool_value = value.lower() in ('1', 'true', 'yes', 'on')
+    else:
+        bool_value = bool(value)
+    return bool_value
+_raw_debug = os.getenv('DEBUG', 'False')
+DEBUG = raw_bool(_raw_debug)
+_raw_serve_static = os.getenv('SERVE_STATIC', str(DEBUG))
+SERVE_STATIC = raw_bool(_raw_serve_static)
 
 # production (DEBUG=False) we require SECRET_KEY to be set.
 SECRET_KEY = os.getenv('SECRET_KEY')
@@ -25,24 +35,9 @@ if not SECRET_KEY:
     else:
         raise RuntimeError("SECRET_KEY not found in environment; set it in .env for production")
 
-raw_allowed = os.getenv('ALLOWED_HOSTS', '').strip()
-if raw_allowed:
-    try:
-        import json
+ALLOWED_HOSTS= os.getenv('ALLOWED_HOSTS', '').split(',')
 
-        parsed = json.loads(raw_allowed)
-        if isinstance(parsed, (list, tuple)):
-            ALLOWED_HOSTS = [str(h).strip() for h in parsed if str(h).strip()]
-        else:
-            # If JSON parsed to a single value, fall back to comma-split
-            ALLOWED_HOSTS = [p.strip() for p in str(parsed).split(',') if p.strip()]
-    except Exception:
-        # Not JSON: parse as comma-separated string
-        ALLOWED_HOSTS = [h.strip() for h in raw_allowed.split(',') if h.strip()]
-else:
-    ALLOWED_HOSTS = []
-
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 
 # Application definition
@@ -58,6 +53,7 @@ INSTALLED_APPS = [
     'usuario',
     'core',
     'support',
+    'guardian',
 ]
 
 MIDDLEWARE = [
@@ -69,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
 ROOT_URLCONF = 'server.urls'
@@ -154,7 +151,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 # URL to use when referring to static files located in STATIC_ROOT.
-STATIC_URL = 'static/'
+# Use a leading slash to produce absolute URLs (recommended for production).
+STATIC_URL = '/static/'
 
 # During development, collect static files from the project-level `static/`
 # directory. We'll organize static files by app under `static/<app_name>/`.
@@ -172,6 +170,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # externo e não sirva media diretamente pelo Django.
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Guardian: URL interna do Nginx para arquivos protegidos
+# Esta é a localização interna que o Nginx irá usar para servir arquivos
+# quando o Django retornar um X-Accel-Redirect
+INTERNAL_MEDIA_URL = '/internal_media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

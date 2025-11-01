@@ -68,9 +68,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       </div>
     </div>
     {% if item.thumbnail %}
-      {# Opção 1: Thumbnail existe - usar imagem #}
+      {# Opção 1: Thumbnail existe - usar URL protegida via guardian #}
       <img 
-        src="{{ item.thumbnail.url }}" 
+        src="{{ item.get_thumbnail_url }}" 
         alt="Preview de {{ item.title_name|default:item.filename }}"
         loading="lazy"
         x-show="!imgError"
@@ -359,7 +359,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
             <div class="modal-preview-wrap" style="flex:1; min-width:0;">
               <div class="modal-preview" data-copy-url="{% url 'core:copy_svg' %}?id={{ item.pk }}">
                 {% if item.thumbnail %}
-                  <img src="{{ item.thumbnail.url }}" alt="Preview de {{ item.title_name|default:item.filename }}" style="width:100%; height:auto; max-height:70vh; object-fit:contain; display:block;" />
+                  <img src="{{ item.get_thumbnail_url }}" alt="Preview de {{ item.title_name|default:item.filename }}" style="width:100%; height:auto; max-height:70vh; object-fit:contain; display:block;" />
                 {% elif item.content %}
                   <div x-show="svgLoading" class="text-muted">Carregando...</div>
                   <div x-html="svgHtml" x-show="!svgLoading" style="max-width:100%; max-height:70vh; overflow:auto;"></div>

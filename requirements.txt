@@ -15,3 +15,4 @@ tzdata==2025.2
 webencodings==0.5.1
 abacatepay==1.0.9
 mercadopago==2.3.0
+whitenoise==6.11.0

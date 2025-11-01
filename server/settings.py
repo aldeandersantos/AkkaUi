@@ -21,10 +21,16 @@ def raw_bool(value):
     else:
         bool_value = bool(value)
     return bool_value
-_raw_debug = os.getenv('DEBUG', 'False')
-DEBUG = raw_bool(_raw_debug)
-_raw_serve_static = os.getenv('SERVE_STATIC', str(DEBUG))
-SERVE_STATIC = raw_bool(_raw_serve_static)
+_raw_prod = os.getenv('PROD', 'True')
+PROD = raw_bool(_raw_prod)
+if PROD:
+    DEBUG = False
+    SERVE_STATIC = True
+    USE_NGINX = True
+else:
+    DEBUG = True
+    SERVE_STATIC = True
+    USE_NGINX = True
 
 # production (DEBUG=False) we require SECRET_KEY to be set.
 SECRET_KEY = os.getenv('SECRET_KEY')

@@ -43,7 +43,8 @@ class StripeGateway(PaymentGateway):
                 "amount": amount,
                 "currency": currency,
                 "client_secret": payment_intent.client_secret,
-                "payment_url": f"https://checkout.stripe.com/pay/{payment_intent.client_secret}",
+                # Nota: Para usar este payment intent, o frontend deve integrar com Stripe Elements
+                # ou criar uma Checkout Session separadamente
             }
             
         except stripe.error.StripeError as e:

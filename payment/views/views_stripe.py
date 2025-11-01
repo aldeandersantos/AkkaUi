@@ -72,19 +72,34 @@ def create_checkout_session(request):
             if not items:
                 return JsonResponse({'error': 'items é obrigatório para modo payment'}, status=400)
             
+            if not isinstance(items, list) or len(items) == 0:
+                return JsonResponse({'error': 'items deve ser uma lista não vazia'}, status=400)
+            
             # Converter items para formato do Stripe
+            from decimal import Decimal
             line_items = []
             for item in items:
+                # Validar campos obrigatórios
+                if 'unit_price' not in item:
+                    return JsonResponse({'error': 'unit_price é obrigatório em cada item'}, status=400)
+                
+                try:
+                    # Usar Decimal para evitar problemas de precisão
+                    unit_price = Decimal(str(item.get('unit_price', 0)))
+                    unit_amount_cents = int(unit_price * 100)
+                except (ValueError, TypeError):
+                    return JsonResponse({'error': 'unit_price deve ser um número válido'}, status=400)
+                
                 line_items.append({
                     'price_data': {
                         'currency': data.get('currency', 'brl').lower(),
-                        'unit_amount': int(float(item.get('unit_price', 0)) * 100),  # Centavos
+                        'unit_amount': unit_amount_cents,
                         'product_data': {
                             'name': item.get('name', 'Item'),
                             'description': item.get('description', ''),
                         },
                     },
-                    'quantity': item.get('quantity', 1),
+                    'quantity': int(item.get('quantity', 1)),
                 })
             
             checkout_session = stripe.checkout.Session.create(

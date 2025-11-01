@@ -53,8 +53,11 @@ def handle_invoice_payment_succeeded(event):
         user.is_vip = True
         
         # Calcular data de expiração baseada no período da assinatura
-        if subscription.current_period_end:
-            user.vip_expiration = subscription.current_period_end.date()
+        stripe_data = subscription.stripe_data if hasattr(subscription, 'stripe_data') else {}
+        current_period_end = stripe_data.get('current_period_end')
+        
+        if current_period_end:
+            user.vip_expiration = datetime.fromtimestamp(current_period_end).date()
         
         user.save()
         
@@ -125,8 +128,10 @@ def handle_subscription_updated(event):
         # Atualizar status VIP baseado no status da assinatura
         if status in ['active', 'trialing']:
             user.is_vip = True
-            if subscription.current_period_end:
-                user.vip_expiration = subscription.current_period_end.date()
+            stripe_data = subscription.stripe_data if hasattr(subscription, 'stripe_data') else {}
+            current_period_end = stripe_data.get('current_period_end')
+            if current_period_end:
+                user.vip_expiration = datetime.fromtimestamp(current_period_end).date()
         elif status in ['canceled', 'unpaid', 'incomplete_expired']:
             user.is_vip = False
             user.vip_expiration = None

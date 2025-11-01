@@ -110,20 +110,24 @@ def user_subscription_status(request):
     try:
         customer = get_or_create_stripe_customer(request.user)
         
-        # Busca assinaturas ativas do customer
+        # Busca assinaturas do customer
         from djstripe.models import Subscription
         subscriptions = Subscription.objects.filter(
-            customer=customer,
-            status__in=['active', 'trialing']
-        ).order_by('-current_period_end')
+            customer=customer
+        ).order_by('-created')
         
         subscription_list = []
         for sub in subscriptions:
+            # Acessa dados do Stripe através do stripe_data
+            stripe_data = sub.stripe_data if hasattr(sub, 'stripe_data') else {}
+            status = stripe_data.get('status', 'unknown')
+            current_period_end = stripe_data.get('current_period_end')
+            
             subscription_list.append({
                 'id': sub.id,
-                'status': sub.status,
-                'current_period_end': sub.current_period_end.isoformat() if sub.current_period_end else None,
-                'cancel_at_period_end': sub.cancel_at_period_end,
+                'status': status,
+                'current_period_end': datetime.fromtimestamp(current_period_end).isoformat() if current_period_end else None,
+                'cancel_at_period_end': stripe_data.get('cancel_at_period_end', False),
             })
         
         return JsonResponse({

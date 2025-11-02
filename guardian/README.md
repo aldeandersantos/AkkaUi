@@ -52,18 +52,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 INTERNAL_MEDIA_URL = '/internal_media/'  # Prefixo interno do Nginx
 
 # USE_NGINX controla se usa X-Accel-Redirect ou serve diretamente
-# Em desenvolvimento (PROD=False): USE_NGINX=False por padrão (serve diretamente via Django)
-# Em produção (PROD=True): USE_NGINX=True por padrão (usa X-Accel-Redirect com Nginx)
+# Em desenvolvimento (PROD=False): USE_NGINX=False (serve diretamente via Django)
+# Em produção (PROD=True): USE_NGINX=True (usa X-Accel-Redirect com Nginx)
 # 
-# Pode ser sobrescrito via variável de ambiente USE_NGINX:
-# - USE_NGINX=False: Sempre serve diretamente via Django (útil para produção sem Nginx)
-# - USE_NGINX=True: Sempre usa X-Accel-Redirect (requer Nginx configurado)
-# 
-# Implementação real (ver server/settings.py):
+# IMPORTANTE: Em produção, USE_NGINX é sempre True por segurança.
+# Nginx DEVE estar configurado corretamente para thumbnails funcionarem.
 if PROD:
-    USE_NGINX = raw_bool(os.getenv('USE_NGINX', 'True'))
+    USE_NGINX = True  # Obrigatório em produção por segurança
 else:
-    USE_NGINX = raw_bool(os.getenv('USE_NGINX', 'False'))
+    USE_NGINX = False  # Desenvolvimento serve diretamente
 ```
 
 ### 2. URLs (server/urls.py)
@@ -239,36 +236,87 @@ http://localhost:8000/guardian/thumbnail/1/
 
 **Nota**: 
 - Com `USE_NGINX=False` (desenvolvimento), os arquivos são servidos diretamente via `FileResponse`
-- Com `USE_NGINX=True` (produção com Nginx), o cabeçalho X-Accel-Redirect é enviado para o Nginx processar
-- Para teste completo em produção, configure o Nginx conforme documentado
+- Com `USE_NGINX=True` (produção), o cabeçalho X-Accel-Redirect é enviado para o Nginx processar
+- **Em produção, USE_NGINX é sempre True por segurança - Nginx é obrigatório**
 
 ## Produção
 
-### Opção 1: Produção com Nginx (Recomendado)
+### Configuração com Nginx (Obrigatório para Produção)
 
-Para produção com Nginx configurado:
+O Nginx é **obrigatório** em produção por questões de segurança e performance. Siga os passos:
 
-1. Configure o Nginx com o arquivo `nginx_protected_media.conf`
-2. Ajuste o caminho `alias` no Nginx para seu `MEDIA_ROOT`
-3. Certifique-se de que `PROD=True` e `USE_NGINX=True` (ou deixe USE_NGINX sem definir, pois True é o padrão)
-4. Use `collectstatic` para arquivos estáticos
-5. Configure permissões adequadas para o diretório `media/`
+#### 1. Configure o Nginx
 
-### Opção 2: Produção sem Nginx
+Use o arquivo `nginx_protected_media.conf` como base. Este arquivo contém:
+- Configuração completa do servidor
+- Instruções detalhadas de instalação
+- Seção de troubleshooting
 
-Se você estiver rodando Django diretamente em produção sem Nginx (não recomendado para escala, mas funcional):
+**Pontos críticos a ajustar:**
 
-1. Configure `PROD=True` no ambiente
-2. **IMPORTANTE**: Configure `USE_NGINX=False` no ambiente ou arquivo `.env`
-3. Os arquivos serão servidos diretamente pelo Django via `FileResponse`
+```nginx
+# Location interna para X-Accel-Redirect
+location /internal_media/ {
+    internal;
+    alias /home/user/AkkaUi/media/;  # AJUSTE ESTE CAMINHO!
+}
+
+# Bloqueio de segurança
+location /media/ {
+    return 403;  # Garante que apenas Django pode autorizar acesso
+}
+```
+
+#### 2. Instale a configuração
+
+```bash
+# Copie o arquivo para sites-available
+sudo cp nginx_protected_media.conf /etc/nginx/sites-available/akkaui
+
+# Ajuste os caminhos no arquivo
+sudo nano /etc/nginx/sites-available/akkaui
+
+# Crie link simbólico
+sudo ln -s /etc/nginx/sites-available/akkaui /etc/nginx/sites-enabled/
+
+# Teste a configuração
+sudo nginx -t
+
+# Recarregue o Nginx
+sudo systemctl reload nginx
+```
+
+#### 3. Configure Django
 
 ```bash
 # No arquivo .env ou variáveis de ambiente
 PROD=True
-USE_NGINX=False  # Essencial para thumbnails aparecerem sem Nginx
+# USE_NGINX é automaticamente True quando PROD=True (não precisa definir)
 ```
 
-**Nota de Segurança**: Servir arquivos diretamente pelo Django é menos eficiente que usar Nginx, mas funciona para aplicações de pequeno/médio porte.
+#### 4. Verifique o funcionamento
+
+O arquivo `nginx_protected_media.conf` contém uma seção completa "VERIFICAÇÃO DE FUNCIONAMENTO" com:
+- Como verificar logs do Django
+- Como verificar headers da resposta
+- Troubleshooting de erros 404/403
+- Verificação de permissões
+
+#### 5. Troubleshooting
+
+**Thumbnails não aparecem:**
+1. Verifique logs do Django - deve aparecer: `X-Accel-Redirect enviado: /internal_media/...`
+2. Verifique se o caminho `alias` no Nginx aponta para o MEDIA_ROOT correto
+3. Verifique permissões do diretório `media/` (Nginx precisa ler)
+4. Verifique logs do Nginx: `tail -f /var/log/nginx/error.log`
+
+**Erro 404:**
+- Caminho `alias` incorreto no Nginx
+- Arquivo não existe em MEDIA_ROOT
+
+**Erro 403:**
+- Permissões do diretório incorretas
+- Nginx não consegue ler os arquivos
 
 ## Referências
 

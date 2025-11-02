@@ -93,11 +93,11 @@ def protected_thumbnail(request, svg_id):
         if access_type == 'locked':
             raise PermissionDenied("Você não tem acesso a esta thumbnail.")
     
-    # Verifica se está usando Nginx via variável de ambiente
-    # Se USE_NGINX=true, usa X-Accel-Redirect. Caso contrário, serve diretamente.
+    # Verifica se está usando Nginx via settings
+    # Em produção (PROD=True), sempre usa Nginx por segurança
     use_nginx = USE_NGINX
     
-    # Serve arquivo diretamente se não estiver usando Nginx (desenvolvimento ou runserver)
+    # Serve arquivo diretamente se não estiver usando Nginx (desenvolvimento)
     if not use_nginx:
         # Usa o caminho do arquivo da thumbnail
         file_path = svg.thumbnail.path
@@ -115,5 +115,10 @@ def protected_thumbnail(request, svg_id):
     response = HttpResponse()
     response['X-Accel-Redirect'] = redirect_path
     response['Content-Type'] = ''  # Deixa o Nginx determinar o tipo
+    
+    # Log para debug em produção (aparece nos logs do servidor)
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"X-Accel-Redirect enviado: {redirect_path} para thumbnail do SVG {svg_id}")
     
     return response

@@ -26,15 +26,11 @@ PROD = raw_bool(_raw_prod)
 if PROD:
     DEBUG = False
     SERVE_STATIC = True
-    # Permite override via variável de ambiente USE_NGINX
-    # Por padrão True em produção, mas pode ser False se Nginx não estiver configurado
-    USE_NGINX = raw_bool(os.getenv('USE_NGINX', 'True'))
+    USE_NGINX = True  # Em produção, sempre usar Nginx por segurança
 else:
     DEBUG = True
     SERVE_STATIC = True
-    # Permite override via variável de ambiente USE_NGINX
-    # Por padrão False em desenvolvimento
-    USE_NGINX = raw_bool(os.getenv('USE_NGINX', 'False'))
+    USE_NGINX = False  # Em desenvolvimento, serve diretamente via Django
 
 # production (DEBUG=False) we require SECRET_KEY to be set.
 SECRET_KEY = os.getenv('SECRET_KEY')

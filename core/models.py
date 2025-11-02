@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.urls import reverse
 import re
 
 
@@ -14,7 +15,8 @@ class SvgFile(models.Model):
     category = models.CharField(max_length=100, blank=True)
     content = models.TextField(help_text="Conteúdo do arquivo SVG (texto XML)")
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    thumbnail = models.ImageField(upload_to='thumbnails/', null=True, blank=True)
+    # Armazena thumbnails em pasta privada para proteção via guardian
+    thumbnail = models.ImageField(upload_to='private/thumbnails/', null=True, blank=True)
     owner = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -28,6 +30,15 @@ class SvgFile(models.Model):
 
     def __str__(self):
         return f"{self.title_name} ({self.uploaded_at.isoformat()})"
+    
+    def get_thumbnail_url(self):
+        """
+        Retorna a URL protegida da thumbnail via guardian.
+        Para thumbnails existentes, usa a URL protegida.
+        """
+        if self.thumbnail:
+            return reverse('guardian:protected_thumbnail', kwargs={'svg_id': self.pk})
+        return None
     
     def user_access_type(self, user):
         """

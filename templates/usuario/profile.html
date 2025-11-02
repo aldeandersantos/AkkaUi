@@ -4,6 +4,31 @@
 {% block title %}{% trans "Profile" %} — AkkaUi{% endblock %}
 
 {% block content %}
+  <style>
+    .subscription-details {
+      background: rgba(163, 230, 53, 0.1);
+      border: 1px solid var(--primary);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 0.5rem;
+    }
+    .subscription-details p {
+      margin: 0.5rem 0;
+    }
+    .subscription-details strong {
+      color: var(--primary);
+    }
+    .text-muted {
+      color: var(--text-gray-400);
+      font-size: 0.875rem;
+      margin-top: 0.75rem;
+    }
+    .profile-vip .vip-badge {
+      color: var(--primary);
+      font-weight: 600;
+    }
+  </style>
+  
   <article class="page">
     <header class="page-header">
       <h1>{% trans "My Profile" %}</h1>
@@ -48,7 +73,29 @@
           {% if user.is_vip %}
           <div class="profile-field profile-vip">
             <label>{% trans "Status" %}</label>
-            <p class="vip-badge">{% trans "Subscriber" %}{% if user.vip_expiration %} — {% trans "until" %} {{ user.vip_expiration|date:"d/m/Y" }}{% endif %}</p>
+            <p class="vip-badge">
+              {% trans "Subscriber" %}
+              {% if user.vip_expiration %}
+                — {% trans "until" %} {{ user.vip_expiration|date:"d/m/Y" }}
+              {% endif %}
+            </p>
+          </div>
+          
+          <div class="profile-field profile-subscription-info">
+            <label>{% trans "Subscription Information" %}</label>
+            <div class="subscription-details">
+              <p>
+                <strong>{% trans "Next billing date" %}:</strong>
+                {% if user.vip_expiration %}
+                  {{ user.vip_expiration|date:"d/m/Y" }}
+                {% else %}
+                  {% trans "Not available" %}
+                {% endif %}
+              </p>
+              <p class="text-muted">
+                {% trans "Your subscription will automatically renew on the date shown above. You can manage or cancel your subscription at any time through your payment provider's dashboard." %}
+              </p>
+            </div>
           </div>
           {% endif %}
         </div>

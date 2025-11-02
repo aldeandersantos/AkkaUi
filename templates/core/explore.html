@@ -163,7 +163,7 @@
       {% if svgfiles %}
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" style="gap: 1.5rem; display: grid; grid-template-columns: repeat(1, minmax(0, 1fr));">
           {% for item in svgfiles %}
-            {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
+            {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access card_index=forloop.counter0 %}
           {% endfor %}
         </div>
         

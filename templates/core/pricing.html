@@ -276,65 +276,19 @@
   </div>
 
   <div class="pricing-cards">
-    <!-- Free Plan -->
-    <div class="pricing-card">
-      <h3 class="plan-name">{% trans "Free" %}</h3>
-      <p class="plan-description">{% trans "Perfect to start and explore" %}</p>
-      
-      <div class="plan-price">
-        <span class="price-currency">R$</span>
-        <span class="price-amount">0</span>
-        <span class="price-period">/{% trans "month" %}</span>
-      </div>
-
-  {% if user.is_authenticated %}
-  <button class="plan-cta outline">{% trans "Start Free" %}</button>
-  {% else %}
-  <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Free" %}</a>
-  {% endif %}
-
-      <ul class="plan-features">
-        <li>
-          <span class="feature-icon">✓</span>
-          <span>{% trans "Access to basic components" %}</span>
-        </li>
-        <li>
-          <span class="feature-icon">✓</span>
-          <span>{% trans "Up to 5 projects" %}</span>
-        </li>
-        <li>
-          <span class="feature-icon">✓</span>
-          <span>{% trans "Email support" %}</span>
-        </li>
-        <li>
-          <span class="feature-icon disabled">✗</span>
-          <span>{% trans "Premium components" %}</span>
-        </li>
-        <li>
-          <span class="feature-icon disabled">✗</span>
-          <span>{% trans "Code export" %}</span>
-        </li>
-        <li>
-          <span class="feature-icon disabled">✗</span>
-          <span>{% trans "Priority support" %}</span>
-        </li>
-      </ul>
-    </div>
-
     <!-- Monthly Plan -->
-    <div class="pricing-card featured">
-      <span class="popular-badge">{% trans "Most Popular" %}</span>
+    <div class="pricing-card">
       <h3 class="plan-name">{% trans "Monthly" %}</h3>
       <p class="plan-description">{% trans "For professionals and small teams" %}</p>
       
       <div class="plan-price">
-        <span class="price-currency">R$</span>
-        <span class="price-amount">9.90</span>
+        <span class="price-currency">US$</span>
+        <span class="price-amount">6.99</span>
         <span class="price-period">/{% trans "month" %}</span>
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta" data-plan="monthly" data-amount="9.90">{% trans "Start Now" %}</button>
+  <button class="plan-cta" data-plan="monthly" data-amount="6.99">{% trans "Start Now" %}</button>
   {% else %}
   <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Now" %}</a>
   {% endif %}
@@ -367,19 +321,64 @@
       </ul>
     </div>
 
-    <!-- Annual Plan -->
+    <!-- Quarterly Plan (NEW) -->
     <div class="pricing-card">
-      <h3 class="plan-name">{% trans "Annual" %}</h3>
-      <p class="plan-description">{% trans "Best value - Save with annual plan" %}</p>
+      <h3 class="plan-name">{% trans "Quarterly" %}</h3>
+      <p class="plan-description">{% trans "Save 5% with quarterly plan" %}</p>
       
       <div class="plan-price">
-        <span class="price-currency">R$</span>
-        <span class="price-amount">99</span>
+        <span class="price-currency">US$</span>
+        <span class="price-amount">19.90</span>
+        <span class="price-period">/{% trans "3 months" %}</span>
+      </div>
+
+  {% if user.is_authenticated %}
+  <button class="plan-cta" data-plan="quarterly" data-amount="19.90">{% trans "Start Now" %}</button>
+  {% else %}
+  <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Now" %}</a>
+  {% endif %}
+
+      <ul class="plan-features">
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "All components" %}</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "Unlimited projects" %}</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "Code export" %}</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "Premium templates" %}</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "Priority support" %}</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "Integration API" %}</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Annual Plan -->
+    <div class="pricing-card featured">
+      <span class="popular-badge">{% trans "Most Popular" %}</span>
+      <p class="plan-description">{% trans "Best value - Save 15% with annual plan" %}</p>
+      
+      <div class="plan-price">
+        <span class="price-currency">US$</span>
+        <span class="price-amount">69.90</span>
         <span class="price-period">/{% trans "year" %}</span>
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta" data-plan="annual" data-amount="99">{% trans "Start Now" %}</button>
+  <button class="plan-cta" data-plan="annual" data-amount="69.90">{% trans "Start Now" %}</button>
   {% else %}
   <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Now" %}</a>
   {% endif %}
@@ -431,23 +430,17 @@
         <div id="modalPlanInfo" class="plan-info"></div>
         
         <div class="payment-methods">
-          <button class="payment-method" onclick="selectGateway('abacatepay')">
+          <button id="stripeMethod" class="payment-method" onclick="selectGateway('stripe')">
             <div class="method-icon">💳</div>
-            <div class="method-name">PIX via Abacate Pay</div>
-            <div class="method-description">Pagamento instantâneo via PIX</div>
+            <div class="method-name">Stripe</div>
+            <div class="method-description">{% trans "Recurring subscription - Automatic renewal" %}</div>
           </button>
-          
-          <button class="payment-method" onclick="selectGateway('mercadopago')">
-            <div class="method-icon">💰</div>
-            <div class="method-name">Mercado Pago</div>
-            <div class="method-description">Cartão, boleto e mais (em breve)</div>
-          </button>
-          
-          <button class="payment-method" onclick="selectGateway('paypal')">
-            <div class="method-icon">🌐</div>
-            <div class="method-name">PayPal</div>
-            <div class="method-description">Pagamento internacional (em breve)</div>
-          </button>
+        </div>
+        
+        <div class="subscription-note" style="background: rgba(163, 230, 53, 0.1); border: 1px solid var(--primary); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+          <p style="margin: 0; font-size: 0.875rem; color: var(--text-gray-300);">
+            <strong>{% trans "Recurring Subscription" %}:</strong> {% trans "Only Stripe supports automatic recurring subscriptions. For single purchases of SVGs, use the checkout page." %}
+          </p>
         </div>
         
         <div id="paymentStatus" class="payment-status" style="display: none;"></div>
@@ -636,6 +629,7 @@
       
       const planNames = {
         'monthly': 'Plano Mensal',
+        'quarterly': 'Plano Trimestral',
         'annual': 'Plano Anual'
       };
       
@@ -647,7 +641,7 @@
       strong.textContent = planName;
       planInfo.appendChild(strong);
       planInfo.appendChild(document.createElement('br'));
-      planInfo.appendChild(document.createTextNode(`Valor: R$ ${amountFormatted}`));
+      planInfo.appendChild(document.createTextNode(`Valor: US$ ${amountFormatted}`));
       
       modal.style.display = 'flex';
     }
@@ -672,6 +666,92 @@
       try {
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
         const languagePrefix = getLanguagePrefix();
+        
+        // Para Stripe, usar endpoint de subscription com price_id
+        if (gateway === 'stripe') {
+          // Mapear planos para Stripe Price IDs do produto prod_TLWbxxOkKwC4QD
+          const stripePriceMap = {
+            'monthly': '{{ stripe_price_monthly|default:""|escapejs }}',
+            'quarterly': '{{ stripe_price_quarterly|default:""|escapejs }}',
+            'annual': '{{ stripe_price_annual|default:""|escapejs }}'
+          };
+          
+          const priceId = stripePriceMap[currentPlan];
+          if (!priceId) {
+            // Mensagem amigável no modal em vez de lançar uma exceção JS
+            status.className = 'payment-status error';
+            status.innerHTML = '✗ Plano Stripe não configurado. Informe os Stripe Price IDs em configurações (STRIPE_PRICE_MONTHLY/QUARTERLY/ANNUAL). Consulte STRIPE_PRODUCT_SETUP.md.';
+            return;
+          }
+          
+          // Calcular próxima data de cobrança
+          const today = new Date();
+          const nextBillingDate = new Date(today);
+          let renewalPeriod = 'Mensal';
+          
+          if (currentPlan === 'monthly') {
+            nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
+            renewalPeriod = 'Mensal';
+          } else if (currentPlan === 'quarterly') {
+            nextBillingDate.setMonth(nextBillingDate.getMonth() + 3);
+            renewalPeriod = 'Trimestral';
+          } else if (currentPlan === 'annual') {
+            nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
+            renewalPeriod = 'Anual';
+          }
+          
+          const formattedDate = nextBillingDate.toLocaleDateString('pt-BR');
+          
+          // Mostrar aviso sobre recorrência
+          const confirmMsg = `⚠️ Assinatura Recorrente\n\n` +
+            `Este é um plano de assinatura que será renovado automaticamente.\n\n` +
+            `• Primeira cobrança: Hoje (US$ ${currentAmount.toFixed(2)})\n` +
+            `• Próxima cobrança: ${formattedDate}\n` +
+            `• Renovação: ${renewalPeriod}\n\n` +
+            `Você poderá cancelar a qualquer momento no painel do Stripe.\n\n` +
+            `Deseja continuar?`;
+          
+          if (!confirm(confirmMsg)) {
+            status.style.display = 'none';
+            return;
+          }
+          
+          const response = await fetch(`${languagePrefix}payment/stripe/checkout/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': csrftoken,
+            },
+            body: JSON.stringify({
+              mode: 'subscription',
+              price_id: priceId,
+              success_url: window.location.origin + languagePrefix + 'payment/success/',
+              cancel_url: window.location.origin + languagePrefix + 'pricing/'
+            })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok && data.checkout_url) {
+            status.className = 'payment-status success';
+            status.innerHTML = '✓ Redirecionando para checkout do Stripe...';
+            setTimeout(() => {
+              window.location.href = data.checkout_url;
+            }, 500);
+            return;
+          } else {
+            throw new Error(data.error || 'Erro ao criar checkout');
+          }
+        }
+        
+        // Para outros gateways (AbacatePay, Mercado Pago), usar endpoint original
+        // Mapear nomes de plano do frontend para backend
+        const planMap = {
+          'monthly': 'pro_month',
+          'annual': 'pro_year'
+        };
+        const backendPlan = planMap[currentPlan] || currentPlan;
+        
         const response = await fetch(`${languagePrefix}payment/create/`, {
           method: 'POST',
           headers: {
@@ -680,7 +760,7 @@
           },
           body: JSON.stringify({
             gateway: gateway,
-            plan: currentPlan,
+            plan: backendPlan,
             currency: 'BRL'
           })
         });
@@ -688,9 +768,21 @@
         const data = await response.json();
 
         if (response.ok && data.status === 'success') {
+          const payment = data.payment;
+          
+          // Para Mercado Pago e Stripe, redirecionar automaticamente se houver payment_url
+          const paymentUrl = payment.gateway_response?.payment_url || data.redirect_url;
+          if ((payment.gateway === 'mercadopago' || payment.gateway === 'stripe') && paymentUrl) {
+            status.className = 'payment-status success';
+            status.innerHTML = '✓ Redirecionando para pagamento...';
+            setTimeout(() => {
+              window.location.href = paymentUrl;
+            }, 500);
+            return;
+          }
+          
           status.className = 'payment-status success';
           
-          const payment = data.payment;
           let message = '';
           
           // Mensagem específica para AbacatePay/PIX

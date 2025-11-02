@@ -1,4 +1,5 @@
 {% load akka_filters %}
+{% load l10n %}
 {% comment %}
 Partial: Card reutilizável para exibir SvgFile (variável: item)
 Usa Alpine.js para modal de preview e HTMX para carregar SVG via API
@@ -9,7 +10,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   /* Hover overlay e escurecimento da thumb */
   .card { position: relative; overflow: hidden; }
   .card-image { position: relative; }
-  .card-image img { display:block; width:100%; height:auto; transition: filter .18s ease, transform .18s ease; position: relative; z-index: 0; }
+  .card-image img { display:block; width:100%; height:100%; object-fit:cover; transition: filter .18s ease, transform .18s ease; position: relative; z-index: 0; }
   .card:hover .card-image img, .card-image:hover img { filter: brightness(0.45); transform: scale(1.02); }
   /* posiciona o overlay no centro-baixo da thumb */
   .card-overlay { position: absolute; inset: 0; display:flex; align-items:flex-end; justify-content:center; gap:0.85rem; opacity:0; pointer-events:none; transition: opacity .18s ease, transform .18s ease; transform: translateY(10px); z-index: 5; padding-bottom: 0.6rem; }
@@ -68,11 +69,11 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       </div>
     </div>
     {% if item.thumbnail %}
-      {# Opção 1: Thumbnail existe - usar imagem #}
+      {# Opção 1: Thumbnail existe - usar URL protegida via guardian #}
       <img 
-        src="{{ item.thumbnail.url }}" 
+        src="{{ item.get_thumbnail_url }}" 
         alt="Preview de {{ item.title_name|default:item.filename }}"
-        loading="lazy"
+        loading="{% if card_index < 4 %}eager{% else %}lazy{% endif %}"
         x-show="!imgError"
         @error="imgError = true"
       >
@@ -84,7 +85,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       <img 
         src="data:image/svg+xml;base64,{{ item.get_sanitized_content|base64_encode }}"
         alt="Preview de {{ item.title_name|default:item.filename }}"
-        loading="lazy"
+        loading="{% if card_index < 4 %}eager{% else %}lazy{% endif %}"
         x-show="!imgError"
         @error="imgError = true"
       >
@@ -227,7 +228,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       {% elif item.price and item.price > 0 %}
         {# Botão Adicionar ao Carrinho - para SVGs pagos #}
         <button
-          onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price }})"
+          onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price|unlocalize }})"
           class="btn btn-primary"
           type="button"
           style="flex: 1; padding: 0.5rem; font-size: 0.875rem; height: auto;"
@@ -359,7 +360,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
             <div class="modal-preview-wrap" style="flex:1; min-width:0;">
               <div class="modal-preview" data-copy-url="{% url 'core:copy_svg' %}?id={{ item.pk }}">
                 {% if item.thumbnail %}
-                  <img src="{{ item.thumbnail.url }}" alt="Preview de {{ item.title_name|default:item.filename }}" style="width:100%; height:auto; max-height:70vh; object-fit:contain; display:block;" />
+                  <img src="{{ item.get_thumbnail_url }}" alt="Preview de {{ item.title_name|default:item.filename }}" style="width:100%; height:auto; max-height:70vh; object-fit:contain; display:block;" />
                 {% elif item.content %}
                   <div x-show="svgLoading" class="text-muted">Carregando...</div>
                   <div x-html="svgHtml" x-show="!svgLoading" style="max-width:100%; max-height:70vh; overflow:auto;"></div>
@@ -376,7 +377,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
                   <button type="button" class="btn btn-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">Copiar</button>
                   <button type="button" class="btn btn-secondary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const svg = data.svg_text||''; const a=document.createElement('a'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); a.download = '{{ item.filename|default:item.title_name|default:"svg" }}.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }).then(()=>{ btn.disabled=false; }).catch(e=>{ console.error(e); alert('Erro ao baixar SVG'); btn.disabled=false; }); })(this)">Download</button>
                 {% elif item.price and item.price > 0 %}
-                  <button type="button" class="btn btn-primary" onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price }} )">Adicionar ao carrinho</button>
+                  <button type="button" class="btn btn-primary" onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price|unlocalize }} )">Adicionar ao carrinho</button>
                 {% else %}
                   <button type="button" class="btn btn-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">Copiar</button>
                   <button type="button" class="btn btn-secondary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const svg = data.svg_text||''; const a=document.createElement('a'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); a.download = '{{ item.filename|default:item.title_name|default:"svg" }}.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }).then(()=>{ btn.disabled=false; }).catch(e=>{ console.error(e); alert('Erro ao baixar SVG'); btn.disabled=false; }); })(this)">Download</button>

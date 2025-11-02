@@ -25,7 +25,7 @@ media
 *$py.class
 /**/migrations/
 /thumbnails/*
-
+/staticfiles/*
 # C extensions
 *.so
 

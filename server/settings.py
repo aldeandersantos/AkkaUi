@@ -90,6 +90,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.i18n',
+                'core.context_processors.stripe_prices',
             ],
         },
     },
@@ -227,3 +228,9 @@ STRIPE_LIVE_MODE = os.getenv('STRIPE_LIVE_MODE', 'False').lower() in ('true', '1
 DJSTRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
+
+# Optional: Stripe Price IDs (set in .env or environment for each environment)
+# These are the `price_...` identifiers from your Stripe product/prices.
+STRIPE_PRICE_MONTHLY = os.getenv('STRIPE_PRICE_MONTHLY', '')
+STRIPE_PRICE_QUARTERLY = os.getenv('STRIPE_PRICE_QUARTERLY', '')
+STRIPE_PRICE_ANNUAL = os.getenv('STRIPE_PRICE_ANNUAL', '')

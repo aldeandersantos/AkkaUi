@@ -276,54 +276,8 @@
   </div>
 
   <div class="pricing-cards">
-    <!-- Free Plan -->
-    <div class="pricing-card">
-      <h3 class="plan-name">{% trans "Free" %}</h3>
-      <p class="plan-description">{% trans "Perfect to start and explore" %}</p>
-      
-      <div class="plan-price">
-        <span class="price-currency">R$</span>
-        <span class="price-amount">0</span>
-        <span class="price-period">/{% trans "month" %}</span>
-      </div>
-
-  {% if user.is_authenticated %}
-  <button class="plan-cta outline">{% trans "Start Free" %}</button>
-  {% else %}
-  <a class="plan-cta outline" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Free" %}</a>
-  {% endif %}
-
-      <ul class="plan-features">
-        <li>
-          <span class="feature-icon">✓</span>
-          <span>{% trans "Access to basic components" %}</span>
-        </li>
-        <li>
-          <span class="feature-icon">✓</span>
-          <span>{% trans "Up to 5 projects" %}</span>
-        </li>
-        <li>
-          <span class="feature-icon">✓</span>
-          <span>{% trans "Email support" %}</span>
-        </li>
-        <li>
-          <span class="feature-icon disabled">✗</span>
-          <span>{% trans "Premium components" %}</span>
-        </li>
-        <li>
-          <span class="feature-icon disabled">✗</span>
-          <span>{% trans "Code export" %}</span>
-        </li>
-        <li>
-          <span class="feature-icon disabled">✗</span>
-          <span>{% trans "Priority support" %}</span>
-        </li>
-      </ul>
-    </div>
-
     <!-- Monthly Plan -->
-    <div class="pricing-card featured">
-      <span class="popular-badge">{% trans "Most Popular" %}</span>
+    <div class="pricing-card">
       <h3 class="plan-name">{% trans "Monthly" %}</h3>
       <p class="plan-description">{% trans "For professionals and small teams" %}</p>
       
@@ -413,8 +367,8 @@
     </div>
 
     <!-- Annual Plan -->
-    <div class="pricing-card">
-      <h3 class="plan-name">{% trans "Annual" %}</h3>
+    <div class="pricing-card featured">
+      <span class="popular-badge">{% trans "Most Popular" %}</span>
       <p class="plan-description">{% trans "Best value - Save 15% with annual plan" %}</p>
       
       <div class="plan-price">
@@ -476,7 +430,7 @@
         <div id="modalPlanInfo" class="plan-info"></div>
         
         <div class="payment-methods">
-          <button class="payment-method" onclick="selectGateway('stripe')">
+          <button id="stripeMethod" class="payment-method" onclick="selectGateway('stripe')">
             <div class="method-icon">💳</div>
             <div class="method-name">Stripe</div>
             <div class="method-description">{% trans "Recurring subscription - Automatic renewal" %}</div>
@@ -716,22 +670,18 @@
         // Para Stripe, usar endpoint de subscription com price_id
         if (gateway === 'stripe') {
           // Mapear planos para Stripe Price IDs do produto prod_TLWbxxOkKwC4QD
-          // ⚠️ CONFIGURAÇÃO OBRIGATÓRIA: Substitua pelos Price IDs reais do seu Stripe Dashboard
-          // 
-          // 1. Acesse: https://dashboard.stripe.com/products/prod_TLWbxxOkKwC4QD
-          // 2. Copie os 3 Price IDs (começam com "price_")
-          // 3. Cole abaixo (substitua os placeholders)
-          // 
-          // Ver guia completo: QUICK_STRIPE_SETUP.md
           const stripePriceMap = {
-            'monthly': 'price_monthly_id',     // ❌ PLACEHOLDER - Substitua pelo price_id mensal (US$ 6.99/month)
-            'quarterly': 'price_quarterly_id', // ❌ PLACEHOLDER - Substitua pelo price_id trimestral (US$ 19.90/3months)
-            'annual': 'price_annual_id'        // ❌ PLACEHOLDER - Substitua pelo price_id anual (US$ 69.90/year)
+            'monthly': '{{ stripe_price_monthly|default:""|escapejs }}',
+            'quarterly': '{{ stripe_price_quarterly|default:""|escapejs }}',
+            'annual': '{{ stripe_price_annual|default:""|escapejs }}'
           };
           
           const priceId = stripePriceMap[currentPlan];
           if (!priceId) {
-            throw new Error('Plano não configurado no Stripe');
+            // Mensagem amigável no modal em vez de lançar uma exceção JS
+            status.className = 'payment-status error';
+            status.innerHTML = '✗ Plano Stripe não configurado. Informe os Stripe Price IDs em configurações (STRIPE_PRICE_MONTHLY/QUARTERLY/ANNUAL). Consulte STRIPE_PRODUCT_SETUP.md.';
+            return;
           }
           
           // Calcular próxima data de cobrança

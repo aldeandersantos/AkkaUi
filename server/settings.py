@@ -30,7 +30,7 @@ if PROD:
 else:
     DEBUG = True
     SERVE_STATIC = True
-    USE_NGINX = True
+    USE_NGINX = False
 
 # production (DEBUG=False) we require SECRET_KEY to be set.
 SECRET_KEY = os.getenv('SECRET_KEY')

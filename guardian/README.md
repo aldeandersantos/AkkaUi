@@ -58,7 +58,12 @@ INTERNAL_MEDIA_URL = '/internal_media/'  # Prefixo interno do Nginx
 # Pode ser sobrescrito via variável de ambiente USE_NGINX:
 # - USE_NGINX=False: Sempre serve diretamente via Django (útil para produção sem Nginx)
 # - USE_NGINX=True: Sempre usa X-Accel-Redirect (requer Nginx configurado)
-USE_NGINX = raw_bool(os.getenv('USE_NGINX', 'True' if PROD else 'False'))
+# 
+# Implementação real (ver server/settings.py):
+if PROD:
+    USE_NGINX = raw_bool(os.getenv('USE_NGINX', 'True'))
+else:
+    USE_NGINX = raw_bool(os.getenv('USE_NGINX', 'False'))
 ```
 
 ### 2. URLs (server/urls.py)

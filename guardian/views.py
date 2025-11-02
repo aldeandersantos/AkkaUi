@@ -98,11 +98,18 @@ def protected_thumbnail(request, svg_id):
             raise PermissionDenied("Você não tem acesso a esta thumbnail.")
     
     # Verifica se está usando Nginx via settings
-    # Em produção (PROD=True), sempre usa Nginx por segurança
+    # Em produção (PROD=True), USE_NGINX é True por padrão
     use_nginx = USE_NGINX
     
-    # Serve arquivo diretamente se não estiver usando Nginx (desenvolvimento)
+    # Serve arquivo diretamente se não estiver usando Nginx (desenvolvimento ou fallback)
     if not use_nginx:
+        # Em produção sem Nginx: loga warning de segurança
+        if settings.PROD:
+            logger.warning(
+                f"AVISO DE SEGURANÇA: Servindo thumbnail diretamente via Django em produção "
+                f"(SVG ID: {svg_id}). Configure Nginx + X-Accel-Redirect para máxima segurança e performance."
+            )
+        
         # Usa o caminho do arquivo da thumbnail
         file_path = svg.thumbnail.path
         if os.path.exists(file_path):
@@ -111,6 +118,7 @@ def protected_thumbnail(request, svg_id):
             response = FileResponse(open(file_path, 'rb'))
             if content_type:
                 response['Content-Type'] = content_type
+            logger.debug(f"Thumbnail servida diretamente via FileResponse para SVG ID: {svg_id}")
             return response
         raise Http404("Thumbnail não encontrada")
     

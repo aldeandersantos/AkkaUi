@@ -26,7 +26,9 @@ PROD = raw_bool(_raw_prod)
 if PROD:
     DEBUG = False
     SERVE_STATIC = True
-    USE_NGINX = True  # Em produção, sempre usar Nginx por segurança
+    # Em produção, USE_NGINX é True por padrão (recomendado para segurança)
+    # Pode ser sobrescrito para False temporariamente para testes/debug
+    USE_NGINX = raw_bool(os.getenv('USE_NGINX', 'True'))
 else:
     DEBUG = True
     SERVE_STATIC = True

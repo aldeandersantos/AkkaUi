@@ -237,13 +237,13 @@ http://localhost:8000/guardian/thumbnail/1/
 **Nota**: 
 - Com `USE_NGINX=False` (desenvolvimento), os arquivos são servidos diretamente via `FileResponse`
 - Com `USE_NGINX=True` (produção), o cabeçalho X-Accel-Redirect é enviado para o Nginx processar
-- **Em produção, USE_NGINX é sempre True por segurança - Nginx é obrigatório**
+- **Em produção, USE_NGINX é True por padrão - Nginx é recomendado para máxima segurança**
 
 ## Produção
 
-### Configuração com Nginx (Obrigatório para Produção)
+### Opção 1: Produção com Nginx (Recomendado - Máxima Segurança)
 
-O Nginx é **obrigatório** em produção por questões de segurança e performance. Siga os passos:
+O Nginx é **fortemente recomendado** em produção por questões de segurança e performance. Siga os passos:
 
 #### 1. Configure o Nginx
 
@@ -305,9 +305,34 @@ O arquivo `nginx_protected_media.conf` contém uma seção completa "VERIFICAÇ�
 #### 5. Troubleshooting
 
 **Thumbnails não aparecem:**
-1. Verifique logs do Django - deve aparecer: `X-Accel-Redirect enviado: /internal_media/...`
+1. Verifique logs do Django - deve aparecer: `Thumbnail servida via X-Accel-Redirect...`
 2. Verifique se o caminho `alias` no Nginx aponta para o MEDIA_ROOT correto
 3. Verifique permissões do diretório `media/` (Nginx precisa ler)
+4. Verifique logs do Nginx: `tail -f /var/log/nginx/error.log`
+
+### Opção 2: Teste Temporário sem Nginx (Apenas para Debug)
+
+⚠️ **AVISO**: Esta opção serve APENAS para testar se as thumbnails funcionam. NÃO use em produção final.
+
+Se você precisa testar rapidamente sem configurar o Nginx:
+
+```bash
+# No arquivo .env ou variáveis de ambiente
+PROD=True
+USE_NGINX=False  # Temporário apenas para teste
+
+# IMPORTANTE: Você verá warnings nos logs:
+# "AVISO DE SEGURANÇA: Servindo thumbnail diretamente via Django..."
+```
+
+**Limitações desta abordagem:**
+- ⚠️ Menos segura (Django serve arquivos diretamente)
+- ⚠️ Menos performática (consome recursos do Django)
+- ⚠️ Não escalável para muitos usuários
+- ✅ Útil para testar se o código está funcionando
+- ✅ Permite verificar se thumbnails existem e são acessíveis
+
+**Depois do teste, configure o Nginx corretamente** e remova `USE_NGINX=False` do `.env`.
 4. Verifique logs do Nginx: `tail -f /var/log/nginx/error.log`
 
 **Erro 404:**

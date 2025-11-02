@@ -50,6 +50,11 @@ INSTALLED_APPS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 INTERNAL_MEDIA_URL = '/internal_media/'  # Prefixo interno do Nginx
+
+# USE_NGINX controla se usa X-Accel-Redirect ou serve diretamente
+# Em desenvolvimento (PROD=False): USE_NGINX=False (serve diretamente via Django)
+# Em produção (PROD=True): USE_NGINX=True (usa X-Accel-Redirect com Nginx)
+USE_NGINX = True if PROD else False
 ```
 
 ### 2. URLs (server/urls.py)
@@ -212,14 +217,21 @@ def upload_private_file(request):
 Para testar localmente (sem Nginx):
 
 ```bash
+# Certifique-se de que PROD=False no ambiente ou .env
+# Isso configurará USE_NGINX=False e servirá thumbnails diretamente via Django
+
 # Iniciar servidor Django
 python manage.py runserver
 
 # Acessar (estando autenticado)
 http://localhost:8000/guardian/download/1/
+http://localhost:8000/guardian/thumbnail/1/
 ```
 
-**Nota**: Sem Nginx, o cabeçalho X-Accel-Redirect será enviado mas não processado. Para teste completo, configure o Nginx conforme documentado.
+**Nota**: 
+- Com `USE_NGINX=False` (desenvolvimento), os arquivos são servidos diretamente via `FileResponse`
+- Com `USE_NGINX=True` (produção), o cabeçalho X-Accel-Redirect é enviado para o Nginx processar
+- Para teste completo em produção, configure o Nginx conforme documentado
 
 ## Produção
 

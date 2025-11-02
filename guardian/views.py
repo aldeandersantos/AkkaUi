@@ -4,10 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
 import os
+import logging
 from server.settings import USE_NGINX
 
 from .models import FileAsset
 from .utils import build_internal_media_url
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -117,8 +120,6 @@ def protected_thumbnail(request, svg_id):
     response['Content-Type'] = ''  # Deixa o Nginx determinar o tipo
     
     # Log para debug em produção (aparece nos logs do servidor)
-    import logging
-    logger = logging.getLogger(__name__)
     logger.info(f"X-Accel-Redirect enviado: {redirect_path} para thumbnail do SVG {svg_id}")
     
     return response

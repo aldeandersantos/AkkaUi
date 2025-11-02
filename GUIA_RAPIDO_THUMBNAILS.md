@@ -1,18 +1,62 @@
 # 🚀 GUIA RÁPIDO: Como Ver Thumbnails com PROD=True
 
-## ✅ Solução Rápida (Funciona AGORA)
+## ✅ Solução Ultra-Rápida (1 Comando)
+
+### Windows (PowerShell)
+
+```powershell
+# Execute este comando no PowerShell:
+.\fix_thumbnails_windows.ps1
+
+# Depois:
+python manage.py runserver
+# Acesse: http://localhost:8000/
+# ✅ Thumbnails funcionam!
+```
+
+### Linux/Mac (Bash)
+
+```bash
+# Execute este comando no terminal:
+bash fix_thumbnails_linux.sh
+
+# Depois:
+python manage.py runserver
+# Acesse: http://localhost:8000/
+# ✅ Thumbnails funcionam!
+```
+
+---
+
+## ✅ Solução Manual (Se preferir)
 
 Para ver thumbnails funcionando **imediatamente** com `PROD=True`:
 
 ### Passo 1: Configure o arquivo `.env`
 
-Crie ou edite `env/.env`:
+**No Windows PowerShell:**
+```powershell
+# Crie env/.env se não existir
+New-Item -Path "env" -ItemType Directory -Force
+New-Item -Path "env\.env" -ItemType File -Force
 
+# Adicione as configurações
+Add-Content -Path "env\.env" -Value "PROD=True"
+Add-Content -Path "env\.env" -Value "USE_NGINX=False"
+Add-Content -Path "env\.env" -Value "SECRET_KEY=dev-secret-change-me"
+Add-Content -Path "env\.env" -Value "ALLOWED_HOSTS=localhost,127.0.0.1"
+```
+
+**No Linux/Mac/Git Bash:**
 ```bash
+# Crie env/.env
+mkdir -p env
+cat > env/.env << EOF
 PROD=True
 USE_NGINX=False
 SECRET_KEY=sua-chave-secreta-aqui
 ALLOWED_HOSTS=localhost,127.0.0.1
+EOF
 ```
 
 ### Passo 2: Execute o script de verificação
@@ -21,11 +65,11 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 python test_thumbnails.py
 ```
 
-Este script mostra:
-- ✓ Configuração atual
-- ✓ Quantos SVGs têm thumbnails
-- ✓ Se os arquivos existem
-- ✓ URLs de exemplo
+Este script:
+- ✓ Detecta seu sistema operacional
+- ✓ Mostra configuração atual
+- ✓ Identifica problemas
+- ✓ Sugere solução específica para seu sistema
 
 ### Passo 3: Inicie o servidor
 
@@ -43,7 +87,7 @@ python manage.py runserver
 
 ```
 WARNING - AVISO DE SEGURANÇA: Servindo thumbnail diretamente via Django em produção
-(SVG ID: 123). Configure Nginx + X-Accel-Redirect para máxima segurança e performance.
+(SVG ID: 123). Configure Nginx + X-Accel-Redirect para máxima segurança.
 ```
 
 Este warning é **normal** quando `USE_NGINX=False`. Ele indica que:

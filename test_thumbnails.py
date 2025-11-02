@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
 Script de teste para verificar se thumbnails estão funcionando.
-Simula o comportamento do Django com PROD=True e USE_NGINX=False/True.
+Detecta problemas comuns e sugere soluções.
 """
 
 import os
 import sys
+import platform
 from pathlib import Path
 
 # Adiciona o diretório do projeto ao path
@@ -28,8 +29,13 @@ def test_thumbnails():
     print("=" * 70)
     print()
     
+    # Detecta sistema operacional
+    sistema = platform.system()
+    is_windows = sistema == 'Windows'
+    
     # Mostra configuração atual
     print(f"Configuração Atual:")
+    print(f"  Sistema: {sistema}")
     print(f"  PROD: {settings.PROD}")
     print(f"  DEBUG: {settings.DEBUG}")
     print(f"  USE_NGINX: {settings.USE_NGINX}")
@@ -67,29 +73,60 @@ def test_thumbnails():
     
     print()
     print("=" * 70)
-    print("COMPORTAMENTO ESPERADO:")
+    print("DIAGNÓSTICO E SOLUÇÃO:")
     print("=" * 70)
+    print()
     
     if settings.USE_NGINX:
-        print("✓ USE_NGINX=True")
-        print("  → Django retorna X-Accel-Redirect")
-        print("  → Nginx serve o arquivo (eficiente e seguro)")
-        print("  → Se Nginx NÃO estiver configurado, thumbnails NÃO aparecerão")
+        print("❌ PROBLEMA IDENTIFICADO:")
+        print("  → USE_NGINX=True mas Nginx provavelmente NÃO está configurado")
+        print("  → Thumbnails NÃO aparecerão no frontend")
         print()
-        print("  Para testar SEM Nginx, configure:")
-        print("  export USE_NGINX=False")
+        print("✅ SOLUÇÃO RÁPIDA (Teste Imediato):")
+        print()
+        
+        if is_windows:
+            print("  No Windows PowerShell, execute:")
+            print()
+            print("  # 1. Configure USE_NGINX=False no env/.env:")
+            print('  Add-Content -Path "env\\.env" -Value "USE_NGINX=False"')
+            print()
+            print("  # 2. Restart o servidor")
+            print("  python manage.py runserver")
+        else:
+            print("  No terminal Linux/Mac, execute:")
+            print()
+            print("  # 1. Configure USE_NGINX=False no env/.env:")
+            print('  echo "USE_NGINX=False" >> env/.env')
+            print()
+            print("  # 2. Restart o servidor")
+            print("  python manage.py runserver")
+        
+        print()
+        print("  ✓ Thumbnails funcionarão imediatamente!")
+        print("  ⚠️  Você verá warnings nos logs (normal para teste)")
+        print()
+        print("📚 Para configurar Nginx depois (produção final):")
+        print("  → Ver: nginx_protected_media.conf")
+        print("  → Ver: GUIA_RAPIDO_THUMBNAILS.md")
+        
     else:
-        print("⚠️  USE_NGINX=False (Modo de teste)")
+        print("✓ USE_NGINX=False (Modo de teste)")
         print("  → Django serve arquivo diretamente via FileResponse")
-        print("  → Funciona mas é menos eficiente")
-        print("  → Logs mostram: 'AVISO DE SEGURANÇA'")
-        print("  → Configure Nginx para produção final")
+        print("  → Thumbnails DEVEM aparecer no frontend")
+        print("  → Logs mostram: 'AVISO DE SEGURANÇA' (normal)")
+        print()
+        print("Se thumbnails ainda não aparecem:")
+        print("  1. Verifique se SVGs têm thumbnails cadastradas")
+        print("  2. Verifique permissões do diretório media/")
+        print("  3. Restart o servidor: python manage.py runserver")
+        print()
+        print("Para máxima segurança (depois):")
+        print("  → Configure Nginx (ver nginx_protected_media.conf)")
+        print("  → Remova USE_NGINX=False do .env")
     
     print()
-    print("Para testar no navegador:")
-    print(f"1. python manage.py runserver")
-    print(f"2. Acesse: http://localhost:8000/guardian/thumbnail/1/")
-    print(f"3. Verifique os logs do servidor")
+    print("=" * 70)
     print()
 
 if __name__ == '__main__':

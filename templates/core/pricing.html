@@ -328,13 +328,13 @@
       <p class="plan-description">{% trans "For professionals and small teams" %}</p>
       
       <div class="plan-price">
-        <span class="price-currency">R$</span>
-        <span class="price-amount">9.90</span>
+        <span class="price-currency">US$</span>
+        <span class="price-amount">6.99</span>
         <span class="price-period">/{% trans "month" %}</span>
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta" data-plan="monthly" data-amount="9.90">{% trans "Start Now" %}</button>
+  <button class="plan-cta" data-plan="monthly" data-amount="6.99">{% trans "Start Now" %}</button>
   {% else %}
   <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Now" %}</a>
   {% endif %}
@@ -367,19 +367,64 @@
       </ul>
     </div>
 
+    <!-- Quarterly Plan (NEW) -->
+    <div class="pricing-card">
+      <h3 class="plan-name">{% trans "Quarterly" %}</h3>
+      <p class="plan-description">{% trans "Save 5% with quarterly plan" %}</p>
+      
+      <div class="plan-price">
+        <span class="price-currency">US$</span>
+        <span class="price-amount">19.90</span>
+        <span class="price-period">/{% trans "3 months" %}</span>
+      </div>
+
+  {% if user.is_authenticated %}
+  <button class="plan-cta" data-plan="quarterly" data-amount="19.90">{% trans "Start Now" %}</button>
+  {% else %}
+  <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Now" %}</a>
+  {% endif %}
+
+      <ul class="plan-features">
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "All components" %}</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "Unlimited projects" %}</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "Code export" %}</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "Premium templates" %}</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "Priority support" %}</span>
+        </li>
+        <li>
+          <span class="feature-icon">✓</span>
+          <span>{% trans "Integration API" %}</span>
+        </li>
+      </ul>
+    </div>
+
     <!-- Annual Plan -->
     <div class="pricing-card">
       <h3 class="plan-name">{% trans "Annual" %}</h3>
-      <p class="plan-description">{% trans "Best value - Save with annual plan" %}</p>
+      <p class="plan-description">{% trans "Best value - Save 15% with annual plan" %}</p>
       
       <div class="plan-price">
-        <span class="price-currency">R$</span>
-        <span class="price-amount">99</span>
+        <span class="price-currency">US$</span>
+        <span class="price-amount">69.90</span>
         <span class="price-period">/{% trans "year" %}</span>
       </div>
 
   {% if user.is_authenticated %}
-  <button class="plan-cta" data-plan="annual" data-amount="99">{% trans "Start Now" %}</button>
+  <button class="plan-cta" data-plan="annual" data-amount="69.90">{% trans "Start Now" %}</button>
   {% else %}
   <a class="plan-cta" href="{% url 'usuario:signin' %}?next={{ request.path }}">{% trans "Start Now" %}</a>
   {% endif %}
@@ -431,23 +476,17 @@
         <div id="modalPlanInfo" class="plan-info"></div>
         
         <div class="payment-methods">
-          <button class="payment-method" onclick="selectGateway('abacatepay')">
-            <div class="method-icon">💳</div>
-            <div class="method-name">PIX via Abacate Pay</div>
-            <div class="method-description">Pagamento instantâneo via PIX</div>
-          </button>
-          
-          <button class="payment-method" onclick="selectGateway('mercadopago')">
-            <div class="method-icon">💰</div>
-            <div class="method-name">Mercado Pago</div>
-            <div class="method-description">Cartão, boleto e mais (em breve)</div>
-          </button>
-          
           <button class="payment-method" onclick="selectGateway('stripe')">
             <div class="method-icon">💳</div>
             <div class="method-name">Stripe</div>
-            <div class="method-description">Cartão de crédito internacional</div>
+            <div class="method-description">{% trans "Recurring subscription - Automatic renewal" %}</div>
           </button>
+        </div>
+        
+        <div class="subscription-note" style="background: rgba(163, 230, 53, 0.1); border: 1px solid var(--primary); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+          <p style="margin: 0; font-size: 0.875rem; color: var(--text-gray-300);">
+            <strong>{% trans "Recurring Subscription" %}:</strong> {% trans "Only Stripe supports automatic recurring subscriptions. For single purchases of SVGs, use the checkout page." %}
+          </p>
         </div>
         
         <div id="paymentStatus" class="payment-status" style="display: none;"></div>
@@ -636,6 +675,7 @@
       
       const planNames = {
         'monthly': 'Plano Mensal',
+        'quarterly': 'Plano Trimestral',
         'annual': 'Plano Anual'
       };
       
@@ -647,7 +687,7 @@
       strong.textContent = planName;
       planInfo.appendChild(strong);
       planInfo.appendChild(document.createElement('br'));
-      planInfo.appendChild(document.createTextNode(`Valor: R$ ${amountFormatted}`));
+      planInfo.appendChild(document.createTextNode(`Valor: US$ ${amountFormatted}`));
       
       modal.style.display = 'flex';
     }
@@ -675,10 +715,12 @@
         
         // Para Stripe, usar endpoint de subscription com price_id
         if (gateway === 'stripe') {
-          // Mapear planos para Stripe Price IDs (você precisa criar esses no dashboard do Stripe)
+          // Mapear planos para Stripe Price IDs do produto prod_TLWbxxOkKwC4QD
+          // IMPORTANTE: Substitua pelos price_ids reais do seu Stripe Dashboard
           const stripePriceMap = {
-            'monthly': 'price_pro_month',  // Substitua pelo price_id real do Stripe Dashboard
-            'annual': 'price_pro_year'      // Substitua pelo price_id real do Stripe Dashboard
+            'monthly': 'price_monthly_id',     // Substitua pelo price_id mensal (US$ 6.99/month)
+            'quarterly': 'price_quarterly_id', // Substitua pelo price_id trimestral (US$ 19.90/3months)
+            'annual': 'price_annual_id'        // Substitua pelo price_id anual (US$ 69.90/year)
           };
           
           const priceId = stripePriceMap[currentPlan];
@@ -686,22 +728,30 @@
             throw new Error('Plano não configurado no Stripe');
           }
           
-          // Calcular próxima data de cobrança (30 dias para mensal, 365 para anual)
+          // Calcular próxima data de cobrança
           const today = new Date();
           const nextBillingDate = new Date(today);
+          let renewalPeriod = 'Mensal';
+          
           if (currentPlan === 'monthly') {
             nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-          } else {
+            renewalPeriod = 'Mensal';
+          } else if (currentPlan === 'quarterly') {
+            nextBillingDate.setMonth(nextBillingDate.getMonth() + 3);
+            renewalPeriod = 'Trimestral';
+          } else if (currentPlan === 'annual') {
             nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
+            renewalPeriod = 'Anual';
           }
+          
           const formattedDate = nextBillingDate.toLocaleDateString('pt-BR');
           
           // Mostrar aviso sobre recorrência
           const confirmMsg = `⚠️ Assinatura Recorrente\n\n` +
             `Este é um plano de assinatura que será renovado automaticamente.\n\n` +
-            `• Primeira cobrança: Hoje (R$ ${currentAmount.toFixed(2)})\n` +
+            `• Primeira cobrança: Hoje (US$ ${currentAmount.toFixed(2)})\n` +
             `• Próxima cobrança: ${formattedDate}\n` +
-            `• Renovação: ${currentPlan === 'monthly' ? 'Mensal' : 'Anual'}\n\n` +
+            `• Renovação: ${renewalPeriod}\n\n` +
             `Você poderá cancelar a qualquer momento no painel do Stripe.\n\n` +
             `Deseja continuar?`;
           

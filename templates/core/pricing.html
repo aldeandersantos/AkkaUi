@@ -716,11 +716,17 @@
         // Para Stripe, usar endpoint de subscription com price_id
         if (gateway === 'stripe') {
           // Mapear planos para Stripe Price IDs do produto prod_TLWbxxOkKwC4QD
-          // IMPORTANTE: Substitua pelos price_ids reais do seu Stripe Dashboard
+          // ⚠️ CONFIGURAÇÃO OBRIGATÓRIA: Substitua pelos Price IDs reais do seu Stripe Dashboard
+          // 
+          // 1. Acesse: https://dashboard.stripe.com/products/prod_TLWbxxOkKwC4QD
+          // 2. Copie os 3 Price IDs (começam com "price_")
+          // 3. Cole abaixo (substitua os placeholders)
+          // 
+          // Ver guia completo: QUICK_STRIPE_SETUP.md
           const stripePriceMap = {
-            'monthly': 'price_monthly_id',     // Substitua pelo price_id mensal (US$ 6.99/month)
-            'quarterly': 'price_quarterly_id', // Substitua pelo price_id trimestral (US$ 19.90/3months)
-            'annual': 'price_annual_id'        // Substitua pelo price_id anual (US$ 69.90/year)
+            'monthly': 'price_monthly_id',     // ❌ PLACEHOLDER - Substitua pelo price_id mensal (US$ 6.99/month)
+            'quarterly': 'price_quarterly_id', // ❌ PLACEHOLDER - Substitua pelo price_id trimestral (US$ 19.90/3months)
+            'annual': 'price_annual_id'        // ❌ PLACEHOLDER - Substitua pelo price_id anual (US$ 69.90/year)
           };
           
           const priceId = stripePriceMap[currentPlan];

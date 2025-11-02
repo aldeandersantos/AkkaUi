@@ -50,6 +50,15 @@ def create_checkout_session(request):
             if not price_id:
                 return JsonResponse({'error': 'price_id é obrigatório para modo subscription'}, status=400)
             
+            # Validar se price_id parece válido (não é placeholder)
+            if price_id.endswith('_id') or 'xxxxx' in price_id or 'monthly_id' in price_id:
+                logger.error(f"Price ID placeholder detectado: {price_id}")
+                return JsonResponse({
+                    'error': 'Configuração pendente: Price IDs do Stripe não foram configurados. '
+                             'Por favor, configure os Price IDs reais no arquivo pricing.html (linha ~720). '
+                             'Veja STRIPE_PRODUCT_SETUP.md para instruções.'
+                }, status=400)
+            
             checkout_session = stripe.checkout.Session.create(
                 customer=customer.id,
                 payment_method_types=['card'],
@@ -124,9 +133,20 @@ def create_checkout_session(request):
     
     except json.JSONDecodeError:
         return JsonResponse({'error': 'JSON inválido'}, status=400)
+    except stripe.StripeError as e:
+        logger.error(f"Erro do Stripe ao criar checkout: {str(e)}")
+        error_msg = str(e)
+        
+        # Mensagens mais amigáveis para erros comuns
+        if 'No such price' in error_msg:
+            error_msg = 'Price ID inválido. Por favor, configure os Price IDs corretos do Stripe Dashboard no código (pricing.html linha ~720). Veja STRIPE_PRODUCT_SETUP.md para instruções.'
+        elif 'Invalid API Key' in error_msg or 'api_key' in error_msg.lower():
+            error_msg = 'Chave da API Stripe não configurada corretamente. Verifique as variáveis de ambiente STRIPE_SECRET_KEY.'
+        
+        return JsonResponse({'error': error_msg}, status=400)
     except Exception as e:
         logger.error(f"Erro ao criar checkout session: {e}", exc_info=True)
-        return JsonResponse({'error': 'Erro ao criar sessão de checkout'}, status=500)
+        return JsonResponse({'error': f'Erro ao criar sessão de checkout: {str(e)}'}, status=500)
 
 
 @login_required

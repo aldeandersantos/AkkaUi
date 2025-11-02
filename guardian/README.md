@@ -52,9 +52,13 @@ MEDIA_ROOT = BASE_DIR / 'media'
 INTERNAL_MEDIA_URL = '/internal_media/'  # Prefixo interno do Nginx
 
 # USE_NGINX controla se usa X-Accel-Redirect ou serve diretamente
-# Em desenvolvimento (PROD=False): USE_NGINX=False (serve diretamente via Django)
-# Em produção (PROD=True): USE_NGINX=True (usa X-Accel-Redirect com Nginx)
-USE_NGINX = True if PROD else False
+# Em desenvolvimento (PROD=False): USE_NGINX=False por padrão (serve diretamente via Django)
+# Em produção (PROD=True): USE_NGINX=True por padrão (usa X-Accel-Redirect com Nginx)
+# 
+# Pode ser sobrescrito via variável de ambiente USE_NGINX:
+# - USE_NGINX=False: Sempre serve diretamente via Django (útil para produção sem Nginx)
+# - USE_NGINX=True: Sempre usa X-Accel-Redirect (requer Nginx configurado)
+USE_NGINX = raw_bool(os.getenv('USE_NGINX', 'True' if PROD else 'False'))
 ```
 
 ### 2. URLs (server/urls.py)
@@ -230,18 +234,36 @@ http://localhost:8000/guardian/thumbnail/1/
 
 **Nota**: 
 - Com `USE_NGINX=False` (desenvolvimento), os arquivos são servidos diretamente via `FileResponse`
-- Com `USE_NGINX=True` (produção), o cabeçalho X-Accel-Redirect é enviado para o Nginx processar
+- Com `USE_NGINX=True` (produção com Nginx), o cabeçalho X-Accel-Redirect é enviado para o Nginx processar
 - Para teste completo em produção, configure o Nginx conforme documentado
 
 ## Produção
 
-Em produção:
+### Opção 1: Produção com Nginx (Recomendado)
+
+Para produção com Nginx configurado:
 
 1. Configure o Nginx com o arquivo `nginx_protected_media.conf`
 2. Ajuste o caminho `alias` no Nginx para seu `MEDIA_ROOT`
-3. Garanta que o Django não sirva arquivos estáticos/media diretamente
+3. Certifique-se de que `PROD=True` e `USE_NGINX=True` (ou deixe USE_NGINX sem definir, pois True é o padrão)
 4. Use `collectstatic` para arquivos estáticos
 5. Configure permissões adequadas para o diretório `media/`
+
+### Opção 2: Produção sem Nginx
+
+Se você estiver rodando Django diretamente em produção sem Nginx (não recomendado para escala, mas funcional):
+
+1. Configure `PROD=True` no ambiente
+2. **IMPORTANTE**: Configure `USE_NGINX=False` no ambiente ou arquivo `.env`
+3. Os arquivos serão servidos diretamente pelo Django via `FileResponse`
+
+```bash
+# No arquivo .env ou variáveis de ambiente
+PROD=True
+USE_NGINX=False  # Essencial para thumbnails aparecerem sem Nginx
+```
+
+**Nota de Segurança**: Servir arquivos diretamente pelo Django é menos eficiente que usar Nginx, mas funciona para aplicações de pequeno/médio porte.
 
 ## Referências
 

@@ -3,9 +3,10 @@ from django.http import HttpResponse, Http404, FileResponse
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.conf import settings
+from server.settings import USE_NGINX
+
 import os
 import logging
-from server.settings import USE_NGINX
 
 from .models import FileAsset
 from .utils import build_internal_media_url
@@ -119,7 +120,7 @@ def protected_thumbnail(request, svg_id):
     response['X-Accel-Redirect'] = redirect_path
     response['Content-Type'] = ''  # Deixa o Nginx determinar o tipo
     
-    # Log para debug em produção (aparece nos logs do servidor)
-    logger.info(f"X-Accel-Redirect enviado: {redirect_path} para thumbnail do SVG {svg_id}")
+    # Log para debug (não inclui path completo por segurança)
+    logger.debug(f"Thumbnail servida via X-Accel-Redirect para SVG ID: {svg_id}")
     
     return response

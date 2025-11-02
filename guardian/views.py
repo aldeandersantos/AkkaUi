@@ -106,8 +106,8 @@ def protected_thumbnail(request, svg_id):
         # Em produção sem Nginx: loga warning de segurança
         if settings.PROD:
             logger.warning(
-                f"AVISO DE SEGURANÇA: Servindo thumbnail diretamente via Django em produção "
-                f"(SVG ID: {svg_id}). Configure Nginx + X-Accel-Redirect para máxima segurança e performance."
+                "AVISO DE SEGURANÇA: Servindo thumbnail diretamente via Django em produção "
+                f"(SVG ID: {svg_id}). Configure Nginx + X-Accel-Redirect para máxima segurança."
             )
         
         # Usa o caminho do arquivo da thumbnail

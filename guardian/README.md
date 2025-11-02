@@ -310,6 +310,14 @@ O arquivo `nginx_protected_media.conf` contém uma seção completa "VERIFICAÇ�
 3. Verifique permissões do diretório `media/` (Nginx precisa ler)
 4. Verifique logs do Nginx: `tail -f /var/log/nginx/error.log`
 
+**Erro 404:**
+- Caminho `alias` incorreto no Nginx
+- Arquivo não existe em MEDIA_ROOT
+
+**Erro 403:**
+- Permissões incorretas
+- Nginx não consegue ler os arquivos
+
 ### Opção 2: Teste Temporário sem Nginx (Apenas para Debug)
 
 ⚠️ **AVISO**: Esta opção serve APENAS para testar se as thumbnails funcionam. NÃO use em produção final.
@@ -333,11 +341,6 @@ USE_NGINX=False  # Temporário apenas para teste
 - ✅ Permite verificar se thumbnails existem e são acessíveis
 
 **Depois do teste, configure o Nginx corretamente** e remova `USE_NGINX=False` do `.env`.
-4. Verifique logs do Nginx: `tail -f /var/log/nginx/error.log`
-
-**Erro 404:**
-- Caminho `alias` incorreto no Nginx
-- Arquivo não existe em MEDIA_ROOT
 
 **Erro 403:**
 - Permissões do diretório incorretas

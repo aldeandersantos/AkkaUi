@@ -54,12 +54,12 @@ def test_thumbnails():
         print(f"  Thumbnail URL: {svg.get_thumbnail_url()}")
         
         # Verifica se arquivo existe
-        thumbnail_full_path = os.path.join(settings.MEDIA_ROOT, svg.thumbnail.name)
-        exists = os.path.exists(thumbnail_full_path)
+        thumbnail_full_path = Path(settings.MEDIA_ROOT) / svg.thumbnail.name
+        exists = thumbnail_full_path.exists()
         print(f"  Arquivo existe: {'✓ Sim' if exists else '✗ Não'}")
         
         if exists:
-            size = os.path.getsize(thumbnail_full_path)
+            size = thumbnail_full_path.stat().st_size
             print(f"  Tamanho: {size:,} bytes")
     else:
         print("⚠️  Nenhum SVG com thumbnail encontrado no banco.")

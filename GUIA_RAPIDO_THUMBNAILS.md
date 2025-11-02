@@ -170,7 +170,7 @@ Se ver este log mas thumbnails não aparecem, o Nginx não está configurado cor
 
 ---
 
-## 📞 Suporte
+## 📞 Ajuda
 
 - **Documentação completa**: Ver `guardian/README.md`
 - **Configuração Nginx**: Ver `nginx_protected_media.conf`

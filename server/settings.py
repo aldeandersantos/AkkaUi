@@ -41,7 +41,17 @@ if not SECRET_KEY:
     else:
         raise RuntimeError("SECRET_KEY not found in environment; set it in .env for production")
 
-ALLOWED_HOSTS= os.getenv('ALLOWED_HOSTS', '').split(',')
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+
+ALLOWED_HOSTS = []
+
+# Se o Render injetou o nome do host, adicione-o
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# Adicione hosts locais, se DEBUG for True
+if DEBUG:
+    ALLOWED_HOSTS += ['127.0.0.1', 'localhost']
 
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 

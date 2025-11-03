@@ -21,6 +21,26 @@
   <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js"></script>
     <!-- Oculta elementos com x-cloak até o Alpine inicializar -->
     <style>[x-cloak]{display:none!important;}</style>
+    <!-- Esconde o botão nativo de limpar em inputs type="search" para evitar duplicação do 'x' -->
+    <style>
+      /* WebKit browsers (Chrome, Safari, Edge Chromium) */
+      input[type="search"]::-webkit-search-decoration,
+      input[type="search"]::-webkit-search-cancel-button,
+      input[type="search"]::-webkit-search-results-button,
+      input[type="search"]::-webkit-search-results-decoration {
+        -webkit-appearance: none;
+        appearance: none;
+        display: none;
+      }
+
+      /* IE/Edge legacy */
+      input[type="search"]::-ms-clear,
+      input[type="search"]::-ms-reveal {
+        display: none;
+        width: 0;
+        height: 0;
+      }
+    </style>
     <!-- HTMX + CSRF: garante que requisições HTMX enviem o header X-CSRFToken usando o cookie csrftoken -->
     <script>
       function getCookie(name) {
@@ -134,9 +154,9 @@
           </div>
         </div>
         
-        <!-- Search form inline no header -->
-        <div id="searchFormContainer" style="position: fixed; top: 0; left: 0; right: 0; background: var(--bg-gray-900); border-bottom: 1px solid var(--border-gray-800); z-index: 101; display: none; height: 4rem;">
-          <div class="container" style="height: 100%; display: flex; align-items: center; justify-content: center;">
+        <!-- Search form centered dentro do header (absolute, não cria scrollbar) -->
+        <div id="searchFormContainer" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: none; width: 100%; max-width: 1000px; z-index: 200; pointer-events: auto;">
+          <div class="container" style="display: flex; align-items: center; justify-content: center; padding: 0;">
             <form action="{% url 'core:explore' %}" method="get" style="width: 100%; max-width: 600px; position: relative;" id="searchForm">
               <input name="q" type="search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search components' %}" class="input" style="width: 100%; padding-left: 3rem; padding-right: 3rem;">
               <svg style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-gray-500);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -344,45 +364,49 @@
         menu.style.display = menu.style.display === 'none' || menu.style.display === '' ? 'block' : 'none';
       }
       
-      // Search toggle
+      // Search toggle — agora aparece centralizado dentro do header (absolute) sem criar scrollbar
       let searchToggleLock = false;
       function toggleSearch(event) {
         // Prevenir múltiplas execuções simultâneas
         if (searchToggleLock) return;
         searchToggleLock = true;
-        
+
         const searchContainer = document.getElementById('searchFormContainer');
         const searchForm = document.getElementById('searchForm');
         if (!searchContainer || !searchForm) {
           searchToggleLock = false;
           return;
         }
-        
-        // Move para body na primeira vez para evitar clipping por parents
-        if (!searchContainer.dataset.moved) {
-          searchContainer.dataset.moved = 'true';
-          document.body.appendChild(searchContainer);
-        }
-        
+
         const searchInput = searchForm.querySelector('input');
         if (!searchInput) {
           searchToggleLock = false;
           return;
         }
 
-        // Toggle: verificar estado atual de forma robusta
-        const isVisible = searchContainer.style.display === 'flex';
-        
+        // Usar getComputedStyle para checar visibilidade real
+        const computedDisplay = window.getComputedStyle(searchContainer).display;
+        const isVisible = computedDisplay !== 'none';
+
         if (!isVisible) {
-          // Abrir
+          // Abrir: exibe em flex para centralizar dentro do header
           searchContainer.style.display = 'flex';
+          searchContainer.style.justifyContent = 'center';
+          searchContainer.style.alignItems = 'center';
+          // melhorar contraste em telas pequenas: ajustar width quando necessário
+          if (window.innerWidth < 480) {
+            searchForm.style.maxWidth = '90%';
+          } else {
+            searchForm.style.maxWidth = '600px';
+          }
+          // garantir foco breve após render
           setTimeout(() => searchInput.focus(), 100);
         } else {
           // Fechar
           searchContainer.style.display = 'none';
           searchInput.value = '';
         }
-        
+
         // Liberar lock após um pequeno delay
         setTimeout(() => { searchToggleLock = false; }, 50);
       }

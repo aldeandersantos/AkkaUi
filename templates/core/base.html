@@ -68,7 +68,7 @@
           
           <!-- Actions - direita -->
           <div class="actions">
-            <button class="icon-button" onclick="toggleSearch()">
+            <button class="icon-button" onclick="toggleSearch(event)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.35-4.35"></path>
@@ -339,17 +339,40 @@
       }
       
       // Search toggle
-      function toggleSearch() {
-        const searchForm = document.getElementById('searchForm');
-        const searchInput = searchForm.querySelector('input');
+      let searchToggleLock = false;
+      function toggleSearch(evt) {
+        // Prevenir múltiplas execuções simultâneas
+        if (searchToggleLock) return;
+        searchToggleLock = true;
         
-        if (searchForm.style.display === 'none' || searchForm.style.display === '') {
+        const button = evt ? evt.target.closest('button') : null;
+        const searchForm = document.getElementById('searchForm');
+        if (!searchForm) {
+          searchToggleLock = false;
+          return;
+        }
+        
+        const searchInput = searchForm.querySelector('input');
+        if (!searchInput) {
+          searchToggleLock = false;
+          return;
+        }
+
+        // Toggle: verificar estado atual de forma robusta
+        const isVisible = searchForm.style.display === 'block';
+        
+        if (!isVisible) {
+          // Abrir
           searchForm.style.display = 'block';
           setTimeout(() => searchInput.focus(), 100);
         } else {
+          // Fechar
           searchForm.style.display = 'none';
           searchInput.value = '';
         }
+        
+        // Liberar lock após um pequeno delay
+        setTimeout(() => { searchToggleLock = false; }, 50);
       }
 
       // Language menu toggle
@@ -415,6 +438,8 @@
         // Search form
         if (searchForm && !searchButton && !searchForm.contains(event.target)) {
           searchForm.style.display = 'none';
+          const searchInput = searchForm.querySelector('input');
+          if (searchInput) searchInput.value = '';
         }
 
         // Language dropdown: se o clique não for no botão nem dentro do próprio dropdown, fechar

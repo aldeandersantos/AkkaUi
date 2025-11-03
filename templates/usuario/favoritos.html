@@ -5,7 +5,7 @@
 
 {% block content %}
 <div style="width: 100%; background: var(--bg-dark);">
-  <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
+  <header class="library-header">
     <h1 style="font-size: 48px; margin-bottom: 20px; background: linear-gradient(135deg, #ff4444, #ff6b6b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
       ❤️ Meus Favoritos
     </h1>
@@ -14,7 +14,7 @@
     </p>
   </header>
 
-  <section style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
+  <section class="library-section">
     
     {% if favorite_svgs %}
       <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">

@@ -21,6 +21,26 @@
   <script defer src="https://unpkg.com/alpinejs@3.13.5/dist/cdn.min.js"></script>
     <!-- Oculta elementos com x-cloak até o Alpine inicializar -->
     <style>[x-cloak]{display:none!important;}</style>
+    <!-- Esconde o botão nativo de limpar em inputs type="search" para evitar duplicação do 'x' -->
+    <style>
+      /* WebKit browsers (Chrome, Safari, Edge Chromium) */
+      input[type="search"]::-webkit-search-decoration,
+      input[type="search"]::-webkit-search-cancel-button,
+      input[type="search"]::-webkit-search-results-button,
+      input[type="search"]::-webkit-search-results-decoration {
+        -webkit-appearance: none;
+        appearance: none;
+        display: none;
+      }
+
+      /* IE/Edge legacy */
+      input[type="search"]::-ms-clear,
+      input[type="search"]::-ms-reveal {
+        display: none;
+        width: 0;
+        height: 0;
+      }
+    </style>
     <!-- HTMX + CSRF: garante que requisições HTMX enviem o header X-CSRFToken usando o cookie csrftoken -->
     <script>
       function getCookie(name) {
@@ -68,7 +88,7 @@
           
           <!-- Actions - direita -->
           <div class="actions">
-            <button class="icon-button" onclick="toggleSearch()">
+            <button class="icon-button" onclick="toggleSearch(event)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.35-4.35"></path>
@@ -134,18 +154,24 @@
           </div>
         </div>
         
-        <!-- Search form expandido -->
-        <form action="{% url 'core:explore' %}" method="get" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-gray-900); border-bottom: 1px solid var(--border-gray-800); padding: 1rem; display: none;" id="searchForm">
-          <div class="container">
-            <div style="position: relative; max-width: 600px; margin: 0 auto;">
-              <input name="q" type="search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search components' %}" class="input" style="width: 100%; padding-left: 3rem;">
+        <!-- Search form centered dentro do header (absolute, não cria scrollbar) -->
+        <div id="searchFormContainer" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: none; width: 100%; max-width: 1000px; z-index: 200; pointer-events: auto;">
+          <div class="container" style="display: flex; align-items: center; justify-content: center; padding: 0;">
+            <form action="{% url 'core:explore' %}" method="get" style="width: 100%; max-width: 600px; position: relative;" id="searchForm">
+              <input name="q" type="search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search components' %}" class="input" style="width: 100%; padding-left: 3rem; padding-right: 3rem;">
               <svg style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-gray-500);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.35-4.35"></path>
               </svg>
-            </div>
+              <button type="button" onclick="toggleSearch(event)" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-gray-500); cursor: pointer; padding: 0.25rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     </header>
     
@@ -338,18 +364,51 @@
         menu.style.display = menu.style.display === 'none' || menu.style.display === '' ? 'block' : 'none';
       }
       
-      // Search toggle
-      function toggleSearch() {
+      // Search toggle — agora aparece centralizado dentro do header (absolute) sem criar scrollbar
+      let searchToggleLock = false;
+      function toggleSearch(event) {
+        // Prevenir múltiplas execuções simultâneas
+        if (searchToggleLock) return;
+        searchToggleLock = true;
+
+        const searchContainer = document.getElementById('searchFormContainer');
         const searchForm = document.getElementById('searchForm');
+        if (!searchContainer || !searchForm) {
+          searchToggleLock = false;
+          return;
+        }
+
         const searchInput = searchForm.querySelector('input');
-        
-        if (searchForm.style.display === 'none' || searchForm.style.display === '') {
-          searchForm.style.display = 'block';
+        if (!searchInput) {
+          searchToggleLock = false;
+          return;
+        }
+
+        // Usar getComputedStyle para checar visibilidade real
+        const computedDisplay = window.getComputedStyle(searchContainer).display;
+        const isVisible = computedDisplay !== 'none';
+
+        if (!isVisible) {
+          // Abrir: exibe em flex para centralizar dentro do header
+          searchContainer.style.display = 'flex';
+          searchContainer.style.justifyContent = 'center';
+          searchContainer.style.alignItems = 'center';
+          // melhorar contraste em telas pequenas: ajustar width quando necessário
+          if (window.innerWidth < 480) {
+            searchForm.style.maxWidth = '90%';
+          } else {
+            searchForm.style.maxWidth = '600px';
+          }
+          // garantir foco breve após render
           setTimeout(() => searchInput.focus(), 100);
         } else {
-          searchForm.style.display = 'none';
+          // Fechar
+          searchContainer.style.display = 'none';
           searchInput.value = '';
         }
+
+        // Liberar lock após um pequeno delay
+        setTimeout(() => { searchToggleLock = false; }, 50);
       }
 
       // Language menu toggle
@@ -401,7 +460,7 @@
       document.addEventListener('click', function(event) {
         const mobileMenu = document.getElementById('mobileMenu');
         const menuButton = event.target.closest('[onclick*="toggleMobileMenu"]');
-        const searchForm = document.getElementById('searchForm');
+        const searchContainer = document.getElementById('searchFormContainer');
         const searchButton = event.target.closest('[onclick*="toggleSearch"]');
         const languageSwitcher = document.getElementById('languageSwitcher');
         const languageButton = event.target.closest('[onclick*="toggleLanguageMenu"]');
@@ -413,8 +472,10 @@
         }
 
         // Search form
-        if (searchForm && !searchButton && !searchForm.contains(event.target)) {
-          searchForm.style.display = 'none';
+        if (searchContainer && !searchButton && !searchContainer.contains(event.target)) {
+          searchContainer.style.display = 'none';
+          const searchInput = searchContainer.querySelector('input');
+          if (searchInput) searchInput.value = '';
         }
 
         // Language dropdown: se o clique não for no botão nem dentro do próprio dropdown, fechar

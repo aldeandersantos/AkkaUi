@@ -134,18 +134,24 @@
           </div>
         </div>
         
-        <!-- Search form expandido -->
-        <form action="{% url 'core:explore' %}" method="get" style="position: fixed; top: 4rem; left: 0; right: 0; background: var(--bg-gray-900); border-bottom: 1px solid var(--border-gray-800); padding: 1rem; display: none; z-index: 99;" id="searchForm">
-          <div class="container">
-            <div style="position: relative; max-width: 600px; margin: 0 auto;">
-              <input name="q" type="search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search components' %}" class="input" style="width: 100%; padding-left: 3rem;">
+        <!-- Search form inline no header -->
+        <div id="searchFormContainer" style="position: fixed; top: 0; left: 0; right: 0; background: var(--bg-gray-900); border-bottom: 1px solid var(--border-gray-800); z-index: 101; display: none; height: 4rem;">
+          <div class="container" style="height: 100%; display: flex; align-items: center; justify-content: center;">
+            <form action="{% url 'core:explore' %}" method="get" style="width: 100%; max-width: 600px; position: relative;" id="searchForm">
+              <input name="q" type="search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search components' %}" class="input" style="width: 100%; padding-left: 3rem; padding-right: 3rem;">
               <svg style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-gray-500);" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.35-4.35"></path>
               </svg>
-            </div>
+              <button type="button" onclick="toggleSearch(event)" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-gray-500); cursor: pointer; padding: 0.25rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     </header>
     
@@ -345,16 +351,17 @@
         if (searchToggleLock) return;
         searchToggleLock = true;
         
+        const searchContainer = document.getElementById('searchFormContainer');
         const searchForm = document.getElementById('searchForm');
-        if (!searchForm) {
+        if (!searchContainer || !searchForm) {
           searchToggleLock = false;
           return;
         }
         
         // Move para body na primeira vez para evitar clipping por parents
-        if (!searchForm.dataset.moved) {
-          searchForm.dataset.moved = 'true';
-          document.body.appendChild(searchForm);
+        if (!searchContainer.dataset.moved) {
+          searchContainer.dataset.moved = 'true';
+          document.body.appendChild(searchContainer);
         }
         
         const searchInput = searchForm.querySelector('input');
@@ -364,15 +371,15 @@
         }
 
         // Toggle: verificar estado atual de forma robusta
-        const isVisible = searchForm.style.display === 'block';
+        const isVisible = searchContainer.style.display === 'flex';
         
         if (!isVisible) {
           // Abrir
-          searchForm.style.display = 'block';
+          searchContainer.style.display = 'flex';
           setTimeout(() => searchInput.focus(), 100);
         } else {
           // Fechar
-          searchForm.style.display = 'none';
+          searchContainer.style.display = 'none';
           searchInput.value = '';
         }
         
@@ -429,7 +436,7 @@
       document.addEventListener('click', function(event) {
         const mobileMenu = document.getElementById('mobileMenu');
         const menuButton = event.target.closest('[onclick*="toggleMobileMenu"]');
-        const searchForm = document.getElementById('searchForm');
+        const searchContainer = document.getElementById('searchFormContainer');
         const searchButton = event.target.closest('[onclick*="toggleSearch"]');
         const languageSwitcher = document.getElementById('languageSwitcher');
         const languageButton = event.target.closest('[onclick*="toggleLanguageMenu"]');
@@ -441,9 +448,9 @@
         }
 
         // Search form
-        if (searchForm && !searchButton && !searchForm.contains(event.target)) {
-          searchForm.style.display = 'none';
-          const searchInput = searchForm.querySelector('input');
+        if (searchContainer && !searchButton && !searchContainer.contains(event.target)) {
+          searchContainer.style.display = 'none';
+          const searchInput = searchContainer.querySelector('input');
           if (searchInput) searchInput.value = '';
         }
 

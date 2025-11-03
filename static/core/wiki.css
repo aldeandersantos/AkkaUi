@@ -311,7 +311,7 @@ main.container{
 .auth-container{
   max-width:480px;
   margin:0 auto;
-  padding:40px 0;
+  padding:40px 24px;
 }
 .auth-form{
   background:var(--bg-card);
@@ -546,6 +546,9 @@ main.container{
   }
   .content{
     padding:24px;
+  }
+  .auth-container{
+    padding:40px 16px;
   }
   .page{
     padding:16px;

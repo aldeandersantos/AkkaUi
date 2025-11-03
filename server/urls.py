@@ -22,10 +22,13 @@ def serve_public_media(request, path):
     # Serve non-private media files
     return serve(request, path, document_root=settings.MEDIA_ROOT)
 
+# Rotas que NÃO DEVEM TER PREFIXO DE IDIOMA
 urlpatterns = [
+    path('stripe/', include('djstripe.urls', namespace='djstripe')),
     path('i18n/setlang/', set_language, name='set_language'),
 ]
 
+# Rotas que DEVEM TER PREFIXO DE IDIOMA
 urlpatterns += i18n_patterns(
     path('admin/', admin.site.urls),
     path('usuario/', include('usuario.urls')),

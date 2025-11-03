@@ -135,7 +135,7 @@
         </div>
         
         <!-- Search form expandido -->
-        <form action="{% url 'core:explore' %}" method="get" style="position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-gray-900); border-bottom: 1px solid var(--border-gray-800); padding: 1rem; display: none;" id="searchForm">
+        <form action="{% url 'core:explore' %}" method="get" style="position: fixed; top: 4rem; left: 0; right: 0; background: var(--bg-gray-900); border-bottom: 1px solid var(--border-gray-800); padding: 1rem; display: none; z-index: 99;" id="searchForm">
           <div class="container">
             <div style="position: relative; max-width: 600px; margin: 0 auto;">
               <input name="q" type="search" placeholder="{% trans 'Search...' %}" aria-label="{% trans 'Search components' %}" class="input" style="width: 100%; padding-left: 3rem;">
@@ -349,6 +349,12 @@
         if (!searchForm) {
           searchToggleLock = false;
           return;
+        }
+        
+        // Move para body na primeira vez para evitar clipping por parents
+        if (!searchForm.dataset.moved) {
+          searchForm.dataset.moved = 'true';
+          document.body.appendChild(searchForm);
         }
         
         const searchInput = searchForm.querySelector('input');

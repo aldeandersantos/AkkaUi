@@ -222,13 +222,19 @@ class PaymentService:
         
         total_amount = Decimal('0.00')
         processed_items = []
-        
+
+        # Para licenças digitais: normalizar items 'svg' para quantity=1
+        # e deduplicar múltiplas entradas do mesmo svg enviadas pelo cliente.
+        seen_svg_ids = set()
+
         # Processar cada item e calcular o total
         for item_data in items:
             item_type = item_data.get('type')
             item_id = item_data.get('id')
+            # ignorar quantidade enviada pelo cliente para SVGs
+            incoming_quantity = item_data.get('quantity', 1)
             quantity = item_data.get('quantity', 1)
-            
+
             if item_type == 'plan':
                 # Item de plano
                 price = Decimal(str(cls.get_plan_price(item_id)))
@@ -247,15 +253,24 @@ class PaymentService:
                     svg = SvgFile.objects.get(id=item_id)
                     if svg.price <= 0:
                         raise ValueError(f"SVG {item_id} não está disponível para venda")
+
+                    # Deduplicar: pular se já processamos este SVG
+                    if svg.id in seen_svg_ids:
+                        continue
+                    seen_svg_ids.add(svg.id)
+
+                    # Enforce licença única: quantity = 1
+                    enforced_quantity = 1
+
                     processed_items.append({
                         'type': 'svg',
                         'id': svg.id,
                         'name': svg.title_name or f"SVG {svg.id}",
-                        'quantity': quantity,
+                        'quantity': enforced_quantity,
                         'unit_price': svg.price,
                         'metadata': {'svg_id': svg.id, 'hash_value': svg.hash_value}
                     })
-                    total_amount += svg.price * quantity
+                    total_amount += svg.price * enforced_quantity
                 except SvgFile.DoesNotExist:
                     raise ValueError(f"SVG {item_id} não encontrado")
             else:

@@ -32,6 +32,7 @@ urlpatterns += i18n_patterns(
     path('payment/', include('payment.urls')),
     path('support/', include('support.urls')),
     path('guardian/', include('guardian.urls')),
+    path('stripe/', include('djstripe.urls')),
     path('', include('core.urls')),
     prefix_default_language=True,
 )

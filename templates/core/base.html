@@ -340,12 +340,11 @@
       
       // Search toggle
       let searchToggleLock = false;
-      function toggleSearch(evt) {
+      function toggleSearch(event) {
         // Prevenir múltiplas execuções simultâneas
         if (searchToggleLock) return;
         searchToggleLock = true;
         
-        const button = evt ? evt.target.closest('button') : null;
         const searchForm = document.getElementById('searchForm');
         if (!searchForm) {
           searchToggleLock = false;

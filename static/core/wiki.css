@@ -7,6 +7,7 @@
   --text-muted:#7b7b7b;
   --border:#2a2a2a;
   --container:1200px;
+  --wide-container:1600px;
   --transition:all 0.3s ease;
 }
 
@@ -436,11 +437,11 @@ main.container{
 .library-header{
   text-align:center;
   padding:60px 24px 20px;
-  max-width:1600px;
+  max-width:var(--wide-container);
   margin:0 auto;
 }
 .library-section{
-  max-width:1600px;
+  max-width:var(--wide-container);
   margin:0 auto;
   padding:0 24px 60px;
 }

@@ -5,7 +5,7 @@
 
 {% block content %}
 <div style="width: 100%; background: var(--bg-dark);">
-  <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
+  <header class="library-header">
     <h1 style="font-size: 48px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
       📚 Minha Biblioteca
     </h1>
@@ -14,7 +14,7 @@
     </p>
   </header>
 
-  <section style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
+  <section class="library-section">
     
     {% if is_vip %}
       <div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 20px; border-radius: 12px; margin-bottom: 40px; text-align: center;">

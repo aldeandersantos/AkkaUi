@@ -130,10 +130,10 @@
   text-align: center;
 }
 
-.plan-cta:hover {
-  background: var(--primary-hover);
-  transform: translateY(-1px);
-}
+  .plan-cta:hover {
+    background: var(--primary);
+    transform: translateY(-1px);
+  }
 
 .plan-cta.secondary {
   background: var(--bg-gray-800);
@@ -187,71 +187,6 @@
 .pricing-faq p {
   color: var(--text-gray-400);
   margin-bottom: 1.5rem;
-}
-
-.plan-cta:hover {
-  background: #5d4ed1;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(116, 96, 243, 0.3);
-}
-
-.plan-cta.outline {
-  background: transparent;
-  border: 2px solid var(--primary);
-  color: var(--primary);
-}
-
-.plan-cta.outline:hover {
-  background: var(--primary);
-  color: #fff;
-}
-
-.plan-features {
-  list-style: none;
-  padding: 0;
-}
-
-.plan-features li {
-  color: var(--text-muted);
-  padding: 12px 0;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.plan-features li:last-child {
-  border-bottom: none;
-}
-
-.feature-icon {
-  color: var(--primary);
-  font-size: 18px;
-}
-
-.feature-icon.disabled {
-  color: var(--text-muted);
-  opacity: 0.3;
-}
-
-.pricing-faq {
-  margin-top: 64px;
-  text-align: center;
-}
-
-.pricing-faq h2 {
-  color: var(--text-light);
-  font-size: 32px;
-  margin-bottom: 16px;
-}
-
-.pricing-faq p {
-  color: var(--text-muted);
-  margin-bottom: 24px;
-}
-
-.pricing-faq .btn {
-  display: inline-block;
 }
 
 @media (max-width: 900px) {
@@ -369,6 +304,7 @@
     <!-- Annual Plan -->
     <div class="pricing-card featured">
       <span class="popular-badge">{% trans "Most Popular" %}</span>
+      <h3 class="plan-name">{% trans "Annual" %}</h3>
       <p class="plan-description">{% trans "Best value - Save 15% with annual plan" %}</p>
       
       <div class="plan-price">
@@ -423,7 +359,7 @@
     <div class="modal-overlay" onclick="closePaymentModal()"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Selecione a forma de pagamento</h2>
+        <h2>{% trans "Select payment method" %}</h2>
         <button class="modal-close" onclick="closePaymentModal()">×</button>
       </div>
       <div class="modal-body">
@@ -432,7 +368,7 @@
         <div class="payment-methods">
           <button id="stripeMethod" class="payment-method" onclick="selectGateway('stripe')">
             <div class="method-icon">💳</div>
-            <div class="method-name">Stripe</div>
+            <div class="method-name">{% trans "Stripe" %}</div>
             <div class="method-description">{% trans "Recurring subscription - Automatic renewal" %}</div>
           </button>
         </div>
@@ -628,20 +564,21 @@
       const planInfo = document.getElementById('modalPlanInfo');
       
       const planNames = {
-        'monthly': 'Plano Mensal',
-        'quarterly': 'Plano Trimestral',
-        'annual': 'Plano Anual'
+        'monthly': '{% trans "Monthly Plan" %}',
+        'quarterly': '{% trans "Quarterly Plan" %}',
+        'annual': '{% trans "Annual Plan" %}'
       };
-      
-      const planName = planNames[plan] || 'Plano';
+
+      const planName = planNames[plan] || '{% trans "Plan" %}';
       const amountFormatted = amount.toFixed(2);
       planInfo.textContent = '';
-      
+
       const strong = document.createElement('strong');
       strong.textContent = planName;
       planInfo.appendChild(strong);
       planInfo.appendChild(document.createElement('br'));
-      planInfo.appendChild(document.createTextNode(`Valor: US$ ${amountFormatted}`));
+      // use translatable label for Amount (English base)
+      planInfo.appendChild(document.createTextNode('{% trans "Amount" %}: US$ ' + amountFormatted));
       
       modal.style.display = 'flex';
     }
@@ -660,8 +597,8 @@
     async function selectGateway(gateway) {
       const status = document.getElementById('paymentStatus');
       status.style.display = 'block';
-      status.className = 'payment-status loading';
-      status.innerHTML = '⏳ Processando pagamento...';
+  status.className = 'payment-status loading';
+  status.innerHTML = '{% trans "⏳ Processing payment..." %}';
 
       try {
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
@@ -678,38 +615,44 @@
           
           const priceId = stripePriceMap[currentPlan];
           if (!priceId) {
-            // Mensagem amigável no modal em vez de lançar uma exceção JS
+            // Friendly message in modal instead of throwing a JS exception
             status.className = 'payment-status error';
-            status.innerHTML = '✗ Plano Stripe não configurado. Informe os Stripe Price IDs em configurações (STRIPE_PRICE_MONTHLY/QUARTERLY/ANNUAL). Consulte STRIPE_PRODUCT_SETUP.md.';
+            status.innerHTML = '{% trans "✗ Stripe plan not configured. Set STRIPE_PRICE_MONTHLY/QUARTERLY/ANNUAL in settings. See STRIPE_PRODUCT_SETUP.md." %}';
             return;
           }
           
-          // Calcular próxima data de cobrança
+          // Calculate next billing date and use English keys for periods (translations applied below)
           const today = new Date();
           const nextBillingDate = new Date(today);
-          let renewalPeriod = 'Mensal';
-          
+          let renewalPeriod = 'Monthly';
+
           if (currentPlan === 'monthly') {
             nextBillingDate.setMonth(nextBillingDate.getMonth() + 1);
-            renewalPeriod = 'Mensal';
+            renewalPeriod = 'Monthly';
           } else if (currentPlan === 'quarterly') {
             nextBillingDate.setMonth(nextBillingDate.getMonth() + 3);
-            renewalPeriod = 'Trimestral';
+            renewalPeriod = 'Quarterly';
           } else if (currentPlan === 'annual') {
             nextBillingDate.setFullYear(nextBillingDate.getFullYear() + 1);
-            renewalPeriod = 'Anual';
+            renewalPeriod = 'Annual';
           }
-          
+
           const formattedDate = nextBillingDate.toLocaleDateString('pt-BR');
-          
-          // Mostrar aviso sobre recorrência
-          const confirmMsg = `⚠️ Assinatura Recorrente\n\n` +
-            `Este é um plano de assinatura que será renovado automaticamente.\n\n` +
-            `• Primeira cobrança: Hoje (US$ ${currentAmount.toFixed(2)})\n` +
-            `• Próxima cobrança: ${formattedDate}\n` +
-            `• Renovação: ${renewalPeriod}\n\n` +
-            `Você poderá cancelar a qualquer momento no painel do Stripe.\n\n` +
-            `Deseja continuar?`;
+
+          // Build confirm message using translatable fragments (English base)
+          const renewalTranslations = {
+            'Monthly': '{% trans "Monthly" %}',
+            'Quarterly': '{% trans "Quarterly" %}',
+            'Annual': '{% trans "Annual" %}'
+          };
+
+          const confirmMsg = '{% trans "⚠️ Recurring Subscription" %}\n\n' +
+            '{% trans "This is a subscription that will renew automatically." %}\n\n' +
+            '• {% trans "First charge" %}: ' + '{% trans "Today" %}' + ' (US$ ' + currentAmount.toFixed(2) + ')\n' +
+            '• {% trans "Next charge" %}: ' + formattedDate + '\n' +
+            '• {% trans "Renewal" %}: ' + renewalTranslations[renewalPeriod] + '\n\n' +
+            '{% trans "You can cancel at any time from the Stripe dashboard." %}\n\n' +
+            '{% trans "Do you want to continue?" %}';
           
           if (!confirm(confirmMsg)) {
             status.style.display = 'none';
@@ -734,13 +677,13 @@
           
           if (response.ok && data.checkout_url) {
             status.className = 'payment-status success';
-            status.innerHTML = '✓ Redirecionando para checkout do Stripe...';
+            status.innerHTML = '{% trans "✓ Redirecting to Stripe checkout..." %}';
             setTimeout(() => {
               window.location.href = data.checkout_url;
             }, 500);
             return;
           } else {
-            throw new Error(data.error || 'Erro ao criar checkout');
+            throw new Error(data.error || '{% trans "Error creating checkout" %}');
           }
         }
         
@@ -774,7 +717,7 @@
           const paymentUrl = payment.gateway_response?.payment_url || data.redirect_url;
           if ((payment.gateway === 'mercadopago' || payment.gateway === 'stripe') && paymentUrl) {
             status.className = 'payment-status success';
-            status.innerHTML = '✓ Redirecionando para pagamento...';
+            status.innerHTML = '{% trans "✓ Redirecting to payment..." %}';
             setTimeout(() => {
               window.location.href = paymentUrl;
             }, 500);
@@ -785,51 +728,51 @@
           
           let message = '';
           
-          // Mensagem específica para AbacatePay/PIX
+          // Specific message for AbacatePay / PIX
           if (payment.gateway === 'abacatepay') {
-            message = `✓ Pagamento PIX criado com sucesso!<br><br>`;
-            message += `<strong>Aguardando pagamento</strong><br>`;
-            message += `Valor: R$ ${parseFloat(payment.amount).toFixed(2)}<br>`;
-            message += `ID da transação: ${payment.transaction_id}<br><br>`;
-            
+            message = '{% trans "✓ PIX payment created successfully!" %}<br><br>';
+            message += '<strong>{% trans "Waiting for payment" %}</strong><br>';
+            message += '{% trans "Amount" %}: R$ ' + parseFloat(payment.amount).toFixed(2) + '<br>';
+            message += '{% trans "Transaction ID" %}: ' + payment.transaction_id + '<br><br>';
+
             if (payment.gateway_response && payment.gateway_response.qr_code) {
-              message += `<div style="padding: 16px; background: rgba(116, 96, 243, 0.1); border-radius: 8px; margin: 12px 0;">`;
-              message += `<strong>📱 Pague com PIX:</strong><br>`;
-              message += `1. Abra o app do seu banco<br>`;
-              message += `2. Escaneie o QR Code ou copie o código PIX<br>`;
-              message += `3. Confirme o pagamento<br><br>`;
-              message += `<small>Seu VIP será ativado automaticamente após a confirmação do pagamento.</small>`;
-              message += `</div>`;
+              message += '<div style="padding: 16px; background: rgba(116, 96, 243, 0.1); border-radius: 8px; margin: 12px 0;">';
+              message += '<strong>📱 {% trans "Pay with PIX" %}:</strong><br>';
+              message += '1. {% trans "Open your bank app" %}<br>';
+              message += '2. {% trans "Scan the QR Code or copy the PIX code" %}<br>';
+              message += '3. {% trans "Confirm the payment" %}<br><br>';
+              message += '<small>{% trans "Your VIP will be activated automatically after payment confirmation." %}</small>';
+              message += '</div>';
             }
-            
-            // Para ambiente de teste, mostrar botão de simular pagamento
-            message += `<br><button onclick="simulatePayment('${payment.transaction_id}')" class="btn" style="margin-top: 12px; background: #ffa502;">🧪 Simular Confirmação PIX (Teste)</button>`;
+
+            // In test environment, show simulate payment button
+            message += '<br><button onclick="simulatePayment(\'' + payment.transaction_id + '\')" class="btn" style="margin-top: 12px; background: #ffa502;">🧪 {% trans "Simulate PIX Confirmation (Test)" %}</button>';
           } else {
-            // Mensagem genérica para outros gateways
-            message = `✓ Pagamento criado com sucesso!<br><br>`;
-            message += `ID da transação: ${payment.transaction_id}<br>`;
-            message += `Gateway: ${payment.gateway}<br>`;
-            message += `Status: ${payment.status}<br>`;
-            
+            // Generic message for other gateways
+            message = '{% trans "✓ Payment created successfully!" %}<br><br>';
+            message += '{% trans "Transaction ID" %}: ' + payment.transaction_id + '<br>';
+            message += '{% trans "Gateway" %}: ' + payment.gateway + '<br>';
+            message += '{% trans "Status" %}: ' + payment.status + '<br>';
+
             if (payment.gateway_response && payment.gateway_response.payment_url) {
-              message += `<br><a href="${payment.gateway_response.payment_url}" target="_blank" class="btn" style="margin-top: 12px;">Ir para pagamento</a>`;
+              message += '<br><a href="' + payment.gateway_response.payment_url + '" target="_blank" class="btn" style="margin-top: 12px;">' + '{% trans "Go to payment" %}' + '</a>';
             }
           }
           
           status.innerHTML = message;
         } else {
-          throw new Error(data.error || 'Erro ao criar pagamento');
+          throw new Error(data.error || '{% trans "Error creating payment" %}');
         }
       } catch (error) {
         status.className = 'payment-status error';
-        status.innerHTML = `✗ Erro: ${error.message}`;
+        status.innerHTML = '{% trans "✗ Error" %}: ' + error.message;
       }
     }
 
     async function simulatePayment(transactionId) {
       const status = document.getElementById('paymentStatus');
       status.className = 'payment-status loading';
-      status.innerHTML = '⏳ Simulando confirmação PIX...';
+  status.innerHTML = '{% trans "⏳ Simulating PIX confirmation..." %}';
 
       try {
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
@@ -850,17 +793,17 @@
         if (response.ok && data.status === 'success') {
           status.className = 'payment-status success';
           status.innerHTML = `
-            ✓ Pagamento PIX confirmado com sucesso!<br><br>
-            <strong>🎉 Seu status VIP foi ativado!</strong><br><br>
-            <small>Você agora tem acesso a todos os recursos premium.</small><br>
-            <button onclick="window.location.reload()" class="btn" style="margin-top: 12px;">Recarregar Página</button>
+            {% trans "✓ PIX payment confirmed successfully!" %}<br><br>
+            <strong>🎉 {% trans "Your VIP status has been activated!" %}</strong><br><br>
+            <small>{% trans "You now have access to all premium features." %}</small><br>
+            <button onclick="window.location.reload()" class="btn" style="margin-top: 12px;">{% trans "Reload Page" %}</button>
           `;
         } else {
-          throw new Error(data.error || 'Erro ao confirmar pagamento');
+          throw new Error(data.error || '{% trans "Error confirming payment" %}');
         }
       } catch (error) {
         status.className = 'payment-status error';
-        status.innerHTML = `✗ Erro: ${error.message}`;
+        status.innerHTML = '{% trans "✗ Error" %}: ' + error.message;
       }
     }
   </script>

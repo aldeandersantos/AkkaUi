@@ -4,7 +4,7 @@
 
 {% block content %}
 <div style="width: 100%; background: var(--bg-dark);">
-  <header style="text-align: center; padding: 60px 80px 20px; max-width: 1600px; margin: 0 auto;">
+  <header class="library-header">
     <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
       Meus SVGs
     </h1>
@@ -17,7 +17,7 @@
     </p>
   </header>
 
-  <section id="purchased-svgs" style="max-width: 1600px; margin: 0 auto; padding: 0 80px 60px;">
+  <section id="purchased-svgs" class="library-section">
     {% if is_vip %}
       {# Aviso VIP #}
       <div style="background: linear-gradient(135deg, #7460F3, #9b8af5); border-radius: 12px; padding: 24px; margin-bottom: 32px; text-align: center;">

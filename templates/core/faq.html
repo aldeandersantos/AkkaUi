@@ -182,59 +182,7 @@
 
 .faq-contact p {
   color: var(--text-gray-400);
-  font-size: 1.125rem;
   margin-bottom: 1.5rem;
-}
-</style>
-
-<article class="container" style="padding: 2rem 1rem;">
-  <div class="faq-hero">
-    <h1>{% trans "Frequently Asked Questions" %}</h1>
-    <p>{% trans "Find quick answers to common questions about AkkaUi" %}</p>
-  </div>
-
-  <div class="faq-search">
-    <input 
-      type="search" 
-      id="faqSearch"
-      placeholder="{% trans 'Search for questions...' %}"
-      aria-label="{% trans 'Search FAQ' %}"
-    >
-  </div>
-
-  <div class="faq-categories">
-    <button class="category-btn active">{% trans "All" %}</button>
-    <button class="category-btn">{% trans "general" %}</button>
-    <button class="category-btn">{% trans "pricing" %}</button>
-    <button class="category-btn">{% trans "technical" %}</button>
-    <button class="category-btn">{% trans "account" %}</button>
-  </div>
-
-  <div class="faq-list">
-}
-
-.faq-contact p {
-  color: var(--text-muted);
-  margin-bottom: 24px;
-}
-
-@media (max-width: 900px) {
-  .faq-hero h1 {
-    font-size: 32px;
-  }
-  
-  .faq-question {
-    font-size: 16px;
-    padding: 20px;
-  }
-  
-  .faq-answer {
-    padding: 0 20px;
-  }
-  
-  .faq-item.active .faq-answer {
-    padding: 0 20px 20px;
-  }
 }
 </style>
 

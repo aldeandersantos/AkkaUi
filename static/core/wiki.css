@@ -161,6 +161,11 @@ main.container{
 }
 
 /* Page Styles */
+.page{
+  max-width:var(--container);
+  margin:0 auto;
+  padding:24px;
+}
 .page-header h1{
   font-size:48px;
   margin-bottom:16px;
@@ -528,6 +533,9 @@ main.container{
   }
   .content{
     padding:24px;
+  }
+  .page{
+    padding:16px;
   }
   .page-header h1{
     font-size:32px;

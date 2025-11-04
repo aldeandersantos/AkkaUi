@@ -51,9 +51,10 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 # Adicione hosts locais, se DEBUG for True
 if DEBUG:
-    ALLOWED_HOSTS += ['127.0.0.1', 'localhost']
+    ALLOWED_HOSTS += ['127.0.0.1', 'localhost', '.ngrok-free.app']
 
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+SITE_ID = 1
 
 
 # Application definition
@@ -65,12 +66,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'djstripe',
     'payment',
     'usuario',
     'core',
     'support',
     'guardian',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -238,6 +241,9 @@ STRIPE_LIVE_MODE = os.getenv('STRIPE_LIVE_MODE', 'False').lower() in ('true', '1
 DJSTRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
+STRIPE_WEBHOOK_SECRET_MINIMO= os.getenv('STRIPE_WEBHOOK_SECRET_MINIMO', '')
+STRIPE_WEBHOOK_SECRET_INSTA= os.getenv('STRIPE_WEBHOOK_SECRET_INSTA', '')
+DJSTRIPE_SUBSCRIBER_MODEL = 'usuario.CustomUser'
 
 # Optional: Stripe Price IDs (set in .env or environment for each environment)
 # These are the `price_...` identifiers from your Stripe product/prices.

@@ -1,241 +1,144 @@
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
-from django.conf import settings
-from djstripe.models import Price, Subscription
-from payment.services.stripe_service import get_or_create_stripe_customer
-from datetime import datetime
-import stripe
 import logging
+from django.views.generic import TemplateView
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 import json
+from django.utils.translation import get_language
 
 logger = logging.getLogger(__name__)
 
+try:
+	import stripe
+	stripe_imported = True
+except Exception:
+	stripe = None
+	stripe_imported = False
 
-@login_required
-@require_http_methods(["POST"])
+
+
+class SuccessView(TemplateView):
+	"""Página de sucesso do checkout Stripe."""
+	template_name = "core/success.html"
+
+	def get_context_data(self, **kwargs):
+		context = super().get_context_data(**kwargs)
+		request = self.request
+		session_id = (
+			request.GET.get('session_id')
+			or request.GET.get('checkout_session_id')
+			or request.GET.get('session')
+			or request.GET.get('id')
+		)
+		context['session_id'] = session_id
+		context['stripe_available'] = False
+		context['payment_status'] = None
+		context['amount'] = None
+		context['currency'] = None
+		if session_id and stripe_imported:
+			try:
+				stripe.api_key = (
+					settings.STRIPE_LIVE_SECRET_KEY
+					if getattr(settings, 'STRIPE_LIVE_MODE', False)
+					else getattr(settings, 'STRIPE_TEST_SECRET_KEY', None)
+				)
+			except Exception:
+				logger.debug('Config Stripe não encontrada nas settings')
+			try:
+				session = stripe.checkout.Session.retrieve(session_id)
+				context['stripe_available'] = True
+				amount_total = getattr(session, 'amount_total', None)
+				if amount_total is None and isinstance(session, dict):
+					amount_total = session.get('amount_total')
+				currency = getattr(session, 'currency', None)
+				if currency is None and isinstance(session, dict):
+					currency = session.get('currency')
+				context['amount'] = (amount_total / 100) if amount_total else None
+				context['currency'] = currency.upper() if currency else None
+				status = getattr(session, 'status', None)
+				if status is None and isinstance(session, dict):
+					status = session.get('status')
+				status_map = {
+					'complete': 'completed',
+					'open': 'pending',
+					'expired': 'cancelled',
+				}
+				context['payment_status'] = status_map.get(status, status)
+			except Exception as e:
+				logger.exception('Erro ao recuperar Checkout Session do Stripe: %s', e)
+				context['stripe_error'] = str(e)
+		return context
+
+
+
+class CancelView(TemplateView):
+	"""Página de cancelamento do checkout."""
+	template_name = "core/cancel.html"
+
+
+
+
+@csrf_exempt
+@require_POST
 def create_checkout_session(request):
-    """
-    Cria uma sessão de checkout do Stripe.
-    Suporta tanto assinaturas recorrentes quanto compras únicas.
-    
-    Espera JSON body:
-    {
-        "mode": "subscription" | "payment",  # Modo de checkout
-        "price_id": "price_xxx",  # ID do preço (para subscription)
-        "amount": 100.00,  # Valor (para payment único)
-        "currency": "BRL",  # Moeda
-        "items": [...],  # Lista de itens (opcional, para carrinho)
-        "success_url": "http://example.com/success",
-        "cancel_url": "http://example.com/cancel"
-    }
-    """
-    try:
-        data = json.loads(request.body)
-        
-        mode = data.get('mode', 'subscription')  # Padrão é assinatura
-        base_url = settings.BASE_URL or 'http://localhost:8000'
-        success_url = data.get('success_url', f"{base_url}/payment/success/")
-        cancel_url = data.get('cancel_url', f"{base_url}/payment/cancel/")
-        
-        # Garante que o usuário tem um Customer no Stripe
-        customer = get_or_create_stripe_customer(request.user)
-        
-        # Configura a API do Stripe
-        stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY if settings.STRIPE_LIVE_MODE else settings.STRIPE_TEST_SECRET_KEY
-        
-        if mode == 'subscription':
-            # Modo assinatura recorrente
-            price_id = data.get('price_id')
-            if not price_id:
-                return JsonResponse({'error': 'price_id é obrigatório para modo subscription'}, status=400)
-            
-            # Validar se price_id parece válido (não é placeholder)
-            if price_id.endswith('_id') or 'xxxxx' in price_id or 'monthly_id' in price_id:
-                logger.error(f"Price ID placeholder detectado: {price_id}")
-                return JsonResponse({
-                    'error': 'Configuração pendente: Price IDs do Stripe não foram configurados. '
-                             'Por favor, configure os Price IDs reais no arquivo pricing.html (linha ~720). '
-                             'Veja STRIPE_PRODUCT_SETUP.md para instruções.'
-                }, status=400)
-            
-            checkout_session = stripe.checkout.Session.create(
-                customer=customer.id,
-                payment_method_types=['card'],
-                line_items=[{
-                    'price': price_id,
-                    'quantity': 1,
-                }],
-                mode='subscription',
-                success_url=success_url,
-                cancel_url=cancel_url,
-                metadata={
-                    'user_id': request.user.id,
-                    'user_email': request.user.email,
-                    'mode': 'subscription',
-                }
-            )
-        else:
-            # Modo pagamento único
-            items = data.get('items')
-            if not items:
-                return JsonResponse({'error': 'items é obrigatório para modo payment'}, status=400)
-            
-            if not isinstance(items, list) or len(items) == 0:
-                return JsonResponse({'error': 'items deve ser uma lista não vazia'}, status=400)
-            
-            # Converter items para formato do Stripe
-            from decimal import Decimal
-            line_items = []
-            for item in items:
-                # Validar campos obrigatórios
-                if 'unit_price' not in item:
-                    return JsonResponse({'error': 'unit_price é obrigatório em cada item'}, status=400)
-                
-                try:
-                    # Usar Decimal para evitar problemas de precisão
-                    unit_price = Decimal(str(item.get('unit_price', 0)))
-                    unit_amount_cents = int(unit_price * 100)
-                except (ValueError, TypeError):
-                    return JsonResponse({'error': 'unit_price deve ser um número válido'}, status=400)
-                
-                line_items.append({
-                    'price_data': {
-                        'currency': data.get('currency', 'brl').lower(),
-                        'unit_amount': unit_amount_cents,
-                        'product_data': {
-                            'name': item.get('name', 'Item'),
-                            'description': item.get('description', ''),
-                        },
-                    },
-                    'quantity': int(item.get('quantity', 1)),
-                })
-            
-            checkout_session = stripe.checkout.Session.create(
-                customer=customer.id,
-                payment_method_types=['card'],
-                line_items=line_items,
-                mode='payment',
-                success_url=success_url,
-                cancel_url=cancel_url,
-                metadata={
-                    'user_id': request.user.id,
-                    'user_email': request.user.email,
-                    'mode': 'payment',
-                }
-            )
-        
-        return JsonResponse({
-            'checkout_url': checkout_session.url,
-            'session_id': checkout_session.id,
-            'mode': mode
-        })
-    
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'JSON inválido'}, status=400)
-    except stripe.StripeError as e:
-        logger.error(f"Erro do Stripe ao criar checkout: {str(e)}")
-        error_msg = str(e)
-        
-        # Mensagens mais amigáveis para erros comuns
-        if 'No such price' in error_msg:
-            error_msg = 'Price ID inválido. Por favor, configure os Price IDs corretos do Stripe Dashboard no código (pricing.html linha ~720). Veja STRIPE_PRODUCT_SETUP.md para instruções.'
-        elif 'Invalid API Key' in error_msg or 'api_key' in error_msg.lower():
-            error_msg = 'Chave da API Stripe não configurada corretamente. Verifique as variáveis de ambiente STRIPE_SECRET_KEY.'
-        
-        return JsonResponse({'error': error_msg}, status=400)
-    except Exception as e:
-        logger.error(f"Erro ao criar checkout session: {e}", exc_info=True)
-        return JsonResponse({'error': f'Erro ao criar sessão de checkout: {str(e)}'}, status=500)
+	"""Cria uma Stripe Checkout Session e retorna a URL de redirecionamento."""
+	try:
+		data = json.loads(request.body)
+	except Exception:
+		return JsonResponse({"error": "invalid_json"}, status=400)
 
+	amount = data.get('amount')
+	currency = data.get('currency', 'BRL')
+	metadata = data.get('metadata') or {}
+	product_name = data.get('product_name', 'Pagamento AkkaUi')
+	if not amount:
+		return JsonResponse({"error": "missing_amount"}, status=400)
 
-@login_required
-@require_http_methods(["GET"])
-def list_subscription_prices(request):
-    """
-    Lista os preços de assinatura disponíveis no Stripe.
-    """
-    try:
-        # Busca preços ativos de assinaturas
-        prices = Price.objects.filter(
-            active=True,
-            type='recurring'
-        ).select_related('product')
-        
-        price_list = []
-        for price in prices:
-            price_data = {
-                'id': price.id,
-                'product': price.product.name if price.product else 'N/A',
-                'amount': float(price.unit_amount / 100) if price.unit_amount else 0,
-                'currency': price.currency,
-                'interval': price.recurring.get('interval') if price.recurring else None,
-                'interval_count': price.recurring.get('interval_count') if price.recurring else None,
-            }
-            price_list.append(price_data)
-        
-        return JsonResponse({'prices': price_list})
-    
-    except Exception as e:
-        logger.error(f"Erro ao listar preços: {e}", exc_info=True)
-        return JsonResponse({'error': 'Erro ao listar preços'}, status=500)
+	# Normaliza metadata para string
+	stripe_metadata = {}
+	for key, value in (metadata.items() if isinstance(metadata, dict) else {}):
+		try:
+			stripe_metadata[key] = json.dumps(value) if isinstance(value, (dict, list)) else str(value)
+		except Exception:
+			stripe_metadata[key] = str(value)
 
+	base_url = getattr(settings, 'BASE_URL', None) or 'http://localhost:8000'
+	base_url = base_url.rstrip('/')
+	lang = get_language() or getattr(settings, 'LANGUAGE_CODE', '')
+	lang = lang.strip('/')
+	prefix = f"/{lang}" if lang else ''
+	success_url = f"{base_url}{prefix}/success/?session_id={{CHECKOUT_SESSION_ID}}"
+	cancel_url = f"{base_url}{prefix}/cancel/"
 
-@login_required
-@require_http_methods(["GET"])
-def user_subscription_status(request):
-    """
-    Retorna o status da assinatura do usuário logado.
-    """
-    try:
-        customer = get_or_create_stripe_customer(request.user)
-        
-        # Busca assinaturas do customer
-        subscriptions = Subscription.objects.filter(
-            customer=customer
-        ).order_by('-created')
-        
-        subscription_list = []
-        for sub in subscriptions:
-            # Busca dados atualizados do Stripe
-            try:
-                stripe_sub = sub.api_retrieve()
-                status = stripe_sub.get('status', 'unknown')
-                current_period_end = stripe_sub.get('current_period_end')
-                cancel_at_period_end = stripe_sub.get('cancel_at_period_end', False)
-            except Exception as e:
-                logger.warning(f"Erro ao buscar dados da subscription {sub.id}: {e}")
-                # Fallback para dados locais
-                stripe_data = getattr(sub, 'stripe_data', {})
-                status = stripe_data.get('status', 'unknown')
-                current_period_end = stripe_data.get('current_period_end')
-                cancel_at_period_end = stripe_data.get('cancel_at_period_end', False)
-            
-            subscription_list.append({
-                'id': sub.id,
-                'status': status,
-                'current_period_end': datetime.fromtimestamp(current_period_end).isoformat() if current_period_end else None,
-                'cancel_at_period_end': cancel_at_period_end,
-            })
-        
-        return JsonResponse({
-            'is_vip': request.user.is_vip,
-            'vip_expiration': request.user.vip_expiration.isoformat() if request.user.vip_expiration else None,
-            'subscriptions': subscription_list
-        })
-    
-    except Exception as e:
-        logger.error(f"Erro ao obter status de assinatura: {e}", exc_info=True)
-        return JsonResponse({'error': 'Erro ao obter status'}, status=500)
+	if stripe_imported:
+		try:
+			stripe.api_key = (
+				settings.STRIPE_LIVE_SECRET_KEY
+				if getattr(settings, 'STRIPE_LIVE_MODE', False)
+				else getattr(settings, 'STRIPE_TEST_SECRET_KEY', None)
+			)
+		except Exception:
+			logger.debug('Config Stripe não encontrada nas settings')
 
+	try:
+		checkout_session = stripe.checkout.Session.create(
+			payment_method_types=['card'],
+			line_items=[{
+				'price_data': {
+					'currency': currency.lower(),
+					'unit_amount': int(float(amount) * 100),
+					'product_data': {'name': product_name},
+				},
+				'quantity': 1,
+			}],
+			mode='payment',
+			success_url=success_url,
+			cancel_url=cancel_url,
+			metadata=stripe_metadata,
+		)
+		return JsonResponse({'id': checkout_session.id, 'url': checkout_session.url})
+	except Exception as e:
+		logger.exception('Erro criando Checkout Session: %s', e)
+		return JsonResponse({"error": "stripe_error", "detail": str(e)}, status=502)
 
-@require_http_methods(["POST"])
-def stripe_webhook(request):
-    """
-    Endpoint para receber webhooks do Stripe.
-    O dj-stripe já processa automaticamente, mas mantemos este endpoint
-    para garantir compatibilidade.
-    """
-    # O dj-stripe já tem suas próprias views de webhook
-    # Este endpoint pode ser usado como fallback ou para lógica customizada adicional
-    return JsonResponse({'status': 'webhook recebido'})

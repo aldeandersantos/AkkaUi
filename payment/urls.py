@@ -3,12 +3,7 @@ from payment.views import *
 from payment.views.views_payment import *
 from payment.views.views_webhook import abacatepay_webhook, mercadopago_webhook
 from payment.views.views_purchases import purchased_svgs_page, purchased_svgs_api, create_purchase
-from payment.views.views_stripe import (
-    create_checkout_session,
-    list_subscription_prices,
-    user_subscription_status,
-    stripe_webhook
-)
+from payment.views.views_stripe import *
 
 app_name = "payment"
 
@@ -34,11 +29,9 @@ urlpatterns = [
     path("api/purchase/create/", create_purchase, name="create_purchase"),
     
     # Stripe - Assinaturas
-    path("stripe/checkout/", create_checkout_session, name="stripe_checkout"),
-    path("stripe/prices/", list_subscription_prices, name="stripe_prices"),
-    path("stripe/subscription-status/", user_subscription_status, name="stripe_subscription_status"),
-    path("stripe/webhook/", stripe_webhook, name="stripe_webhook"),
-    
+    path('create-checkout-session/', create_checkout_session, name='create_checkout_session'),
+    path('success/', SuccessView.as_view(), name='payment_success'),
+    path('cancel/', CancelView.as_view(), name='payment_cancel'),
     # URLs do dj-stripe (webhooks e admin)
     path("stripe/", include("djstripe.urls", namespace="djstripe")),
 ]

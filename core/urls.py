@@ -1,5 +1,7 @@
 from django.urls import path
 from .views import *
+# Importar views de pagamento para rotas públicas de sucesso/cancel
+from payment.views.views_stripe import SuccessView, CancelView
 
 app_name = "core"
 
@@ -17,4 +19,7 @@ urlpatterns = [
     path('manage/svg/', admin_svg, name='admin_svg'),
     path('manage/svg/create/', admin_create_svg, name='admin_create_svg'),
     path('api/manage/svg/delete/', admin_delete_svg, name='admin_delete_svg'),
+    # Páginas públicas de sucesso/cancel após checkout (Stripe)
+    path('success/', SuccessView.as_view(), name='payment_success'),
+    path('cancel/', CancelView.as_view(), name='payment_cancel'),
 ]

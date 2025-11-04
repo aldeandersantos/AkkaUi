@@ -1,0 +1,36 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Pagamento recebido" %}{% endblock %}
+
+{% block content %}
+  <div class="card" style="max-width:800px;margin:40px auto;padding:20px;border:1px solid #eee;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
+    <h1>{% trans "Pagamento recebido" %}</h1>
+    <p>{% trans "Obrigado pela compra! Abaixo estão os detalhes que conseguimos obter." %}</p>
+
+    <dl>
+      <dt>{% trans "ID da sessão" %}</dt>
+  <dd>{{ session_id|default:'(não fornecido)' }}</dd>
+
+      {% if stripe_available %}
+      <dt>{% trans "Valor" %}</dt>
+      <dd>{% if amount %}{{ amount }} {{ currency }}{% else %}--{% endif %}</dd>
+
+      <dt>{% trans "Status" %}</dt>
+      <dd>{{ payment_status|default:'pending' }}</dd>
+      {% endif %}
+
+      {% if stripe_error %}
+      <dt>{% trans "Erro ao consultar Stripe" %}</dt>
+      <dd>{{ stripe_error }}</dd>
+      {% endif %}
+    </dl>
+
+    <p>
+      <a class="btn" href="{% url 'core:home' %}">{% trans "Voltar para a página principal" %}</a>
+    </p>
+
+    <hr>
+    <small>{% trans "Observação: a confirmação final de pagamento pode ser recebida via webhook do Stripe. Se não tiver certeza, verifique sua área de downloads ou entre em contato com o suporte." %}</small>
+  </div>
+{% endblock %}

@@ -9,12 +9,26 @@ logger = logging.getLogger(__name__)
 
 
 @receiver(webhook_post_process)
-def handle_stripe_webhook(sender, event, **kwargs):
+def handle_stripe_webhook(sender, event=None, instance=None, **kwargs):
     """
     Handler principal para webhooks do Stripe.
     Processa eventos relevantes para gerenciar status VIP de usuários.
+
+    Compatibilidade: dj-stripe pode enviar o payload em `instance` ou em `event`.
+    Aceitamos ambos e normalizamos para `event`.
     """
-    event_type = event.type
+    # Normalizar fonte do evento (pode ser dict ou objeto djstripe.Event)
+    if event is None and instance is not None:
+        event = instance
+
+    event_type = None
+    try:
+        if isinstance(event, dict):
+            event_type = event.get('type')
+        else:
+            event_type = getattr(event, 'type', None)
+    except Exception:
+        event_type = None
     
     try:
         if event_type == 'invoice.payment_succeeded':

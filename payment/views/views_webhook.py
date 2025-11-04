@@ -6,10 +6,13 @@ import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.dispatch import receiver
 from django.conf import settings
 from ..models import Payment
 from django.db.models import Q
 from ..services.payment_service import PaymentService
+from djstripe.signals import WEBHOOK_SIGNALS
+from djstripe import signals as djstripe_signals
 from usuario.views.views_vip import add_vip_to_user_by_hash
 from server.settings import MERCADOPAGO_ACCESS_TOKEN
 
@@ -203,3 +206,114 @@ def mercadopago_webhook(request):
         "payment_status": payment.status
     })
 
+
+@receiver(WEBHOOK_SIGNALS["checkout.session.completed"])
+def handle_checkout_success(sender, event=None, **kwargs):
+    """
+    Esta função é acionada *apenas* quando o evento 
+    'checkout.session.completed' é recebido.
+    
+    Não precisamos mais verificar o 'event.type' aqui dentro!
+    """
+    
+    logger.info("Webhook 'checkout.session.completed' recebido do Stripe")
+
+    try:
+        # 'event' é o objeto do evento vindo do Stripe
+        data = event.data
+        # objeto da sessão
+        obj = None
+        try:
+            obj = data.get('object') if isinstance(data, dict) else getattr(data, 'object', None)
+        except Exception:
+            obj = getattr(data, 'object', None)
+
+        # Extrair campos importantes com tolerância a dict/obj
+        def _get(o, key, default=None):
+            try:
+                if o is None:
+                    return default
+                if isinstance(o, dict):
+                    return o.get(key, default)
+                return getattr(o, key, default)
+            except Exception:
+                return default
+
+        session_id = _get(obj, 'id')
+        customer_email = _get(_get(obj, 'customer_details'), 'email')
+        metadata = _get(obj, 'metadata') or {}
+
+        logger.info(f"Stripe session_id={session_id} customer_email={customer_email}")
+
+        # Tentar localizar Payment pelo gateway_payment_id (mais direto)
+        payment = None
+        if session_id:
+            payment = Payment.objects.filter(gateway='stripe', gateway_payment_id=session_id).first()
+
+        # Se não achou, tentar pelo transaction_id passado em metadata
+        tx_id = None
+        try:
+            if isinstance(metadata, dict):
+                tx_id = metadata.get('transaction_id')
+        except Exception:
+            tx_id = None
+
+        if not payment and tx_id:
+            payment = Payment.objects.filter(transaction_id=tx_id, gateway='stripe').first()
+
+        # Como último recurso, tentar achar pelo email do usuário (o mais frágil)
+        if not payment and customer_email:
+            payment = Payment.objects.filter(user__email=customer_email, gateway='stripe').order_by('-created_at').first()
+
+        if not payment:
+            logger.warning(f"Webhook Stripe: Payment não encontrado para session {session_id} tx={tx_id} email={customer_email}")
+            return
+
+        old_status = payment.status
+
+        # Atualizar status usando PaymentService para manter consistência
+        try:
+            payment = PaymentService.check_payment_status(payment)
+            logger.info(f"Pagamento {payment.transaction_id} atualizado via webhook: {old_status} -> {payment.status}")
+
+            if payment.status == 'completed' and old_status != 'completed':
+                logger.info(f"Pagamento {payment.transaction_id} completado via webhook — finalizando para user {payment.user.username}")
+        except Exception as e:
+            logger.exception("Erro ao atualizar status do pagamento via PaymentService: %s", e)
+
+    except Exception as e:
+        logger.exception(f"Erro ao processar o webhook checkout.session.completed: {e}")
+
+
+# Compat layer: dj-stripe may send a generic webhook_post_process signal with
+# kwargs (instance, api_key). Algumas versões/integrations chamam receivers
+# que esperam um parâmetro `event`; para evitar TypeError, registremos um
+# receiver genérico que aceita os kwargs e delega para nossa função específica.
+@receiver(djstripe_signals.webhook_post_process)
+def handle_stripe_webhook(sender, instance=None, api_key=None, **kwargs):
+    """Receiver genérico que injeta `event` para handlers que esperam esse nome.
+
+    Quando dj-stripe processa um webhook, ele envia `webhook_post_process` com
+    `instance` contendo o payload/objeto do evento. Aqui detectamos o tipo e
+    delegamos para `handle_checkout_success` quando apropriado.
+    """
+    try:
+        event_obj = instance or kwargs.get('event')
+
+        # Tentar extrair o tipo do evento de forma robusta
+        ev_type = None
+        if isinstance(event_obj, dict):
+            ev_type = event_obj.get('type')
+        else:
+            ev_type = getattr(event_obj, 'type', None) or getattr(event_obj, 'event_type', None)
+
+        if ev_type == 'checkout.session.completed':
+            try:
+                # Delegar para o handler existente que espera o kwarg `event`
+                handle_checkout_success(sender, event=event_obj)
+            except Exception as e:
+                logger.exception('Erro ao delegar checkout.session.completed: %s', e)
+        else:
+            logger.debug('Webhook dj-stripe recebido tipo=%s — sem handler específico', ev_type)
+    except Exception as e:
+        logger.exception('Erro no receiver genérico de webhooks dj-stripe: %s', e)

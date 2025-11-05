@@ -89,7 +89,11 @@ def explore(request):
     
     # Se for requisição HTMX, retornar apenas o grid de cards
     if request.headers.get('HX-Request'):
-        return render(request, "core/partials/explore_grid.html", context)
+        try:
+            return render(request, "core/partials/explore_grid.html", context)
+        except Exception as e:
+            # Fallback para página completa em caso de erro
+            return render(request, "core/explore.html", context)
     
     return render(request, "core/explore.html", context)
 

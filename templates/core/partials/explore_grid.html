@@ -1,0 +1,39 @@
+{% load i18n %}
+{% if svgfiles %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" style="gap: 1.5rem; display: grid; grid-template-columns: repeat(1, minmax(0, 1fr));">
+    {% for item in svgfiles %}
+      {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access card_index=forloop.counter0 %}
+    {% endfor %}
+  </div>
+  
+  <style>
+    @media (min-width: 640px) {
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    }
+    @media (min-width: 1024px) {
+      .grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+    }
+    @media (min-width: 1280px) {
+      .grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    }
+  </style>
+{% else %}
+  <div style="text-align: center; padding: 4rem 2rem;">
+    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-gray-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 1.5rem; opacity: 0.3;">
+      <circle cx="11" cy="11" r="8"></circle>
+      <path d="m21 21-4.35-4.35"></path>
+    </svg>
+    {% if search_query or selected_category or selected_tag %}
+      <p style="color: var(--text-gray-400); font-size: 1.125rem; margin-bottom: 1rem;">
+        {% trans "No results found" %}
+      </p>
+      <a href="{% url 'core:explore' %}" class="btn btn-secondary">
+        {% trans "Clear filters" %}
+      </a>
+    {% else %}
+      <p style="color: var(--text-gray-400); font-size: 1.125rem;">
+        {% trans "No SVGs available yet." %}
+      </p>
+    {% endif %}
+  </div>
+{% endif %}

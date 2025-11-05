@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /manage/
+Disallow: /api/
+Disallow: /cart/
+Disallow: /checkout/
+Disallow: /minha-biblioteca/
+
+Sitemap: https://akkaui.com/sitemap.xml

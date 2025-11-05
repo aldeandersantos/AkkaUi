@@ -6,6 +6,31 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}AkkaUi{% endblock %}</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="{% block meta_description %}AkkaUi - Catálogo completo de recursos de design UI modernos e responsivos. SVGs prontos para uso, componentes de interface e designs profissionais para acelerar seu fluxo de trabalho.{% endblock %}">
+    <meta name="keywords" content="{% block meta_keywords %}svg design, ui components, design resources, web design, interface design, svg icons, design system, ui kit, responsive design{% endblock %}">
+    <meta name="author" content="AkkaUi">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{% block canonical_url %}https://{{ request.get_host }}{{ request.path }}{% endblock %}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://{{ request.get_host }}{{ request.path }}">
+    <meta property="og:title" content="{% block og_title %}{% block title %}AkkaUi{% endblock %}{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}AkkaUi - Seu catálogo completo de recursos de design UI modernos e responsivos{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}https://{{ request.get_host }}{% static 'Favicon.ico' %}{% endblock %}">
+    <meta property="og:site_name" content="AkkaUi">
+    <meta property="og:locale" content="{{ LANGUAGE_CODE }}">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://{{ request.get_host }}{{ request.path }}">
+    <meta name="twitter:title" content="{% block twitter_title %}{% block title %}AkkaUi{% endblock %}{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}AkkaUi - Recursos de design UI modernos e responsivos{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}https://{{ request.get_host }}{% static 'Favicon.ico' %}{% endblock %}">
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="{% static 'core/design-system.css' %}">
     <link rel="stylesheet" href="{% static 'core/wiki.css' %}">
     <link rel="stylesheet" href="{% static 'core/ui-enhancements.css' %}">
@@ -115,19 +140,19 @@
               <a href="{% url 'usuario:signup' %}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem; height: auto; display: none;" id="signupBtn">{% trans "Sign Up" %}</a>
             {% endif %}
             
-            <!-- Language Switcher -->
+            <!-- Language Switcher - Melhorado com responsividade -->
             <div class="language-switcher" style="position: relative; display: inline-block;" id="languageSwitcher">
-              <button onclick="toggleLanguageMenu(event)" class="icon-button" style="font-size: 0.875rem; gap: 0.25rem; padding: 0.5rem 0.75rem;" title="{% trans 'Change language' %}">
+              <button onclick="toggleLanguageMenu(event)" class="icon-button" style="font-size: 0.875rem; gap: 0.25rem; padding: 0.5rem 0.75rem;" title="{% trans 'Change language' %}" aria-label="{% trans 'Change language' %}" aria-expanded="false" aria-haspopup="true">
                 🌐 <span style="font-weight: 600;">{{ LANGUAGE_CODE|slice:":2"|upper }}</span>
               </button>
-              <div id="languageDropdown" style="display: none; position: fixed; background: #1a1a1a; border: 2px solid #3f3f46; border-radius: 8px; min-width: 200px; box-shadow: 0 10px 40px rgba(0,0,0,0.7); z-index: 10002; overflow: hidden; padding: 0.5rem 0;">
+              <div id="languageDropdown" role="menu" style="display: none; position: fixed; background: #1a1a1a; border: 2px solid #3f3f46; border-radius: 8px; min-width: 200px; max-width: calc(100vw - 2rem); box-shadow: 0 10px 40px rgba(0,0,0,0.7); z-index: 10002; overflow: hidden; padding: 0.5rem 0;">
                 <form action="{% url 'set_language' %}" method="post" style="margin: 0;">
                   {% csrf_token %}
                   <input name="next" type="hidden" value="{{ request.path }}">
                   {% get_current_language as LANGUAGE_CODE %}
                   {% get_available_languages as LANGUAGES %}
                   {% for lang_code, lang_name in LANGUAGES %}
-                  <button type="submit" name="language" value="{{ lang_code }}" 
+                  <button type="submit" name="language" value="{{ lang_code }}" role="menuitem"
                           style="width: 100% !important; padding: 0.75rem 1.25rem !important; background: {% if lang_code == LANGUAGE_CODE %}#27272a{% else %}transparent{% endif %} !important; 
                                  border: none !important; color: {% if lang_code == LANGUAGE_CODE %}#a3e635{% else %}#d4d4d8{% endif %} !important; 
                                  text-align: left !important; cursor: pointer !important; transition: all 0.2s ease !important; 
@@ -315,6 +340,35 @@
       </div>
     </footer>
 
+    <!-- Schema.org Structured Data para SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "AkkaUi",
+      "description": "Catálogo completo de recursos de design UI modernos e responsivos",
+      "url": "https://{{ request.get_host }}",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://{{ request.get_host }}{% url 'core:explore' %}?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "AkkaUi",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://{{ request.get_host }}{% static 'Favicon.ico' %}"
+        }
+      }
+    }
+    </script>
+    
+    {% block structured_data %}{% endblock %}
+
     <script>
       // Notification System
       window.showNotification = function(message, type = 'success') {
@@ -411,13 +465,19 @@
         setTimeout(() => { searchToggleLock = false; }, 50);
       }
 
-      // Language menu toggle
+      // Language menu toggle - Melhorado para responsividade
       function toggleLanguageMenu(evt) {
         const button = evt ? evt.target.closest('button') : null;
         const dropdown = document.getElementById('languageDropdown');
         if (!dropdown) return;
 
-        // Move para body na primeira vez para evitar clipping por parents
+        // Atualizar aria-expanded
+        if (button) {
+          const isExpanded = button.getAttribute('aria-expanded') === 'true';
+          button.setAttribute('aria-expanded', !isExpanded);
+        }
+
+        // Move para body na primeira vez para evitar clipping
         if (!dropdown.dataset.moved) {
           dropdown.dataset.moved = 'true';
           document.body.appendChild(dropdown);
@@ -427,7 +487,7 @@
         if (dropdown.style.display === 'none' || dropdown.style.display === '') {
           const rect = button ? button.getBoundingClientRect() : { bottom: 48, left: 16 };
 
-          // Preparar para medir: mostrar invisível para obter offsetWidth
+          // Preparar para medir
           dropdown.style.position = 'fixed';
           dropdown.style.top = (rect.bottom + 8) + 'px';
           dropdown.style.left = '0px';
@@ -436,23 +496,38 @@
           dropdown.style.display = 'block';
 
           // Medir largura real
-          const ddWidth = dropdown.offsetWidth || 220; // fallback
-          const margin = 8; // margem da borda da janela
-          const extraScrollbarPadding = 12; // compensar barra lateral / overlay
-
-          // Calcular left garantindo que não ultrapasse as bordas.
-          // Subtraímos um padding extra quando perto da borda para evitar sobreposição com a barra lateral.
+          const ddWidth = dropdown.offsetWidth || 220;
+          const margin = 16; // margem maior para mobile
+          const windowWidth = window.innerWidth;
+          
+          // Calcular posição ideal
           let left = rect.left;
-          if (left + ddWidth > window.innerWidth - margin) {
-            left = window.innerWidth - ddWidth - margin - extraScrollbarPadding;
+          
+          // Em mobile (< 768px), centralizar ou alinhar à direita
+          if (windowWidth < 768) {
+            // Alinhar à direita com margem
+            left = windowWidth - ddWidth - margin;
+          } else {
+            // Desktop: posicionar próximo ao botão, mas garantindo que não ultrapasse
+            if (left + ddWidth > windowWidth - margin) {
+              left = windowWidth - ddWidth - margin;
+            }
           }
+          
+          // Garantir que não fique fora da tela à esquerda
           if (left < margin) left = margin;
 
           dropdown.style.left = left + 'px';
           dropdown.style.right = 'auto';
           dropdown.style.visibility = 'visible';
+          
+          // Focus management para acessibilidade
+          dropdown.querySelector('button[type="submit"]')?.focus();
         } else {
           dropdown.style.display = 'none';
+          if (button) {
+            button.setAttribute('aria-expanded', 'false');
+          }
         }
       }
 

@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed
+from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotAllowed, HttpResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 import json
 from django.core.exceptions import RequestDataTooBig
 from usuario.views.views_usuario import admin_required
@@ -28,6 +29,7 @@ def home(request):
 def explore(request):
     """
     Explore page showing all SVG files from database with search and filters.
+    Suporta HTMX para atualizações parciais.
     """
     svgfiles = SvgFile.objects.filter(is_public=True)
     
@@ -85,6 +87,10 @@ def explore(request):
         'all_tags': all_tags,
     }
     
+    # Se for requisição HTMX, retornar apenas o grid de cards
+    if request.headers.get('HX-Request'):
+        return render(request, "core/partials/explore_grid.html", context)
+    
     return render(request, "core/explore.html", context)
 
 def pricing(request):
@@ -98,6 +104,57 @@ def faq(request):
     FAQ page with frequently asked questions.
     """
     return render(request, "core/faq.html")
+
+def sitemap(request):
+    """
+    Gera sitemap.xml dinâmico para SEO.
+    """
+    from datetime import datetime
+    
+    # URLs estáticas
+    urls = [
+        {
+            'loc': request.build_absolute_uri(reverse('core:home')),
+            'changefreq': 'daily',
+            'priority': '1.0',
+            'lastmod': datetime.now().strftime('%Y-%m-%d')
+        },
+        {
+            'loc': request.build_absolute_uri(reverse('core:explore')),
+            'changefreq': 'daily',
+            'priority': '0.9',
+            'lastmod': datetime.now().strftime('%Y-%m-%d')
+        },
+        {
+            'loc': request.build_absolute_uri(reverse('core:pricing')),
+            'changefreq': 'weekly',
+            'priority': '0.8',
+            'lastmod': datetime.now().strftime('%Y-%m-%d')
+        },
+        {
+            'loc': request.build_absolute_uri(reverse('core:faq')),
+            'changefreq': 'weekly',
+            'priority': '0.7',
+            'lastmod': datetime.now().strftime('%Y-%m-%d')
+        },
+    ]
+    
+    # Gerar XML
+    xml = ['<?xml version="1.0" encoding="UTF-8"?>']
+    xml.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+    
+    for url in urls:
+        xml.append('  <url>')
+        xml.append(f'    <loc>{url["loc"]}</loc>')
+        xml.append(f'    <lastmod>{url["lastmod"]}</lastmod>')
+        xml.append(f'    <changefreq>{url["changefreq"]}</changefreq>')
+        xml.append(f'    <priority>{url["priority"]}</priority>')
+        xml.append('  </url>')
+    
+    xml.append('</urlset>')
+    
+    return HttpResponse('\n'.join(xml), content_type='application/xml')
+
 
 def copy_svg(request):
     """

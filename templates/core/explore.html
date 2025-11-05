@@ -4,6 +4,44 @@
 
 {% block title %}{% trans "Explore" %} — AkkaUi{% endblock %}
 
+{% block meta_description %}{% trans "Explore nossa coleção completa de SVGs e componentes de design UI. Filtre por categoria, tag e encontre o design perfeito para seu projeto." %}{% endblock %}
+
+{% block meta_keywords %}explore svg, search svg, ui components library, design catalog, svg collection, interface components, design resources, web design assets{% endblock %}
+
+{% block og_title %}Explore Designs - AkkaUi{% endblock %}
+{% block og_description %}Descubra nossa coleção completa de recursos de design UI. Filtre e encontre o design perfeito para seu projeto.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Explore SVG Designs - AkkaUi",
+  "description": "Catálogo completo de recursos de design UI com filtros e pesquisa",
+  "url": "https://{{ request.get_host }}{% url 'core:explore' %}",
+  "numberOfItems": {{ svgfiles|length }},
+  "mainEntity": {
+    "@type": "ItemList",
+    "numberOfItems": {{ svgfiles|length }},
+    "itemListElement": [
+      {% for item in svgfiles|slice:":20" %}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.counter }},
+        "item": {
+          "@type": "CreativeWork",
+          "name": "{{ item.title_name }}",
+          "description": "{{ item.category|default:'UI Design Component' }}",
+          "category": "{{ item.category }}"
+        }
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
+{% endblock %}
+
 {% block sidebar %}
 {# Sidebar sempre visível em desktop, toggle em mobile #}
 <aside style="position: fixed; left: 0; top: 4rem; bottom: 0; width: 280px; background: var(--bg-gray-900); border-right: 1px solid var(--border-gray-800); padding: 1.5rem 1rem; overflow-y: auto; z-index: 30; transform: translateX(0); transition: transform 0.3s ease;" id="filterSidebar" class="explore-sidebar">
@@ -14,7 +52,13 @@
     <h3 style="color: var(--text-white); font-size: 1.125rem; font-weight: 700; margin: 0;">{% trans "Filters" %}</h3>
   </div>
   
-  <form method="get" action="{% url 'core:explore' %}" style="display: flex; flex-direction: column; gap: 1.25rem;">
+  <form method="get" action="{% url 'core:explore' %}" 
+        hx-get="{% url 'core:explore' %}" 
+        hx-target="#svgGrid" 
+        hx-swap="innerHTML"
+        hx-indicator="#loading-indicator"
+        hx-push-url="true"
+        style="display: flex; flex-direction: column; gap: 1.25rem;">
     {# Search #}
     <div>
       <label for="sidebar-search" style="display: block; color: var(--text-gray-300); font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">{% trans "Search" %}</label>
@@ -27,13 +71,27 @@
         class="input"
         style="width: 100%; font-size: 0.875rem;"
         aria-label="{% trans 'Search SVGs by title' %}"
+        hx-get="{% url 'core:explore' %}"
+        hx-target="#svgGrid"
+        hx-swap="innerHTML"
+        hx-trigger="keyup changed delay:500ms, search"
+        hx-include="[name='category'],[name='tag'],[name='sort']"
+        hx-indicator="#loading-indicator"
+        hx-push-url="true"
       >
     </div>
     
     {# Category #}
     <div>
       <label for="sidebar-category" style="display: block; color: var(--text-gray-300); font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">{% trans "Category" %}</label>
-      <select name="category" id="sidebar-category" class="input" style="width: 100%; cursor: pointer; font-size: 0.875rem;">
+      <select name="category" id="sidebar-category" class="input" style="width: 100%; cursor: pointer; font-size: 0.875rem;"
+              hx-get="{% url 'core:explore' %}"
+              hx-target="#svgGrid"
+              hx-swap="innerHTML"
+              hx-trigger="change"
+              hx-include="[name='q'],[name='tag'],[name='sort']"
+              hx-indicator="#loading-indicator"
+              hx-push-url="true">
         <option value="">{% trans "All" %}</option>
         {% for cat in all_categories %}
           <option value="{{ cat }}" {% if cat == selected_category %}selected{% endif %}>{{ cat }}</option>
@@ -44,7 +102,14 @@
     {# Tag #}
     <div>
       <label for="sidebar-tag" style="display: block; color: var(--text-gray-300); font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">{% trans "Tag" %}</label>
-      <select name="tag" id="sidebar-tag" class="input" style="width: 100%; cursor: pointer; font-size: 0.875rem;">
+      <select name="tag" id="sidebar-tag" class="input" style="width: 100%; cursor: pointer; font-size: 0.875rem;"
+              hx-get="{% url 'core:explore' %}"
+              hx-target="#svgGrid"
+              hx-swap="innerHTML"
+              hx-trigger="change"
+              hx-include="[name='q'],[name='category'],[name='sort']"
+              hx-indicator="#loading-indicator"
+              hx-push-url="true">
         <option value="">{% trans "All" %}</option>
         {% for t in all_tags %}
           <option value="{{ t }}" {% if t == selected_tag %}selected{% endif %}>{{ t }}</option>
@@ -55,7 +120,14 @@
     {# Sort #}
     <div>
       <label for="sidebar-sort" style="display: block; color: var(--text-gray-300); font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;">{% trans "Sort by" %}</label>
-      <select name="sort" id="sidebar-sort" class="input" style="width: 100%; cursor: pointer; font-size: 0.875rem;">
+      <select name="sort" id="sidebar-sort" class="input" style="width: 100%; cursor: pointer; font-size: 0.875rem;"
+              hx-get="{% url 'core:explore' %}"
+              hx-target="#svgGrid"
+              hx-swap="innerHTML"
+              hx-trigger="change"
+              hx-include="[name='q'],[name='category'],[name='tag']"
+              hx-indicator="#loading-indicator"
+              hx-push-url="true">
         <option value="-uploaded_at" {% if selected_sort == '-uploaded_at' %}selected{% endif %}>{% trans "Newest" %}</option>
         <option value="uploaded_at" {% if selected_sort == 'uploaded_at' %}selected{% endif %}>{% trans "Oldest" %}</option>
         <option value="title_name" {% if selected_sort == 'title_name' %}selected{% endif %}>{% trans "A-Z" %}</option>
@@ -160,44 +232,26 @@
   {# Grid de SVGs #}
   <section style="padding: 2rem 0 4rem;">
     <div class="container">
-      {% if svgfiles %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" style="gap: 1.5rem; display: grid; grid-template-columns: repeat(1, minmax(0, 1fr));">
-          {% for item in svgfiles %}
-            {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access card_index=forloop.counter0 %}
-          {% endfor %}
-        </div>
-        
-        <style>
-          @media (min-width: 640px) {
-            .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-          }
-          @media (min-width: 1024px) {
-            .grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-          }
-          @media (min-width: 1280px) {
-            .grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-          }
-        </style>
-      {% else %}
-        <div style="text-align: center; padding: 4rem 2rem;">
-          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--text-gray-600)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin: 0 auto 1.5rem; opacity: 0.3;">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="m21 21-4.35-4.35"></path>
+      <!-- Loading indicator para HTMX -->
+      <div id="loading-indicator" class="htmx-indicator" style="display: none; text-align: center; padding: 2rem; color: var(--text-gray-400);">
+        <div style="display: inline-block; animation: spin 1s linear infinite;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="2" x2="12" y2="6"></line>
+            <line x1="12" y1="18" x2="12" y2="22"></line>
+            <line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line>
+            <line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line>
+            <line x1="2" y1="12" x2="6" y2="12"></line>
+            <line x1="18" y1="12" x2="22" y2="12"></line>
+            <line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line>
+            <line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line>
           </svg>
-          {% if search_query or selected_category or selected_tag %}
-            <p style="color: var(--text-gray-400); font-size: 1.125rem; margin-bottom: 1rem;">
-              {% trans "No results found" %}
-            </p>
-            <a href="{% url 'core:explore' %}" class="btn btn-secondary">
-              {% trans "Clear filters" %}
-            </a>
-          {% else %}
-            <p style="color: var(--text-gray-400); font-size: 1.125rem;">
-              {% trans "No SVGs available yet." %}
-            </p>
-          {% endif %}
         </div>
-      {% endif %}
+        <p style="margin-top: 0.5rem;">{% trans "Loading..." %}</p>
+      </div>
+      
+      <div id="svgGrid">
+        {% include 'core/partials/explore_grid.html' %}
+      </div>
     </div>
   </section>
 </div>
@@ -210,6 +264,26 @@
     .mobile-filter-btn {
       display: flex !important;
     }
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  
+  .htmx-indicator {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+  }
+  
+  .htmx-request .htmx-indicator {
+    opacity: 1;
+    display: block !important;
+  }
+  
+  .htmx-request.htmx-indicator {
+    opacity: 1;
+    display: block !important;
   }
 </style>
 

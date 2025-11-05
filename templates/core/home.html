@@ -3,6 +3,41 @@
 
 {% block title %}{% trans "Home" %} — AkkaUi{% endblock %}
 
+{% block meta_description %}{% trans "AkkaUi - Catálogo completo de recursos de design UI modernos e responsivos. SVGs profissionais, componentes de interface e designs prontos para uso. Acelere seu fluxo de trabalho com nossos recursos premium." %}{% endblock %}
+
+{% block meta_keywords %}svg design, ui components, design resources, web design, interface design, svg icons, design system, ui kit, responsive design, premium svg, modern ui, web components{% endblock %}
+
+{% block og_title %}AkkaUi - Recursos de Design UI Modernos e Responsivos{% endblock %}
+{% block og_description %}Catálogo completo de SVGs profissionais e componentes de interface. Designs prontos para acelerar seu desenvolvimento.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "AkkaUi - Design Resources",
+  "description": "Catálogo de recursos de design UI modernos e responsivos",
+  "url": "https://{{ request.get_host }}{% url 'core:home' %}",
+  "mainEntity": {
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for item in svgfiles|slice:":10" %}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.counter }},
+        "item": {
+          "@type": "CreativeWork",
+          "name": "{{ item.title_name }}",
+          "description": "{{ item.category|default:'Design component' }}"
+        }
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
+{% endblock %}
+
 {% block content %}
   <!-- Hero Section - Matching futuro_frontend DarkHero -->
   <section class="hero-dark">

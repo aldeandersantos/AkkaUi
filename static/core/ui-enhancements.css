@@ -518,3 +518,100 @@ main.container {
 /* DEBUG: outline visual para diagnosticar sobreposição de cards
    Remover/commentar após verificação */
 /* outline de debug removido */
+
+/* Melhorias de Responsividade para Dropdowns e Menus */
+@media (max-width: 768px) {
+  /* Menu de idiomas em mobile */
+  #languageDropdown {
+    max-width: calc(100vw - 2rem) !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    width: auto !important;
+  }
+  
+  /* Mobile menu melhorado */
+  #mobileMenu {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Search form mobile */
+  #searchFormContainer {
+    padding: 0 1rem;
+  }
+  
+  #searchForm {
+    max-width: 100% !important;
+  }
+  
+  /* Botões e inputs com tamanhos touch-friendly */
+  .icon-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  button, .btn {
+    min-height: 44px;
+  }
+  
+  /* Header ajustado para mobile */
+  .site-header-dark .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Melhorias para tablets */
+@media (min-width: 768px) and (max-width: 1023px) {
+  #languageDropdown {
+    min-width: 220px;
+    max-width: 280px;
+  }
+}
+
+/* Acessibilidade - Focus states melhorados */
+button:focus-visible,
+.icon-button:focus-visible,
+.btn:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--primary, #a3e635);
+  outline-offset: 2px;
+}
+
+/* Dropdown acessível com animação suave */
+#languageDropdown,
+#mobileMenu {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Loading states para HTMX */
+.htmx-swapping {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.htmx-settling {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* Melhorias de performance - will-change para animações */
+.card:hover,
+.btn:hover,
+.icon-button:hover {
+  will-change: transform;
+}
+
+/* Prevenir layout shift durante loading */
+#svgGrid {
+  min-height: 400px;
+}
+
+/* Indicador de carregamento centralizado */
+#loading-indicator {
+  position: sticky;
+  top: 100px;
+  z-index: 10;
+}
+

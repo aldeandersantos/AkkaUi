@@ -10,6 +10,7 @@ urlpatterns = [
     path("explore/", explore, name="explore"),
     path("pricing/", pricing, name="pricing"),
     path("faq/", faq, name="faq"),
+    path("sitemap.xml", sitemap, name="sitemap"),
     path('cart/', cart, name='cart'),
     path('checkout/', checkout, name='checkout'),
     path('minha-biblioteca/', minha_biblioteca, name='minha_biblioteca'),

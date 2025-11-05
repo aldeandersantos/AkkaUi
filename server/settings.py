@@ -51,7 +51,7 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 # Adicione hosts locais, se DEBUG for True
 if DEBUG:
-    ALLOWED_HOSTS += ['127.0.0.1', 'localhost', '.ngrok-free.app']
+    ALLOWED_HOSTS += ['127.0.0.1', 'localhost', '.ngrok-free.app', 'testserver']
 
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 SITE_ID = 1

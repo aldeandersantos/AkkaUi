@@ -17,7 +17,7 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://{{ request.get_host }}{{ request.path }}">
-    <meta property="og:title" content="{% block og_title %}{% block title %}AkkaUi{% endblock %}{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}AkkaUi{% endblock %}">
     <meta property="og:description" content="{% block og_description %}AkkaUi - Seu catálogo completo de recursos de design UI modernos e responsivos{% endblock %}">
     <meta property="og:image" content="{% block og_image %}https://{{ request.get_host }}{% static 'Favicon.ico' %}{% endblock %}">
     <meta property="og:site_name" content="AkkaUi">
@@ -26,7 +26,7 @@
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://{{ request.get_host }}{{ request.path }}">
-    <meta name="twitter:title" content="{% block twitter_title %}{% block title %}AkkaUi{% endblock %}{% endblock %}">
+    <meta name="twitter:title" content="{% block twitter_title %}AkkaUi{% endblock %}">
     <meta name="twitter:description" content="{% block twitter_description %}AkkaUi - Recursos de design UI modernos e responsivos{% endblock %}">
     <meta name="twitter:image" content="{% block twitter_image %}https://{{ request.get_host }}{% static 'Favicon.ico' %}{% endblock %}">
     

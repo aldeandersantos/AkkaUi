@@ -153,9 +153,12 @@
 <div id="sidebarOverlay" style="display: none; position: fixed; top: 4rem; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 25;" onclick="toggleSidebar()"></div>
 
 <style>
+  /* Mobile first approach - hide sidebar by default on small screens */
   @media (max-width: 1023px) {
     .explore-sidebar {
       transform: translateX(-100%);
+      width: 100%;
+      max-width: 320px;
     }
     .explore-sidebar.active {
       transform: translateX(0);
@@ -164,17 +167,25 @@
       display: block !important;
     }
   }
+  
+  /* Extra small mobile devices */
+  @media (max-width: 480px) {
+    .explore-sidebar {
+      max-width: 100%;
+      width: 100%;
+    }
+  }
 </style>
 {% endblock %}
 
 {% block content %}
 <div style="margin-left: 280px; background: var(--bg-black); min-height: 100vh; transition: margin-left 0.3s ease;" id="mainContent">
   {# Header com título e toggle mobile #}
-  <section style="padding: 2rem 0 1.5rem; border-bottom: 1px solid var(--border-gray-800);">
+  <section style="padding: 1.5rem 0 1rem; border-bottom: 1px solid var(--border-gray-800);">
     <div class="container">
-      <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-          <h1 style="color: var(--text-white); font-size: 2rem; font-weight: 700; margin: 0 0 0.25rem 0;">{% trans "Explore SVGs" %}</h1>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="flex: 1; min-width: 0;">
+          <h1 style="color: var(--text-white); font-size: 2rem; font-weight: 700; margin: 0 0 0.25rem 0; word-break: break-word;">{% trans "Explore SVGs" %}</h1>
           {% if svgfiles %}
             <p style="color: var(--text-gray-400); font-size: 0.875rem; margin: 0;">
               {% blocktrans count counter=svgfiles|length %}{{ counter }} component{% plural %}{{ counter }} components{% endblocktrans %}
@@ -183,7 +194,7 @@
         </div>
         
         {# Botão de filtro apenas em mobile #}
-        <button onclick="toggleSidebar()" style="display: none; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg); color: var(--text-gray-300); cursor: pointer; transition: var(--transition);" class="mobile-filter-btn" onmouseover="this.style.borderColor='var(--border-gray-700)'" onmouseout="this.style.borderColor='var(--border-gray-800)'">
+        <button onclick="toggleSidebar()" style="display: none; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-lg); color: var(--text-gray-300); cursor: pointer; transition: var(--transition); flex-shrink: 0;" class="mobile-filter-btn" onmouseover="this.style.borderColor='var(--border-gray-700)'" onmouseout="this.style.borderColor='var(--border-gray-800)'">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="4" y1="21" x2="4" y2="14"></line>
             <line x1="4" y1="10" x2="4" y2="3"></line>
@@ -201,23 +212,23 @@
       
       {# Active filters badges #}
       {% if search_query or selected_category or selected_tag or selected_sort != '-uploaded_at' %}
-        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem;">
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; overflow-x: auto; -webkit-overflow-scrolling: touch;">
           {% if search_query %}
-            <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-300); font-size: 0.8125rem;">
+            <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-300); font-size: 0.8125rem; white-space: nowrap;">
               <span>{% trans "Search:" %} "{{ search_query }}"</span>
             </span>
           {% endif %}
           {% if selected_category %}
-            <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-300); font-size: 0.8125rem;">
+            <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-300); font-size: 0.8125rem; white-space: nowrap;">
               <span>{% trans "Category:" %} {{ selected_category }}</span>
             </span>
           {% endif %}
           {% if selected_tag %}
-            <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-300); font-size: 0.8125rem;">
+            <span style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.375rem 0.75rem; background: var(--bg-gray-900); border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-300); font-size: 0.8125rem; white-space: nowrap;">
               <span>{% trans "Tag:" %} {{ selected_tag }}</span>
             </span>
           {% endif %}
-          <a href="{% url 'core:explore' %}" style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.375rem 0.75rem; background: transparent; border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-400); font-size: 0.8125rem; cursor: pointer; text-decoration: none; transition: var(--transition);" onmouseover="this.style.borderColor='var(--border-gray-700)'; this.style.color='var(--text-white)'" onmouseout="this.style.borderColor='var(--border-gray-800)'; this.style.color='var(--text-gray-400)'">
+          <a href="{% url 'core:explore' %}" style="display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.375rem 0.75rem; background: transparent; border: 1px solid var(--border-gray-800); border-radius: var(--radius-full); color: var(--text-gray-400); font-size: 0.8125rem; cursor: pointer; text-decoration: none; transition: var(--transition); white-space: nowrap;" onmouseover="this.style.borderColor='var(--border-gray-700)'; this.style.color='var(--text-white)'" onmouseout="this.style.borderColor='var(--border-gray-800)'; this.style.color='var(--text-gray-400)'">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -230,7 +241,7 @@
   </section>
 
   {# Grid de SVGs #}
-  <section style="padding: 2rem 0 4rem;">
+  <section style="padding: 1.5rem 0 3rem;">
     <div class="container">
       <!-- Loading indicator para HTMX -->
       <div id="loading-indicator" class="htmx-indicator" style="display: none; text-align: center; padding: 2rem; color: var(--text-gray-400);">
@@ -257,12 +268,40 @@
 </div>
 
 <style>
+  /* Responsive layout adjustments */
   @media (max-width: 1023px) {
     #mainContent {
       margin-left: 0 !important;
     }
     .mobile-filter-btn {
       display: flex !important;
+    }
+  }
+  
+  /* Mobile typography adjustments */
+  @media (max-width: 768px) {
+    #mainContent h1 {
+      font-size: 1.5rem !important;
+    }
+    
+    #mainContent section {
+      padding: 1rem 0 !important;
+    }
+    
+    .container {
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
+  }
+  
+  /* Extra small screens */
+  @media (max-width: 480px) {
+    #mainContent h1 {
+      font-size: 1.25rem !important;
+    }
+    
+    .mobile-filter-btn span {
+      display: none;
     }
   }
   

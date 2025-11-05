@@ -558,6 +558,36 @@ main.container {
     padding-left: 1rem;
     padding-right: 1rem;
   }
+  
+  /* Explore page mobile fixes */
+  #filterSidebar {
+    max-width: 100vw !important;
+    overflow-x: hidden;
+  }
+  
+  #mainContent {
+    overflow-x: hidden;
+    width: 100%;
+  }
+  
+  /* Reduce padding on mobile for more content space */
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+  .container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+  
+  /* Smaller badges on mobile */
+  [style*="font-size: 0.8125rem"] {
+    font-size: 0.75rem !important;
+  }
 }
 
 /* Melhorias para tablets */

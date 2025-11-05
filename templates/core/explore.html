@@ -44,11 +44,11 @@
 
 {% block sidebar %}
 {# Sidebar sempre visível em desktop, toggle em mobile #}
-<aside style="position: fixed; left: 0; top: 4rem; bottom: 0; width: 280px; background: var(--bg-gray-900); border-right: 1px solid var(--border-gray-800); padding: 1.5rem 1rem; overflow-y: auto; z-index: 30; transform: translateX(0); transition: transform 0.3s ease;" id="filterSidebar" class="explore-sidebar">
+<aside style="position: fixed; left: 0; top: 4rem; bottom: 0; width: 280px; background: var(--bg-gray-900); border-right: 1px solid var(--border-gray-800); padding: 1.5rem 1rem; overflow-y: auto; z-index: 1001; transform: translateX(0); transition: transform 0.3s ease;" id="filterSidebar" class="explore-sidebar">
   {# Mobile close button #}
-  <button onclick="toggleSidebar()" style="display: none; position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--text-gray-400); cursor: pointer; font-size: 1.5rem; padding: 0; line-height: 1; transition: var(--transition);" class="mobile-close" onmouseover="this.style.color='var(--text-white)'" onmouseout="this.style.color='var(--text-gray-400)'">×</button>
+  <button onclick="toggleSidebar()" style="display: none; position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.5); border: 1px solid var(--border-gray-700); border-radius: 50%; width: 2rem; height: 2rem; color: var(--text-white); cursor: pointer; font-size: 1.5rem; padding: 0; line-height: 1; transition: var(--transition); display: flex; align-items: center; justify-content: center;" class="mobile-close" onmouseover="this.style.background='rgba(0,0,0,0.8)'; this.style.borderColor='var(--primary)'" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.borderColor='var(--border-gray-700)'">×</button>
   
-  <div style="margin-bottom: 1.5rem;">
+  <div style="margin-bottom: 1.5rem; padding-right: 2.5rem;">
     <h3 style="color: var(--text-white); font-size: 1.125rem; font-weight: 700; margin: 0;">{% trans "Filters" %}</h3>
   </div>
   
@@ -150,7 +150,7 @@
 </aside>
 
 {# Overlay para mobile #}
-<div id="sidebarOverlay" style="display: none; position: fixed; top: 4rem; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 25;" onclick="toggleSidebar()"></div>
+<div id="sidebarOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); z-index: 1000;" onclick="toggleSidebar()"></div>
 
 <style>
   /* Mobile first approach - hide sidebar by default on small screens */
@@ -159,20 +159,29 @@
       transform: translateX(-100%);
       width: 100%;
       max-width: 320px;
+      box-shadow: 2px 0 16px rgba(0,0,0,0.3);
     }
     .explore-sidebar.active {
       transform: translateX(0);
     }
     .mobile-close {
-      display: block !important;
+      display: flex !important;
     }
   }
   
   /* Extra small mobile devices */
   @media (max-width: 480px) {
     .explore-sidebar {
-      max-width: 100%;
-      width: 100%;
+      max-width: 85%;
+      width: 85%;
+    }
+  }
+  
+  /* Very small devices */
+  @media (max-width: 360px) {
+    .explore-sidebar {
+      max-width: 90%;
+      width: 90%;
     }
   }
 </style>
@@ -330,14 +339,30 @@
   function toggleSidebar() {
     const sidebar = document.getElementById('filterSidebar');
     const overlay = document.getElementById('sidebarOverlay');
+    const body = document.body;
     
     sidebar.classList.toggle('active');
     
     if (sidebar.classList.contains('active')) {
       overlay.style.display = 'block';
+      // Prevent body scroll when sidebar is open on mobile
+      body.style.overflow = 'hidden';
     } else {
       overlay.style.display = 'none';
+      // Restore body scroll
+      body.style.overflow = '';
     }
   }
+  
+  // Close sidebar when pressing Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const sidebar = document.getElementById('filterSidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (sidebar && sidebar.classList.contains('active')) {
+        toggleSidebar();
+      }
+    }
+  });
 </script>
 {% endblock %}

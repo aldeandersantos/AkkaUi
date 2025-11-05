@@ -565,6 +565,10 @@ main.container {
     overflow-x: hidden;
   }
   
+  #filterSidebar.active {
+    box-shadow: 2px 0 20px rgba(0,0,0,0.5);
+  }
+  
   #mainContent {
     overflow-x: hidden;
     width: 100%;
@@ -574,6 +578,16 @@ main.container {
   .container {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
+  }
+  
+  /* Improve form elements in sidebar on mobile */
+  #filterSidebar .input,
+  #filterSidebar select {
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+  
+  #filterSidebar label {
+    font-size: 0.75rem !important;
   }
 }
 

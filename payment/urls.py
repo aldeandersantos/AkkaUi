@@ -29,7 +29,8 @@ urlpatterns = [
     path("api/purchase/create/", create_purchase, name="create_purchase"),
     
     # Stripe - Assinaturas
-    path('create-checkout-session/', create_checkout_session, name='create_checkout_session'),
+    path('create-checkout-session/', create_checkout_session, name='create_checkout_session'),  # compra avulsa
+    path('stripe/checkout/', create_subscription_checkout_session, name='stripe_checkout'),  # assinatura recorrente
     path('success/', SuccessView.as_view(), name='payment_success'),
     path('cancel/', CancelView.as_view(), name='payment_cancel'),
     # URLs do dj-stripe (webhooks e admin)

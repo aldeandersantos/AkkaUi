@@ -1,10 +1,11 @@
+
 import logging
+import json
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-import json
 from django.utils.translation import get_language
 
 logger = logging.getLogger(__name__)
@@ -15,6 +16,59 @@ try:
 except Exception:
 	stripe = None
 	stripe_imported = False
+
+
+# --- ASSINATURA RECURRENTE (PRICING) ---
+@csrf_exempt
+@require_POST
+def create_subscription_checkout_session(request):
+	"""Cria uma Stripe Checkout Session para assinatura e retorna a URL de redirecionamento."""
+	try:
+		data = json.loads(request.body)
+	except Exception:
+		return JsonResponse({"error": "invalid_json"}, status=400)
+
+	price_id = data.get('price_id')
+	if not price_id:
+		return JsonResponse({"error": "missing_price_id"}, status=400)
+
+	base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000').rstrip('/')
+	lang = get_language() or getattr(settings, 'LANGUAGE_CODE', '')
+	prefix = f"/{lang}" if lang else ''
+	success_url = data.get('success_url') or f"{base_url}{prefix}/success/?session_id={{CHECKOUT_SESSION_ID}}"
+	cancel_url = data.get('cancel_url') or f"{base_url}{prefix}/cancel/"
+
+	if stripe_imported:
+		try:
+			stripe.api_key = (
+				settings.STRIPE_LIVE_SECRET_KEY
+				if getattr(settings, 'STRIPE_LIVE_MODE', False)
+				else getattr(settings, 'STRIPE_TEST_SECRET_KEY', None)
+			)
+		except Exception:
+			logger.debug('Config Stripe não encontrada nas settings')
+
+	# Pega o e-mail do usuário autenticado, se houver
+	customer_email = None
+	if request.user.is_authenticated:
+		customer_email = getattr(request.user, 'email', None)
+
+	try:
+		checkout_session = stripe.checkout.Session.create(
+			payment_method_types=['card'],
+			line_items=[{
+				'price': price_id,
+				'quantity': 1,
+			}],
+			mode='subscription',
+			success_url=success_url,
+			cancel_url=cancel_url,
+			customer_email=customer_email,
+		)
+		return JsonResponse({'checkout_url': checkout_session.url, 'id': checkout_session.id})
+	except Exception as e:
+		logger.exception('Erro criando Checkout Session de assinatura: %s', e)
+		return JsonResponse({'error': str(e)}, status=500)
 
 
 
@@ -78,11 +132,11 @@ class CancelView(TemplateView):
 
 
 
-
+# --- COMPRA AVULSA (SVG) ---
 @csrf_exempt
 @require_POST
 def create_checkout_session(request):
-	"""Cria uma Stripe Checkout Session e retorna a URL de redirecionamento."""
+	"""Cria uma Stripe Checkout Session para compra avulsa e retorna a URL de redirecionamento."""
 	try:
 		data = json.loads(request.body)
 	except Exception:
@@ -121,13 +175,29 @@ def create_checkout_session(request):
 		except Exception:
 			logger.debug('Config Stripe não encontrada nas settings')
 
+	# valida e converte amount para centavos
+	try:
+		unit_amount = int(float(amount) * 100)
+	except Exception:
+		return JsonResponse({"error": "invalid_amount"}, status=400)
+
+	# normaliza currency
+	try:
+		currency_code = str(currency).lower()
+	except Exception:
+		currency_code = 'brl'
+
+	# Pega o e-mail do usuário autenticado, se houver
+	customer_email = None
+	if request.user.is_authenticated:
+		customer_email = getattr(request.user, 'email', None)
 	try:
 		checkout_session = stripe.checkout.Session.create(
 			payment_method_types=['card'],
 			line_items=[{
 				'price_data': {
-					'currency': currency.lower(),
-					'unit_amount': int(float(amount) * 100),
+					'currency': currency_code,
+					'unit_amount': unit_amount,
 					'product_data': {'name': product_name},
 				},
 				'quantity': 1,
@@ -136,6 +206,7 @@ def create_checkout_session(request):
 			success_url=success_url,
 			cancel_url=cancel_url,
 			metadata=stripe_metadata,
+			customer_email=customer_email,
 		)
 		return JsonResponse({'id': checkout_session.id, 'url': checkout_session.url})
 	except Exception as e:

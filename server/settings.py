@@ -51,7 +51,7 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 # Adicione hosts locais, se DEBUG for True
 if DEBUG:
-    ALLOWED_HOSTS += ['127.0.0.1', 'localhost', '.ngrok-free.app']
+    ALLOWED_HOSTS += ['127.0.0.1', 'localhost', 'www.akkaui.shop']
 
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 SITE_ID = 1
@@ -115,10 +115,20 @@ WSGI_APPLICATION = 'server.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'akka_db',            # Nome do DB que você criou no PgAdmin
+        'USER': 'postgres',           # Seu usuário do Postgres
+        'PASSWORD': '123456',         # Sua senha do Postgres
+        'HOST': 'localhost',          # Ou o IP do seu servidor
+        'PORT': '5432',               # Porta padrão do Postgres
     }
 }
 

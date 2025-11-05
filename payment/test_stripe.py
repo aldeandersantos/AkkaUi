@@ -161,7 +161,7 @@ class StripeViewsTestCase(TestCase):
         mock_session_create.return_value = mock_session
         
         response = self.client.post(
-            '/pt-br/payment/stripe/checkout/',
+            '/payment/stripe/checkout/',
             data=json.dumps({
                 'price_id': 'price_test123',
                 'success_url': 'http://example.com/success',

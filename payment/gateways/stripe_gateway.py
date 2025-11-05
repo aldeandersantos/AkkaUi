@@ -43,24 +43,9 @@ class StripeGateway(PaymentGateway):
             base_url = getattr(settings, 'BASE_URL', None) or 'http://localhost:8000'
             base_url = base_url.rstrip('/')
 
-            # Tentativa de obter idioma via metadata (se o chamador passou)
-            lang = None
-            try:
-                if metadata and isinstance(metadata, dict):
-                    lang = metadata.get('lang') or metadata.get('language')
-            except Exception:
-                lang = None
-
-            # Usar LANGUAGE_CODE das settings quando não fornecido
-            if not lang:
-                lang = getattr(settings, 'LANGUAGE_CODE', '')
-            lang = (lang or '').strip('/')
-            prefix = f"/{lang}" if lang else ''
-
-            # Incluir placeholder do Stripe para que ele substitua pelo id da sessão
-            # Agora redirecionamos para as páginas em `core` (success/cancel)
-            success_url = f"{base_url}{prefix}/success/?session_id={{CHECKOUT_SESSION_ID}}"
-            cancel_url = f"{base_url}{prefix}/cancel/"
+            # Não usa mais prefixo de idioma nas URLs de sucesso/cancelamento
+            success_url = f"{base_url}/success/?session_id={{CHECKOUT_SESSION_ID}}"
+            cancel_url = f"{base_url}/cancel/"
             
             # Criar Checkout Session para pagamento único
             checkout_session = stripe.checkout.Session.create(

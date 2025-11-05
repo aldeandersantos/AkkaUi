@@ -32,11 +32,13 @@ def create_subscription_checkout_session(request):
 	if not price_id:
 		return JsonResponse({"error": "missing_price_id"}, status=400)
 
-	base_url = getattr(settings, 'BASE_URL', 'http://localhost:8000').rstrip('/')
-	lang = get_language() or getattr(settings, 'LANGUAGE_CODE', '')
-	prefix = f"/{lang}" if lang else ''
-	success_url = data.get('success_url') or f"{base_url}{prefix}/success/?session_id={{CHECKOUT_SESSION_ID}}"
-	cancel_url = data.get('cancel_url') or f"{base_url}{prefix}/cancel/"
+	base_url = getattr(settings, 'BASE_URL', None)
+	if not base_url:
+		base_url = 'http://localhost:8000/'
+	if not base_url.endswith('/'):
+		base_url += '/'
+	success_url =f"{base_url}success/?session_id={{CHECKOUT_SESSION_ID}}"
+	cancel_url =f"{base_url}cancel/"
 
 	if stripe_imported:
 		try:
@@ -157,13 +159,13 @@ def create_checkout_session(request):
 		except Exception:
 			stripe_metadata[key] = str(value)
 
-	base_url = getattr(settings, 'BASE_URL', None) or 'http://localhost:8000'
-	base_url = base_url.rstrip('/')
-	lang = get_language() or getattr(settings, 'LANGUAGE_CODE', '')
-	lang = lang.strip('/')
-	prefix = f"/{lang}" if lang else ''
-	success_url = f"{base_url}{prefix}/success/?session_id={{CHECKOUT_SESSION_ID}}"
-	cancel_url = f"{base_url}{prefix}/cancel/"
+	base_url = getattr(settings, 'BASE_URL', None)
+	if not base_url:
+		base_url = 'http://localhost:8000/'
+	if not base_url.endswith('/'):
+		base_url += '/'
+	success_url = f"{base_url}success/?session_id={{CHECKOUT_SESSION_ID}}"
+	cancel_url = f"{base_url}cancel/"
 
 	if stripe_imported:
 		try:

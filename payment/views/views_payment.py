@@ -26,8 +26,7 @@ def create_payment(request):
         return JsonResponse({"error": "invalid_json"}, status=400)
     
     gateway = data.get("gateway")
-    plan = data.get("plan")
-    items = data.get("items")
+    items = data.get("products") or data.get("items")
     
     if not gateway:
         return JsonResponse({"error": "missing_gateway"}, status=400)
@@ -43,27 +42,17 @@ def create_payment(request):
         if items is not None:
             if not isinstance(items, list) or len(items) == 0:
                 return JsonResponse({"error": "items_must_be_non_empty_list"}, status=400)
-            
             payment = PaymentService.create_payment_with_items(
                 user=request.user,
                 gateway_name=gateway,
                 items=items,
-                currency=data.get("currency", "BRL")
+                currency=data.get("currency", "BRL"),
+                email=data.get("email")
             )
         else:
-            # Modo legado: pagamento de plano único
-            if not plan:
-                return JsonResponse({"error": "missing_plan"}, status=400)
-            
-            if plan not in PaymentService.PLAN_PRICES:
-                return JsonResponse({
-                    "error": "invalid_plan"
-                }, status=400)
-            
             payment = PaymentService.create_payment(
                 user=request.user,
                 gateway_name=gateway,
-                plan=plan,
                 currency=data.get("currency", "BRL")
             )
         

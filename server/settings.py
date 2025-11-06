@@ -66,8 +66,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.sites',
-    'djstripe',
     'payment',
     'usuario',
     'core',
@@ -232,6 +230,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('FILE_UPLOAD_MAX_MEMORY_SIZE', str(5
 # Environment-specific API keys
 ABACATE_API_TEST_KEY = os.getenv('ABACATE_API_TEST_KEY')
 ABACATE_API_PROD_KEY = os.getenv('ABACATE_API_PROD_KEY')
+ABACATE_WEBHOOK_SECRET = os.getenv('ABACATE_WEBHOOK_SECRET')
 MERCADOPAGO_ACCESS_TOKEN = os.getenv('MERCADOPAGO_ACCESS_TOKEN')
 
 
@@ -251,6 +250,7 @@ STRIPE_LIVE_MODE = os.getenv('STRIPE_LIVE_MODE', 'False').lower() in ('true', '1
 DJSTRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
+STRIPE_WEBHOOK_CHECKOUT = os.getenv('STRIPE_WEBHOOK_CHECKOUT', '')
 STRIPE_WEBHOOK_SECRET_MINIMO= os.getenv('STRIPE_WEBHOOK_SECRET_MINIMO', '')
 STRIPE_WEBHOOK_SECRET_INSTA= os.getenv('STRIPE_WEBHOOK_SECRET_INSTA', '')
 DJSTRIPE_SUBSCRIBER_MODEL = 'usuario.CustomUser'

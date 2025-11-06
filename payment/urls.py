@@ -1,7 +1,7 @@
 from django.urls import path, include
 from payment.views import *
 from payment.views.views_payment import *
-from payment.views.views_webhook import abacatepay_webhook, mercadopago_webhook
+from payment.views.views_webhook import abacatepay_webhook, mercadopago_webhook, stripe_webhook
 from payment.views.views_purchases import purchased_svgs_page, purchased_svgs_api, create_purchase
 from payment.views.views_stripe import *
 
@@ -17,6 +17,7 @@ urlpatterns = [
     # Webhook do AbacatePay para confirmação automática
     path("webhook/abacatepay/", abacatepay_webhook, name="abacatepay_webhook"),
     path("webhook/mercadopago/", mercadopago_webhook, name="mercadopago_webhook"),
+    path("webhook/stripe/", stripe_webhook, name="stripe_webhook"),
     
     # APIs legadas do Abacate Pay (mantidas para compatibilidade)
     path("abacate-status/", abacate_status, name="abacate_status"),
@@ -28,11 +29,7 @@ urlpatterns = [
     path("api/users/<int:user_id>/purchased-svgs/", purchased_svgs_api, name="purchased_svgs_api"),
     path("api/purchase/create/", create_purchase, name="create_purchase"),
     
-    # Stripe - Assinaturas
-    path('create-checkout-session/', create_checkout_session, name='create_checkout_session'),  # compra avulsa
-    path('stripe/checkout/', create_subscription_checkout_session, name='stripe_checkout'),  # assinatura recorrente
+    # Stripe - 
     path('success/', SuccessView.as_view(), name='payment_success'),
     path('cancel/', CancelView.as_view(), name='payment_cancel'),
-    # URLs do dj-stripe (webhooks e admin)
-    path("stripe/", include("djstripe.urls", namespace="djstripe")),
 ]

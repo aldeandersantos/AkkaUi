@@ -24,7 +24,6 @@ def serve_public_media(request, path):
 
 # Rotas que NÃO DEVEM TER PREFIXO DE IDIOMA
 urlpatterns = [
-    path('stripe/', include('djstripe.urls', namespace='djstripe')),
     path('i18n/setlang/', set_language, name='set_language'),
     path('admin/', admin.site.urls),
     path('payment/', include('payment.urls')),

@@ -19,13 +19,13 @@ class StripeGateway(PaymentGateway):
     def get_gateway_name(self) -> str:
         return "stripe"
     
-    def create_payment(self, amount: float, currency: str = "BRL", metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def create_payment(self, amount: float, email: str, currency: str = "BRL", metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Cria um pagamento via Stripe (compra única)
         
         Usa Stripe Checkout Session para redirecionar o usuário
         """
-        logger.info(f"Creating Stripe payment: {amount} {currency}")
+        logger.info(f"Creating Stripe payment: {amount} {currency} for {email}")
         
         try:
             # Converter metadata complexo para strings (Stripe só aceita strings em metadata)
@@ -49,6 +49,7 @@ class StripeGateway(PaymentGateway):
             
             # Criar Checkout Session para pagamento único
             checkout_session = stripe.checkout.Session.create(
+                customer_email=email,  # <--- 2. Adicione esta linha
                 payment_method_types=['card'],
                 line_items=[{
                     'price_data': {

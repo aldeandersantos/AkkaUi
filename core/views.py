@@ -247,7 +247,6 @@ def admin_create_svg(request):
         tags = payload.get("tags", "")
         category = payload.get("category", "")
         is_public = payload.get("is_public", False)
-        license_required = payload.get("license_required", False)
         price = payload.get("price", "0")
 
     # form-data / urlencoded
@@ -258,7 +257,6 @@ def admin_create_svg(request):
         tags = request.POST.get("tags", "")
         category = request.POST.get("category", "")
         is_public = request.POST.get("is_public") == "on" or request.POST.get("is_public") == "true"
-        license_required = request.POST.get("license_required") == "on" or request.POST.get("license_required") == "true"
         price = request.POST.get("price", "0")
 
     else:
@@ -286,7 +284,6 @@ def admin_create_svg(request):
         content=svg_text,
         owner=request.user,
         is_public=is_public,
-        license_required=license_required,
         thumbnail=thumbnail,
         price=price_decimal,
     )

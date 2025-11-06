@@ -4,7 +4,7 @@ from django.conf import settings
 from .base import PaymentGateway
 from ..services.services_abacate import norm_response
 from decimal import Decimal, ROUND_HALF_UP
-from server.settings import BASE_URL, ABACATE_API_TEST_KEY
+from server.settings import BASE_URL, ABACATE_API_KEY
 from usuario.models import CustomUser
 import requests
 
@@ -15,7 +15,7 @@ class AbacatePayGateway(PaymentGateway):
     """Gateway de pagamento para Abacate Pay"""
     
     def __init__(self):
-        self.api_key = getattr(settings, "ABACATE_API_TEST_KEY", "")
+        self.api_key = getattr(settings, "ABACATE_API_KEY", "")
         self.client = None
         
         if self.api_key:
@@ -40,16 +40,11 @@ class AbacatePayGateway(PaymentGateway):
         coupons: Optional[list] = None
     ) -> Dict[str, Any]:
         try:
-            return_url = BASE_URL
-            completion_url = BASE_URL
+            completion_url = f"{BASE_URL}/success/"
+            return_url = f"{BASE_URL}/cancel/"
             coupons = coupons or []
             # Monta lista de produtos convertendo preço para centavos
             products_payload = []
-            user_id = metadata.get("user_id") if metadata else "unknown_user"
-            user_obj = CustomUser.objects.get(id=user_id)
-            user_hash = str(user_obj.hash_id)
-            user_name = user_obj.get_full_name() or user_obj.username
-            user_email = user_obj.email
             for prod in items:
                 price_cents = int((Decimal(str(prod["price"])) * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
                 products_payload.append({
@@ -78,7 +73,7 @@ class AbacatePayGateway(PaymentGateway):
                 "https://api.abacatepay.com/v1/billing/create",
                 json=payload,
                 headers={
-                    "Authorization": f"Bearer {ABACATE_API_TEST_KEY}",
+                    "Authorization": f"Bearer {ABACATE_API_KEY}",
                     "Content-Type": "application/json"
                 },
                 timeout=5

@@ -215,7 +215,6 @@ def mercadopago_webhook(request):
 
 @csrf_exempt
 def stripe_webhook(request):
-    print("Entrou no webhook stripe")
     try:
         payload = request.body
         data = json.loads(payload)

@@ -11,7 +11,7 @@ class AbacateStatusViewTests(TestCase):
 
 	def test_abacate_status_without_key(self):
 		"""Se não houver chave, a view deve indicar client_configured False."""
-		with override_settings(ABACATE_API_TEST_KEY=""):
+		with override_settings(ABACATE_API_KEY=""):
 			request = self.factory.get('/payment/abacate-status/')
 			response = abacate_status(request)
 			self.assertEqual(response.status_code, 200)
@@ -19,7 +19,7 @@ class AbacateStatusViewTests(TestCase):
 
 	def test_abacate_status_with_key(self):
 		"""Se a chave estiver presente, client_configured True."""
-		with override_settings(ABACATE_API_TEST_KEY="sk_test_fake"):
+		with override_settings(ABACATE_API_KEY="sk_test_fake"):
 			request = self.factory.get('/payment/abacate-status/')
 			response = abacate_status(request)
 			self.assertEqual(response.status_code, 200)

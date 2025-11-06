@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import *
 # Importar views de pagamento para rotas públicas de sucesso/cancel
-from payment.views.views_stripe import SuccessView, CancelView
+from payment.views.views_payment import SuccessView, CancelView
 
 app_name = "core"
 

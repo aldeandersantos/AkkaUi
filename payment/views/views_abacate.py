@@ -5,17 +5,16 @@ from django.conf import settings
 from django.http import JsonResponse
 from ..services.services_abacate import *
 from message.views import notify_discord
+from server.settings import ABACATE_API_KEY
 
 try:
     from abacatepay import AbacatePay
 except ImportError:
     AbacatePay = None
+    
 
 
-ABACATE_API_TEST_KEY: str = getattr(settings, "ABACATE_API_TEST_KEY", "")
-
-
-client = AbacatePay(api_key=ABACATE_API_TEST_KEY) if AbacatePay is not None and ABACATE_API_TEST_KEY else None
+client = AbacatePay(api_key=ABACATE_API_KEY)
 
 
 def abacate_status(request):
@@ -23,7 +22,7 @@ def abacate_status(request):
 
 	Retorna JSON com flag `client_configured` dependendo da presença da chave.
 	"""
-	return JsonResponse({"client_configured": bool(ABACATE_API_TEST_KEY)})
+	return JsonResponse({"client_configured": bool(ABACATE_API_KEY)})
 
 
 @csrf_exempt
@@ -91,4 +90,29 @@ def simulate_confirmation(request):
 
     simulated_confirmation = {"id": payment_id, "status": status}
     return JsonResponse({"status": status, "gateway_response": simulated_confirmation})
+
+
+# Função utilitária para SuccessView: busca dados do pagamento AbacatePay
+def get_abacate_payment_data(session_id):
+    data = {
+        'stripe_available': False,
+        'payment_status': None,
+        'amount': None,
+        'currency': None,
+    }
+    if not session_id:
+        return data
+    if client is None:
+        data['stripe_error'] = 'AbacatePay não configurado'
+        return data
+    try:
+        result = client.billing.get(id=session_id)
+        gateway_response = norm_response(result)
+        data['stripe_available'] = True
+        data['amount'] = gateway_response.get('amount')
+        data['currency'] = gateway_response.get('currency', 'BRL').upper()
+        data['payment_status'] = gateway_response.get('status')
+    except Exception as exc:
+        data['stripe_error'] = str(exc)
+    return data
 

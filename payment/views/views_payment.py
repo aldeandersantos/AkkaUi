@@ -1,7 +1,9 @@
 import json
 import logging
 from django.http import JsonResponse, HttpResponseRedirect
-from django.shortcuts import redirect
+from django.views.generic import TemplateView
+from ..views.views_stripe import get_stripe_payment_data
+from ..views.views_abacate import get_abacate_payment_data
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from ..models import Payment
@@ -294,4 +296,62 @@ def list_user_payments(request):
     })
 
 
-# A view de simulação do Mercado Pago foi removida: preferir redirecionar para init_point/sandbox_init_point
+# Função utilitária para montar contexto da página de sucesso de pagamento
+def get_payment_success_context(request, consulta_gateway_func):
+    # Permite múltiplos nomes de parâmetro para compatibilidade
+    session_id = (
+        request.GET.get('session_id')
+        or request.GET.get('checkout_session_id')
+        or request.GET.get('session')
+        or request.GET.get('id')
+        or request.GET.get('transaction_id')
+    )
+    context = {
+        'session_id': session_id,
+        'stripe_available': False,
+        'payment_status': None,
+        'amount': None,
+        'currency': None,
+        'stripe_error': None,
+    }
+    if consulta_gateway_func:
+        try:
+            payment_data = consulta_gateway_func(session_id)
+            context.update(payment_data)
+        except Exception as e:
+            logging.exception(f'Erro ao consultar gateway: %s', e)
+            context['stripe_error'] = str(e)
+    return context
+
+
+
+
+
+class SuccessView(TemplateView):
+    template_name = "core/success.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Detecta gateway dinamicamente
+        request = self.request
+        # Exibe todos os valores relevantes da request para debug
+        session_id = (
+            request.GET.get('session_id')
+            or request.GET.get('checkout_session_id')
+            or request.GET.get('session')
+            or request.GET.get('id')
+            or request.GET.get('transaction_id')
+        )
+        # Heurística simples: se id começa com 'abacate', usa abacatepay, senão usa stripe
+        if session_id and str(session_id).startswith('abacate'):
+            consulta_func = get_abacate_payment_data
+        else:
+            consulta_func = get_stripe_payment_data
+        context.update(get_payment_success_context(request, consulta_func))
+        return context
+
+
+from django.views.generic import TemplateView
+class CancelView(TemplateView):
+    """Página de cancelamento do checkout."""
+    template_name = "core/cancel.html"

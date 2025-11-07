@@ -51,9 +51,10 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 # Adicione hosts locais, se DEBUG for True
 if DEBUG:
-    ALLOWED_HOSTS += ['127.0.0.1', 'localhost']
+    ALLOWED_HOSTS += ['127.0.0.1', 'localhost', 'www.akkaui.shop']
 
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+SITE_ID = 1
 
 
 # Application definition
@@ -65,12 +66,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'djstripe',
     'payment',
     'usuario',
     'core',
     'support',
     'guardian',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -112,10 +113,20 @@ WSGI_APPLICATION = 'server.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'akka_db',            # Nome do DB que você criou no PgAdmin
+        'USER': 'postgres',           # Seu usuário do Postgres
+        'PASSWORD': '123456',         # Sua senha do Postgres
+        'HOST': 'localhost',          # Ou o IP do seu servidor
+        'PORT': '5432',               # Porta padrão do Postgres
     }
 }
 
@@ -217,8 +228,8 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.getenv('FILE_UPLOAD_MAX_MEMORY_SIZE', str(5
 
 
 # Environment-specific API keys
-ABACATE_API_TEST_KEY = os.getenv('ABACATE_API_TEST_KEY')
-ABACATE_API_PROD_KEY = os.getenv('ABACATE_API_PROD_KEY')
+ABACATE_API_KEY = os.getenv('ABACATE_API_KEY')
+ABACATE_WEBHOOK_SECRET = os.getenv('ABACATE_WEBHOOK_SECRET')
 MERCADOPAGO_ACCESS_TOKEN = os.getenv('MERCADOPAGO_ACCESS_TOKEN')
 
 
@@ -238,6 +249,10 @@ STRIPE_LIVE_MODE = os.getenv('STRIPE_LIVE_MODE', 'False').lower() in ('true', '1
 DJSTRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
 DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
 DJSTRIPE_USE_NATIVE_JSONFIELD = True
+STRIPE_WEBHOOK_CHECKOUT = os.getenv('STRIPE_WEBHOOK_CHECKOUT', '')
+STRIPE_WEBHOOK_SECRET_MINIMO= os.getenv('STRIPE_WEBHOOK_SECRET_MINIMO', '')
+STRIPE_WEBHOOK_SECRET_INSTA= os.getenv('STRIPE_WEBHOOK_SECRET_INSTA', '')
+DJSTRIPE_SUBSCRIBER_MODEL = 'usuario.CustomUser'
 
 # Optional: Stripe Price IDs (set in .env or environment for each environment)
 # These are the `price_...` identifiers from your Stripe product/prices.

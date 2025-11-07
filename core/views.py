@@ -36,11 +36,6 @@ def explore(request):
     if search_query:
         svgfiles = svgfiles.filter(title_name__icontains=search_query)
     
-    # Filtro por categoria
-    category = request.GET.get('category', '').strip()
-    if category:
-        svgfiles = svgfiles.filter(category=category)
-    
     # Filtro por tags
     tag = request.GET.get('tag', '').strip()
     if tag:
@@ -54,8 +49,7 @@ def explore(request):
     else:
         svgfiles = svgfiles.order_by('-uploaded_at')
     
-    # Obter categorias e tags únicas para os filtros
-    all_categories = SvgFile.objects.filter(is_public=True).exclude(category='').values_list('category', flat=True).distinct()
+    # Obter tags únicas para os filtros
     all_tags_raw = SvgFile.objects.filter(is_public=True).exclude(tags='').values_list('tags', flat=True)
     
     # Processar tags (separadas por vírgula)
@@ -78,10 +72,8 @@ def explore(request):
     context = {
         'svgfiles': svgfiles,
         'search_query': search_query,
-        'selected_category': category,
         'selected_tag': tag,
         'selected_sort': sort_by,
-        'all_categories': all_categories,
         'all_tags': all_tags,
     }
     
@@ -226,7 +218,7 @@ def admin_delete_svg(request):
 def admin_create_svg(request):
     """
     Admin-only endpoint to create a new SVG with full metadata.
-    Expects JSON or form-data with content/title_name, description, tags, category.
+    Expects JSON or form-data with content/title_name, description, tags.
     """
     ctype = request.META.get("CONTENT_TYPE", "").lower()
 
@@ -245,9 +237,7 @@ def admin_create_svg(request):
         title_name = payload.get("title_name") or ""
         description = payload.get("description", "")
         tags = payload.get("tags", "")
-        category = payload.get("category", "")
         is_public = payload.get("is_public", False)
-        license_required = payload.get("license_required", False)
         price = payload.get("price", "0")
 
     # form-data / urlencoded
@@ -256,9 +246,7 @@ def admin_create_svg(request):
         title_name = request.POST.get("title_name") or ""
         description = request.POST.get("description", "")
         tags = request.POST.get("tags", "")
-        category = request.POST.get("category", "")
         is_public = request.POST.get("is_public") == "on" or request.POST.get("is_public") == "true"
-        license_required = request.POST.get("license_required") == "on" or request.POST.get("license_required") == "true"
         price = request.POST.get("price", "0")
 
     else:
@@ -282,11 +270,9 @@ def admin_create_svg(request):
         title_name=title_name,
         description=description,
         tags=tags,
-        category=category,
         content=svg_text,
         owner=request.user,
         is_public=is_public,
-        license_required=license_required,
         thumbnail=thumbnail,
         price=price_decimal,
     )
@@ -294,10 +280,88 @@ def admin_create_svg(request):
     return JsonResponse({"id": svg_file.pk, "title_name": svg_file.title_name, "success": True})
 
 
+@admin_required
+@require_POST
+def admin_update_svg(request):
+    """
+    Admin-only endpoint to update an existing SVG.
+    Expects JSON or form-data with id and fields to update.
+    """
+    ctype = request.META.get("CONTENT_TYPE", "").lower()
+    
+    # Get SVG ID
+    svg_id = request.POST.get("id") or (request.GET.get("id") if ctype.startswith("application/json") else None)
+    
+    if ctype.startswith("application/json"):
+        try:
+            body = request.body or b""
+        except RequestDataTooBig:
+            return HttpResponseBadRequest(json.dumps({"error": "payload too large"}), content_type="application/json")
+        try:
+            payload = json.loads(body.decode("utf-8"))
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return HttpResponseBadRequest(json.dumps({"error": "invalid json"}), content_type="application/json")
+        
+        svg_id = payload.get("id")
+        title_name = payload.get("title_name")
+        description = payload.get("description")
+        tags = payload.get("tags")
+        is_public = payload.get("is_public")
+        price = payload.get("price")
+        svg_text = payload.get("svg_text") or payload.get("content")
+    
+    elif ctype.startswith("application/x-www-form-urlencoded") or ctype.startswith("multipart/form-data"):
+        svg_id = request.POST.get("id")
+        title_name = request.POST.get("title_name")
+        description = request.POST.get("description")
+        tags = request.POST.get("tags")
+        is_public_raw = request.POST.get("is_public")
+        is_public = is_public_raw == "on" or is_public_raw == "true" if is_public_raw is not None else None
+        price = request.POST.get("price")
+        svg_text = request.POST.get("svg_text") or request.POST.get("content")
+    else:
+        return HttpResponseBadRequest(json.dumps({"error": "unsupported content-type"}), content_type="application/json")
+    
+    if not svg_id:
+        return HttpResponseBadRequest(json.dumps({"error": "id is required"}), content_type="application/json")
+    
+    svg_file = get_object_or_404(SvgFile, pk=svg_id, owner=request.user)
+    
+    # Update fields if provided
+    if title_name is not None:
+        svg_file.title_name = title_name
+    if description is not None:
+        svg_file.description = description
+    if tags is not None:
+        svg_file.tags = tags
+    if is_public is not None:
+        svg_file.is_public = is_public
+    if price is not None:
+        from decimal import Decimal, InvalidOperation
+        try:
+            price_decimal = Decimal(str(price)) if price else Decimal("0.00")
+            if price_decimal < 0:
+                price_decimal = Decimal("0.00")
+            svg_file.price = price_decimal
+        except (InvalidOperation, ValueError):
+            pass
+    if svg_text is not None:
+        svg_file.content = svg_text
+    
+    # Handle thumbnail upload
+    thumbnail = request.FILES.get("thumbnail")
+    if thumbnail:
+        svg_file.thumbnail = thumbnail
+    
+    svg_file.save()
+    
+    return JsonResponse({"id": svg_file.pk, "title_name": svg_file.title_name, "success": True})
+
+
 def search_svg(request):
     """
     API endpoint for searching SVG files.
-    Supports query parameters: q (search), category, tag, sort
+    Supports query parameters: q (search), tag, sort
     Returns JSON with matching SVG files.
     """
     if request.method != "GET":
@@ -309,11 +373,6 @@ def search_svg(request):
     search_query = request.GET.get('q', '').strip()
     if search_query:
         svgfiles = svgfiles.filter(title_name__icontains=search_query)
-    
-    # Filtro por categoria
-    category = request.GET.get('category', '').strip()
-    if category:
-        svgfiles = svgfiles.filter(category=category)
     
     # Filtro por tags
     tag = request.GET.get('tag', '').strip()

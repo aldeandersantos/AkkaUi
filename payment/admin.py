@@ -61,3 +61,4 @@ class PurchaseAdmin(admin.ModelAdmin):
             'fields': ('purchased_at',)
         }),
     )
+

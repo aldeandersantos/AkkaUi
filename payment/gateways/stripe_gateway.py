@@ -19,13 +19,13 @@ class StripeGateway(PaymentGateway):
     def get_gateway_name(self) -> str:
         return "stripe"
     
-    def create_payment(self, amount: float, currency: str = "BRL", metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def create_payment(self, amount: float, email: str, currency: str = "BRL", metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Cria um pagamento via Stripe (compra única)
         
         Usa Stripe Checkout Session para redirecionar o usuário
         """
-        logger.info(f"Creating Stripe payment: {amount} {currency}")
+        logger.info(f"Creating Stripe payment: {amount} {currency} for {email}")
         
         try:
             # Converter metadata complexo para strings (Stripe só aceita strings em metadata)
@@ -41,11 +41,15 @@ class StripeGateway(PaymentGateway):
             
             # Obter base URL para success/cancel
             base_url = getattr(settings, 'BASE_URL', None) or 'http://localhost:8000'
-            success_url = f"{base_url}/payment/success/"
-            cancel_url = f"{base_url}/payment/cancel/"
+            base_url = base_url.rstrip('/')
+
+            # Não usa mais prefixo de idioma nas URLs de sucesso/cancelamento
+            success_url = f"{base_url}/success/?session_id={{CHECKOUT_SESSION_ID}}"
+            cancel_url = f"{base_url}/cancel/"
             
             # Criar Checkout Session para pagamento único
             checkout_session = stripe.checkout.Session.create(
+                customer_email=email,  # <--- 2. Adicione esta linha
                 payment_method_types=['card'],
                 line_items=[{
                     'price_data': {

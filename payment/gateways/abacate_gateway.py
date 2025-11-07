@@ -4,6 +4,9 @@ from django.conf import settings
 from .base import PaymentGateway
 from ..services.services_abacate import norm_response
 from decimal import Decimal, ROUND_HALF_UP
+from server.settings import BASE_URL, ABACATE_API_KEY
+from usuario.models import CustomUser
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +15,7 @@ class AbacatePayGateway(PaymentGateway):
     """Gateway de pagamento para Abacate Pay"""
     
     def __init__(self):
-        self.api_key = getattr(settings, "ABACATE_API_TEST_KEY", "")
+        self.api_key = getattr(settings, "ABACATE_API_KEY", "")
         self.client = None
         
         if self.api_key:
@@ -27,74 +30,86 @@ class AbacatePayGateway(PaymentGateway):
     def get_gateway_name(self) -> str:
         return "abacatepay"
     
-    def create_payment(self, amount: float, currency: str = "BRL", metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Cria um pagamento PIX via Abacate Pay - compra real que fica pendente até pagamento"""
-        if not self.client:
-            # Modo simulado quando o cliente não está configurado
-            logger.warning("AbacatePay client not configured. Using simulated mode.")
-            return {
-                "id": f"sim_abacate_{amount}",
-                "status": "pending",
-                "amount": amount,
-                "currency": currency,
-                "qr_code": "simulated_qr_code_data",
-                "qr_code_url": "https://example.com/qr-code-placeholder",
-                "simulated": True
-            }
-        
+    def create_payment(
+        self,
+        amount: float,
+        items: list,
+        currency: str = "BRL",
+        metadata: Optional[Dict[str, Any]] = None,
+        allow_coupons: bool = False,
+        coupons: Optional[list] = None
+    ) -> Dict[str, Any]:
         try:
-            # Cria a compra real no AbacatePay - ficará pendente até o cliente pagar
-            # Converte valor em reais para centavos (ex.: 9.9 -> 990)
-            amount_dec = Decimal(str(amount))
-            amount = int((amount_dec * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
-            logger.info(f"Valor convertido para centavos: {amount}")
+            completion_url = f"{BASE_URL}/success/"
+            return_url = f"{BASE_URL}/cancel/"
+            coupons = coupons or []
+            # Monta lista de produtos convertendo preço para centavos
+            products_payload = []
+            for prod in items:
+                price_cents = int((Decimal(str(prod["price"])) * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+                products_payload.append({
+                    "externalId": f"prod-{prod["id"]}",
+                    "name": prod["name"],
+                    "quantity": prod.get("quantity", 1),
+                    "price": price_cents
+                })
             payload = {
-                "amount": amount,
-                "currency": currency,
+                "frequency": "ONE_TIME",
+                "methods": ["PIX"],
+                "products": products_payload,
+                "returnUrl": return_url,
+                "completionUrl": completion_url,
+                "allowCoupons": allow_coupons,
+                "coupons": coupons,
             }
+            # logger.info(f"Criando pagamento AbacatePay com payload: {payload}")
+            # result = self.client.billing.create(payload)
+            # logger.info(f"AbacatePay raw result: {type(result)}")
+            # gateway_response = norm_response(result)
+            # logger.info(f"AbacatePay normalized response: {gateway_response}")
             
-            if metadata:
-                payload.update(metadata)
             
-            logger.info(f"Creating AbacatePay payment with payload: {payload}")
-            result = self.client.pixQrCode.create(payload)
-            logger.info(f"AbacatePay raw result: {type(result)}")
+            response = requests.post(
+                "https://api.abacatepay.com/v1/billing/create",
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {ABACATE_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                timeout=5
+            )
+            logger.info(f"Resposta da API AbacatePay: {response.status_code} - {response.text}")
+            response.raise_for_status()
+            api_response = response.json()
+            gateway_response = api_response
             
-            gateway_response = norm_response(result)
-            logger.info(f"AbacatePay normalized response: {gateway_response}")
-            
-            return {
-                "id": gateway_response.get("id"),
+            faturamento = gateway_response.get("faturamento", {})
+            valores = gateway_response.get("valores", {})
+            data = gateway_response.get("data", {})
+            url = data.get("url", "")
+
+            payload_retorno = {
+                "id": faturamento.get("id"),
                 "status": "pending",  # Status inicial sempre pendente até pagamento
-                "amount": amount,
-                "currency": currency,
-                "qr_code": gateway_response.get("qr_code"),
-                "qr_code_url": gateway_response.get("qr_code_url"),
+                "amount": valores.get("total"),
+                "currency": 'BRL',
+                "init_point": url,  # URL para redirecionar o usuário
                 "gateway_response": gateway_response,
                 "simulated": False
             }
+            return payload_retorno
         except Exception as e:
             logger.error(f"Error creating AbacatePay payment: {type(e).__name__}: {e}", exc_info=True)
             raise
     
     def check_payment_status(self, payment_id: str) -> Dict[str, Any]:
         """Verifica o status de um pagamento"""
-        if not self.client:
-            # Modo simulado
-            return {
-                "id": payment_id,
-                "status": "pending",
-                "simulated": True
-            }
-        
         try:
             result = None
-            pix_client = getattr(self.client, 'pixQrCode', None)
-            if pix_client is None:
-                raise AttributeError("AbacatePay client has no attribute 'pixQrCode'")
+            transaction_id = getattr(self.client, 'transactionId', None)
             
-            if hasattr(pix_client, 'check'):
-                result = pix_client.check(payment_id)
+            if hasattr(transaction_id, 'check'):
+                result = transaction_id.check(transaction_id)
             else:
                 raise AttributeError("AbacatePay PixQrCode client does not implement 'check' method")
 

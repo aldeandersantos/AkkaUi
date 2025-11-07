@@ -139,8 +139,9 @@ class CartPaymentTests(TestCase):
             
             data = json.loads(response.content)
             self.assertEqual(data['status'], 'success')
-            # 2x10 + 1x25 + 1x9.90 = 54.90
-            self.assertEqual(data['payment']['amount'], '54.90')
+            # Quantidades de SVGs são normalizadas para 1 (licença única):
+            # 1x10 + 1x25 + 1x9.90 = 44.90
+            self.assertEqual(data['payment']['amount'], '44.90')
             self.assertEqual(len(data['payment']['items']), 3)
             
             # Verificar itens no banco
@@ -148,9 +149,10 @@ class CartPaymentTests(TestCase):
             self.assertEqual(payment.items.count(), 3)
             
             svg1_item = payment.items.get(item_type='svg', item_id=self.svg1.id)
-            self.assertEqual(svg1_item.quantity, 2)
+            # Backend normaliza quantity para 1 (licença única)
+            self.assertEqual(svg1_item.quantity, 1)
             self.assertEqual(svg1_item.unit_price, Decimal('10.00'))
-            self.assertEqual(svg1_item.total_price, Decimal('20.00'))
+            self.assertEqual(svg1_item.total_price, Decimal('10.00'))
     
     def test_payment_item_total_price_calculation(self):
         """Testa cálculo automático do total_price no PaymentItem"""

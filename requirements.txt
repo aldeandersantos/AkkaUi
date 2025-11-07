@@ -16,5 +16,4 @@ webencodings==0.5.1
 abacatepay==1.0.9
 mercadopago==2.3.0
 whitenoise==6.11.0
-dj-stripe==2.10.3
 gunicorn==23.0.0

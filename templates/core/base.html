@@ -554,16 +554,28 @@
         }
 
         // Add item to cart
+        // Para licenças digitais: cada produto deve existir apenas uma vez no carrinho.
         window.addToCart = function(id, name, price) {
           const cart = getCart();
           const existingItem = cart.find(item => item.id === id);
-          
+
           if (existingItem) {
-            existingItem.quantity += 1;
-          } else {
-            cart.push({ id, name, price: parseFloat(price), quantity: 1, type: 'svg' });
+            // Não incrementamos quantity — manter apenas uma licença por produto
+            if (typeof showNotification === 'function') {
+              showNotification('"' + name + '" já está no carrinho', 'info');
+            } else {
+              // Fallback simples
+              const notification = document.createElement('div');
+              notification.textContent = '"' + name + '" já está no carrinho';
+              document.body.appendChild(notification);
+              setTimeout(() => notification.remove(), 2000);
+            }
+            // atualizar badge caso necessário
+            saveCart(cart);
+            return;
           }
-          
+
+          cart.push({ id, name, price: parseFloat(price), quantity: 1, type: 'svg' });
           saveCart(cart);
           showCartNotification(name);
         };
@@ -593,9 +605,10 @@
         }
 
         // Update cart badge
+        // Para licenças consideramos itens únicos (um por produto)
         function updateCartBadge() {
           const cart = getCart();
-          const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+          const totalItems = cart.length;
           
           let badge = document.getElementById('cart-badge');
           if (!badge && totalItems > 0) {

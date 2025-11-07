@@ -536,12 +536,8 @@
     let currentPlan = null;
     let currentAmount = null;
 
-    // Get language prefix from current URL to build correct API URLs
-    const getLanguagePrefix = () => {
-      const path = window.location.pathname;
-      const match = path.match(/^\/(en|pt-br|es|it|zh-hans)\//);
-      return match ? match[0] : '/en/';
-    };
+    // Não usa mais prefixo de idioma nas URLs de pagamento
+    const getLanguagePrefix = () => '';
 
     // Conectar botões de compra ao modal
     const planCtas = document.querySelectorAll('.plan-cta');
@@ -659,7 +655,7 @@
             return;
           }
           
-          const response = await fetch(`${languagePrefix}payment/stripe/checkout/`, {
+          const response = await fetch(`/payment/stripe/checkout/`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -695,7 +691,7 @@
         };
         const backendPlan = planMap[currentPlan] || currentPlan;
         
-        const response = await fetch(`${languagePrefix}payment/create/`, {
+  const response = await fetch(`/payment/create/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -777,7 +773,7 @@
       try {
         const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
         const languagePrefix = getLanguagePrefix();
-        const response = await fetch(`${languagePrefix}payment/simulate/`, {
+  const response = await fetch(`/payment/simulate/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

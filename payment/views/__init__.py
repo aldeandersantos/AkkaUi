@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from django.http import JsonResponse
 from ..services.services_abacate import *
+from server.settings import ABACATE_API_KEY
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +15,7 @@ except ImportError:
     AbacatePay = None
 
 
-
-ABACATE_API_TEST_KEY: str = getattr(settings, "ABACATE_API_TEST_KEY", "")
-
-
-client = AbacatePay(api_key=ABACATE_API_TEST_KEY) if AbacatePay is not None and ABACATE_API_TEST_KEY else None
+client = AbacatePay(api_key=ABACATE_API_KEY)
 
 
 def abacate_status(request):
@@ -26,7 +23,7 @@ def abacate_status(request):
 
 	Retorna JSON com flag `client_configured` dependendo da presença da chave.
 	"""
-	return JsonResponse({"client_configured": bool(ABACATE_API_TEST_KEY)})
+	return JsonResponse({"client_configured": bool(ABACATE_API_KEY)})
 
 
 @csrf_exempt

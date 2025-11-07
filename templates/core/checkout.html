@@ -161,12 +161,16 @@
       payButton.textContent = '{% trans "Processing..." %}';
 
       try {
-        // Convert cart items to API format
-        const items = cart.map(item => ({
-          type: item.type || 'svg',
+        // Monta lista de produtos conforme esperado pelo backend
+        const products = cart.map(item => ({
           id: item.id,
+          name: item.name,
+          price: item.price,
           quantity: item.quantity
         }));
+
+        // Recupera o hash do usuário autenticado do contexto do template
+        const userId = '{{ request.user.id|escapejs }}';
 
         const response = await fetch('{% url "payment:create_payment" %}', {
           method: 'POST',
@@ -176,7 +180,8 @@
           },
           body: JSON.stringify({
             gateway: gateway,
-            items: items,
+            user_id: userId,
+            products: products,
             currency: 'BRL'
           })
         });

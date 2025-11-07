@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Pagamento cancelado" %}{% endblock %}
+
+{% block content %}
+  <div class="card" style="max-width:800px;margin:40px auto;padding:20px;border:1px solid #eee;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
+    <h1>{% trans "Pagamento cancelado" %}</h1>
+    <p>{% trans "Parece que o processo de pagamento foi cancelado. Se precisar, tente novamente." %}</p>
+
+    <p>
+      <a class="btn" href="{% url 'core:home' %}">{% trans "Ir para a página principal" %}</a>
+    </p>
+
+    <hr>
+    <small>{% trans "Se você esperava um email de confirmação e não recebeu, aguarde alguns minutos — a confirmação oficial costuma chegar via webhook do provedor de pagamentos." %}</small>
+  </div>
+{% endblock %}

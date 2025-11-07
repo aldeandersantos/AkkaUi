@@ -44,7 +44,6 @@ def main():
         "payment",
         "support",
         "guardian",
-        "djstripe",
     ]
 
     # Se EXTRA_MAKEMIGRATE_APPS estiver definida, utiliza esses apps primeiro

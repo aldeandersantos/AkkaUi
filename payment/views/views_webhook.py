@@ -1,17 +1,20 @@
 import json
 import logging
-import hmac
-import hashlib
+import stripe
 import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.dispatch import receiver
 from django.conf import settings
 from ..models import Payment
 from django.db.models import Q
 from ..services.payment_service import PaymentService
+from ..services.stripe_service import stripe_signature_verification
+from ..services.webhook_service import processing_stripe_payment
 from usuario.views.views_vip import add_vip_to_user_by_hash
-from server.settings import MERCADOPAGO_ACCESS_TOKEN
+from server.settings import MERCADOPAGO_ACCESS_TOKEN, STRIPE_WEBHOOK_CHECKOUT, ABACATE_WEBHOOK_SECRET
 
 logger = logging.getLogger(__name__)
 
@@ -25,53 +28,59 @@ def abacatepay_webhook(request):
     O AbacatePay envia uma notificação POST quando o status do pagamento muda.
     Esperamos um payload JSON com pelo menos: {"id": "payment_id", "status": "confirmed"}
     """
+    secret_da_url = request.GET.get('webhookSecret') 
+
+    if not secret_da_url or secret_da_url != ABACATE_WEBHOOK_SECRET:
+        logger.error(f"Webhook AbacatePay: Tentativa de acesso não autorizada. Secret inválido.")
+        return JsonResponse({"error": "unauthorized"}, status=403)
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
         logger.error("Webhook AbacatePay: JSON inválido")
         return JsonResponse({"error": "invalid_json"}, status=400)
-
     payload = data.get("data")
-    pix = payload.get("pixQrCode")
-    payment_info = payload.get("payment")
+    billing = payload.get("billing", {}) if payload else {}
 
-    payment_id = pix.get("id")
-    status = pix.get("status")
-    payment_amount = pix.get("amount")
-    amount_paid = payment_info.get("amount")
-    
-    if amount_paid != payment_amount:
-        logger.warning(f"Webhook AbacatePay: Aviso de valor divergente - amount: {payment_amount}, amount_paid: {amount_paid}")
-    
-    if not payment_id:
+    gateway_pay_id = billing.get("id")
+    amount = billing.get("amount", 0)
+    paid_amount = billing.get("paidAmount", 0)
+    status = billing.get("status", "")
+
+    if paid_amount != amount:
+        logger.warning(f"Webhook AbacatePay: Aviso de valor divergente - amount: {amount}, paid_amount: {paid_amount}")
+    amount = float(amount) / 100  # Usar o valor pago efetivamente
+
+    if not gateway_pay_id:
         logger.error("Webhook AbacatePay: ID do pagamento ausente")
         return JsonResponse({"error": "missing_payment_id"}, status=400)
 
-    logger.info(f"Webhook AbacatePay recebido: payment_id={payment_id}, status={status}")
+    logger.info(f"Webhook AbacatePay recebido: payment_id={gateway_pay_id}, status={status}")
 
     try:
         # Buscar o pagamento no banco pelo gateway_payment_id
         payment = Payment.objects.filter(
-            gateway_payment_id=payment_id,
+            gateway_payment_id=gateway_pay_id,
             gateway='abacatepay'
         ).first()
 
         if not payment:
-            logger.warning(f"Webhook AbacatePay: Pagamento não encontrado para ID {payment_id}")
+            logger.warning(f"Webhook AbacatePay: Pagamento não encontrado para ID {gateway_pay_id}")
             return JsonResponse({"error": "payment_not_found"}, status=404)
 
         # Atualizar o status do pagamento
         old_status = payment.status
-        # payment.plan armazena o value das choices (ex: 'pro_month' ou 'pro_year')
-        plan = payment.plan
         # Se o status for "confirmed" ou "paid", marcar como completado
         status = status.lower()
-        if status in ['confirmed', 'paid', 'completed']:
-            payment = PaymentService.check_payment_status(payment)
+        payment_id = payment.transaction_id
+        if status == 'paid':
             logger.info(f"Pagamento {payment_id} atualizado: {old_status} -> {payment.status}")
-
-            if payment.status == 'completed' and old_status != 'completed':
-                logger.info(f"Pagamento {payment_id} completado — VIP aplicado por PaymentService para usuário {payment.user.username}")
+            payment.status = 'completed'
+            if old_status != 'completed':
+                    try:
+                        PaymentService._register_svg_purchases(payment)
+                    except Exception as e:
+                        logger.exception(f"Erro ao registrar compras de SVGs: {e}")
+            payment.save()
         else:
             # Para outros status, apenas atualizar
             payment.gateway_response = data
@@ -203,3 +212,51 @@ def mercadopago_webhook(request):
         "payment_status": payment.status
     })
 
+
+@csrf_exempt
+def stripe_webhook(request):
+    try:
+        payload = request.body
+        data = json.loads(payload)
+    except json.JSONDecodeError:
+        logger.error("Webhook MercadoPago: JSON inválido")
+        return JsonResponse({"error": "invalid_json"}, status=400)
+    
+    sig_header = request.headers.get('Stripe-Signature')
+
+    if not stripe_signature_verification(STRIPE_WEBHOOK_CHECKOUT, sig_header, payload):
+        logger.warning("Webhook Stripe: Assinatura inválida")
+        return JsonResponse({"error": "invalid_stripe_signature"}, status=403)
+
+
+    if not sig_header:
+        logger.error("Webhook Stripe: Header 'Stripe-Signature' ausente.")
+        return HttpResponseBadRequest("Missing Stripe-Signature header")
+    
+    
+
+    event_type = data.get("type", None)
+    if event_type:
+        session = "checkout.session."
+        payment_status =  data.get("data", {}).get("object", {}).get("payment_status", None)
+
+        if event_type == f"{session}completed":
+            print(f"Processando evento {session}completed")
+            if payment_status == "paid":
+                print("Pagamento concluído com sucesso no Stripe.")
+                if not processing_stripe_payment(data):
+                    print("Falha ao processar o pagamento do Stripe.")
+
+        elif event_type == f"{session}async_payment_succeeded":
+            print(f"Processando evento {session}async_payment_succeeded")
+
+        elif event_type == f"{session}async_payment_failed":
+            print(f"Processando evento {session}async_payment_failed")
+
+        elif event_type == f"{session}expired":
+            print(f"Processando evento {session}expired")
+
+        else:
+            print(f"Evento Stripe não tratado: {event_type}")
+    
+    return HttpResponse(status=200)

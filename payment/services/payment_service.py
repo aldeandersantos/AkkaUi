@@ -198,7 +198,7 @@ class PaymentService:
             raise
     
     @classmethod
-    def create_payment_with_items(cls, user, gateway_name: str, items: List[Dict[str, Any]], currency: str = 'BRL') -> Payment:
+    def create_payment_with_items(cls, user, gateway_name: str, items: List[Dict[str, Any]], currency: str = 'BRL', email: str = None) -> Payment:
         """
         Cria um novo pagamento com múltiplos itens (carrinho)
         
@@ -222,44 +222,44 @@ class PaymentService:
         
         total_amount = Decimal('0.00')
         processed_items = []
-        
+
+        # Para licenças digitais: normalizar items 'svg' para quantity=1
+        # e deduplicar múltiplas entradas do mesmo svg enviadas pelo cliente.
+        seen_svg_ids = set()
+
         # Processar cada item e calcular o total
         for item_data in items:
             item_type = item_data.get('type')
             item_id = item_data.get('id')
+            # ignorar quantidade enviada pelo cliente para SVGs
+            incoming_quantity = item_data.get('quantity', 1)
             quantity = item_data.get('quantity', 1)
-            
-            if item_type == 'plan':
-                # Item de plano
-                price = Decimal(str(cls.get_plan_price(item_id)))
+
+            # Item SVG
+            try:
+                svg = SvgFile.objects.get(id=item_id)
+                if svg.price <= 0:
+                    raise ValueError(f"SVG {item_id} não está disponível para venda")
+
+                # Deduplicar: pular se já processamos este SVG
+                if svg.id in seen_svg_ids:
+                    continue
+                seen_svg_ids.add(svg.id)
+
+                # Enforce licença única: quantity = 1
+                enforced_quantity = 1
+
                 processed_items.append({
-                    'type': 'plan',
-                    'id': 0,  # plans não têm ID numérico
-                    'name': item_id,
-                    'quantity': 1,  # Planos sempre quantidade 1
-                    'unit_price': price,
-                    'metadata': {'plan_name': item_id}
+                    'type': 'svg',
+                    'id': svg.id,
+                    'name': svg.title_name or f"SVG {svg.id}",
+                    'quantity': enforced_quantity,
+                    'unit_price': svg.price,
+                    'metadata': {'svg_id': svg.id, 'hash_value': svg.hash_value}
                 })
-                total_amount += price
-            elif item_type == 'svg':
-                # Item SVG
-                try:
-                    svg = SvgFile.objects.get(id=item_id)
-                    if svg.price <= 0:
-                        raise ValueError(f"SVG {item_id} não está disponível para venda")
-                    processed_items.append({
-                        'type': 'svg',
-                        'id': svg.id,
-                        'name': svg.title_name or f"SVG {svg.id}",
-                        'quantity': quantity,
-                        'unit_price': svg.price,
-                        'metadata': {'svg_id': svg.id, 'hash_value': svg.hash_value}
-                    })
-                    total_amount += svg.price * quantity
-                except SvgFile.DoesNotExist:
-                    raise ValueError(f"SVG {item_id} não encontrado")
-            else:
-                raise ValueError(f"Tipo de item inválido: {item_type}")
+                total_amount += svg.price * enforced_quantity
+            except SvgFile.DoesNotExist:
+                raise ValueError(f"SVG {item_id} não encontrado")
         
         # Criar pagamento e itens em uma transação
         with transaction.atomic():
@@ -301,19 +301,43 @@ class PaymentService:
                     })
 
                 gateway = cls.get_gateway(gateway_name)
-                gateway_response = gateway.create_payment(
-                    amount=float(total_amount),
-                    currency=currency,
-                    metadata={
-                        'transaction_id': payment.transaction_id,
-                        'user_id': user.id,
-                        'items_count': len(processed_items),
-                        'items': gateway_items,
-                    }
-                )
+                # Passa o e-mail apenas para o Stripe
+                if gateway_name == 'stripe':
+                    gateway_response = gateway.create_payment(
+                        amount=float(total_amount),
+                        email=email or (user.email if user else None),
+                        currency=currency,
+                        metadata={
+                            'transaction_id': payment.transaction_id,
+                            'user_id': user.id,
+                            'items_count': len(processed_items),
+                            'items': gateway_items,
+                        }
+                    )
+                else:
+                    gateway_response = gateway.create_payment(
+                        amount=float(total_amount),
+                        items=items,
+                        currency=currency,
+                        metadata={
+                            'transaction_id': payment.transaction_id,
+                            'user_id': user.id,
+                            'items_count': len(processed_items),
+                            'items': gateway_items,
+                        }
+                    )
                 
                 # Atualizar registro com resposta do gateway
-                payment.gateway_payment_id = gateway_response.get('id')
+                    gateway_id = gateway_response.get('id')
+                    if gateway_name == 'abacatepay' and not gateway_id:
+                        data_id = gateway_response.get('gateway_response', {}).get('data', {}).get('id')
+                        if data_id:
+                            gateway_id = data_id
+                        else:
+                            logger.error(f"AbacatePay: id do faturamento não retornado pelo gateway! Resposta: {gateway_response}")
+                            payment.status = 'failed'
+                            payment.error_message = 'ID do pagamento não retornado pelo AbacatePay.'
+                    payment.gateway_payment_id = gateway_id
                 payment.gateway_response = gateway_response
                 
                 if gateway_name == 'abacatepay':

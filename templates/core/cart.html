@@ -67,11 +67,11 @@
     }
 
     function updateQuantity(id, change) {
-      const cart = getCart();
-      const item = cart.find(i => i.id === id);
-      if (item) {
-        item.quantity = Math.max(1, item.quantity + change);
-        saveCart(cart);
+      // Quantidade fixa para licenças digitais (1 por produto). Informar usuário.
+      if (typeof showNotification === 'function') {
+        showNotification('{% trans "Quantidade fixa em 1 para licenças" %}', 'info');
+      } else {
+        alert('{% trans "Quantidade fixa em 1 para licenças" %}');
       }
     }
 
@@ -105,34 +105,18 @@
 
       let total = 0;
       container.innerHTML = cart.map(item => {
-        const itemTotal = item.price * item.quantity;
+        // mantemos quantity = 1 (licença única)
+        const itemTotal = item.price;
         total += itemTotal;
         
         return `
           <div class="cart-item" style="display: flex; gap: 1.5rem; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1rem; align-items: center;">
             <div style="flex: 1;">
               <h3 style="margin: 0 0 0.5rem; color: var(--text-light);">${escapeHtml(item.name)}</h3>
-              <p class="muted" style="margin: 0; font-size: 0.9rem;">{% trans "Unit Price" %}: R$ ${item.price.toFixed(2)}</p>
+              <p class="muted" style="margin: 0; font-size: 0.9rem;">{% trans "Price" %}: R$ ${item.price.toFixed(2)}</p>
             </div>
             
             <div style="display: flex; align-items: center; gap: 0.75rem;">
-              <button 
-                onclick="updateQuantity(${item.id}, -1)" 
-                class="btn btn-secondary"
-                style="padding: 0.5rem 0.75rem; min-width: 40px;"
-              >
-                −
-              </button>
-              <span style="min-width: 40px; text-align: center; font-weight: 600; font-size: 1.1rem;">
-                ${item.quantity}
-              </span>
-              <button 
-                onclick="updateQuantity(${item.id}, 1)" 
-                class="btn btn-secondary"
-                style="padding: 0.5rem 0.75rem; min-width: 40px;"
-              >
-                +
-              </button>
             </div>
             
             <div style="text-align: right; min-width: 100px;">

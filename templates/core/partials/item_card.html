@@ -123,8 +123,8 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       <p style="color: var(--text-gray-400); font-size: 0.875rem; margin: 0;">by AkkaUi</p>
       
       {# Price or Free badge #}
-      {% if item.price and item.price > 0 %}
-        <span style="color: var(--text-white); font-weight: 600; font-size: 0.875rem;">R$ {{ item.price }}</span>
+      {% if item.price > 0 %}
+        <span style="color: var(--text-white); font-weight: 600; font-size: 0.875rem;">R$ {{ item.price|floatformat:2 }}</span>
       {% else %}
         <span class="badge badge-primary" style="font-size: 0.75rem;">Free</span>
       {% endif %}
@@ -225,7 +225,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         >
           {% if vip_access %}👑 Copiar{% else %}📋 Copiar{% endif %}
         </button>
-      {% elif item.price and item.price > 0 %}
+      {% elif item.price > 0 %}
         {# Botão Adicionar ao Carrinho - para SVGs pagos #}
         <button
           onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price|unlocalize }})"
@@ -376,7 +376,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
                 {% if item.purchased_by_user or purchased or vip_access %}
                   <button type="button" class="btn btn-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">Copiar</button>
                   <button type="button" class="btn btn-secondary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const svg = data.svg_text||''; const a=document.createElement('a'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); a.download = '{{ item.filename|default:item.title_name|default:"svg" }}.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }).then(()=>{ btn.disabled=false; }).catch(e=>{ console.error(e); alert('Erro ao baixar SVG'); btn.disabled=false; }); })(this)">Download</button>
-                {% elif item.price and item.price > 0 %}
+                {% elif item.price > 0 %}
                   <button type="button" class="btn btn-primary" onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price|unlocalize }} )">Adicionar ao carrinho</button>
                 {% else %}
                   <button type="button" class="btn btn-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">Copiar</button>

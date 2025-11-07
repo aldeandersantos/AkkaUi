@@ -12,7 +12,6 @@ class SvgFile(models.Model):
     filename = models.CharField(max_length=255, blank=True, default="")
     description = models.TextField(blank=True)
     tags = models.CharField(max_length=255, blank=True, help_text="Tags separadas por vírgula")
-    category = models.CharField(max_length=100, blank=True)
     content = models.TextField(help_text="Conteúdo do arquivo SVG (texto XML)")
     uploaded_at = models.DateTimeField(auto_now_add=True)
     # Armazena thumbnails em pasta privada para proteção via guardian

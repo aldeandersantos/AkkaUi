@@ -82,7 +82,6 @@ class SearchFilterTests(TestCase):
             title_name='Icon Blue',
             description='A blue icon',
             tags='icon, blue',
-            category='Icons',
             content=svg_content,
             owner=self.user,
             is_public=True
@@ -92,7 +91,6 @@ class SearchFilterTests(TestCase):
             title_name='Logo Red',
             description='A red logo',
             tags='logo, red',
-            category='Logos',
             content=svg_content,
             owner=self.user,
             is_public=True
@@ -101,13 +99,6 @@ class SearchFilterTests(TestCase):
     def test_search_by_title(self):
         """Test search by title."""
         response = self.client.get(reverse('core:explore'), {'q': 'Icon'})
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Icon Blue')
-        self.assertNotContains(response, 'Logo Red')
-    
-    def test_filter_by_category(self):
-        """Test filter by category."""
-        response = self.client.get(reverse('core:explore'), {'category': 'Icons'})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Icon Blue')
         self.assertNotContains(response, 'Logo Red')

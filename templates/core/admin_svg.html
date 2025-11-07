@@ -1,4 +1,5 @@
 {% extends 'core/base.html' %}
+{% load l10n %}
 
 {% block title %}Admin - Gerenciar SVGs — AkkaUi{% endblock %}
 
@@ -58,20 +59,6 @@
                 style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
               />
               <small class="muted">Separe as tags por vírgula</small>
-            </div>
-
-            <!-- Category -->
-            <div style="display:flex; flex-direction:column; gap:.5rem">
-              <label for="category" style="font-weight:600; color:var(--text-light)">
-                Categoria
-              </label>
-              <input 
-                id="category" 
-                name="category" 
-                type="text" 
-                placeholder="ex: Ícones"
-                style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
-              />
             </div>
 
             <!-- Thumbnail -->
@@ -159,54 +146,147 @@
         {% if svgfiles %}
           <div style="margin-top:1rem; display:flex; flex-direction:column; gap:.75rem">
             {% for svg in svgfiles %}
-              <div class="svg-item" style="padding:1rem; border:1px solid var(--border); border-radius:8px; background:var(--bg-card)">
-                <div style="display:flex; justify-content:space-between; align-items:start; gap:1rem">
-                  <div style="flex:1">
-                    <h3 style="margin:0 0 .5rem; color:var(--text-light)">
-                      {{ svg.title_name|default:"SVG" }}
-                    </h3>
-                    <div style="font-size:.9rem; color:var(--text-muted); margin-bottom:.5rem">
-                      <strong>Nome:</strong> {{ svg.title_name|default:"-" }}
-                    </div>
-                    {% if svg.price and svg.price > 0 %}
-                      <div style="font-size:.9rem; color:#7bffb0; margin-bottom:.5rem; font-weight:600">
-                        💰 Preço: R$ {{ svg.price }}
+              <div class="svg-item" data-svg-id="{{ svg.id }}" style="padding:1rem; border:1px solid var(--border); border-radius:8px; background:var(--bg-card)">
+                <!-- View mode -->
+                <div class="view-mode">
+                  <div style="display:flex; justify-content:space-between; align-items:start; gap:1rem">
+                    <div style="flex:1">
+                      <h3 style="margin:0 0 .5rem; color:var(--text-light)">
+                        {{ svg.title_name|default:"SVG" }}
+                      </h3>
+                      {% if svg.thumbnail %}
+                        <div style="margin-bottom:.5rem">
+                          <img src="{{ svg.get_thumbnail_url }}" alt="Thumbnail" style="max-width:120px; max-height:120px; border-radius:4px; border:1px solid var(--border)">
+                        </div>
+                      {% endif %}
+                      <div style="font-size:.9rem; margin-bottom:.5rem; {% if svg.price > 0 %}color:#7bffb0; font-weight:600{% else %}color:var(--text-muted){% endif %}">
+                        💰 Preço: {% if svg.price > 0 %}R$ {{ svg.price|floatformat:2 }}{% else %}Gratuito{% endif %}
                       </div>
-                    {% else %}
                       <div style="font-size:.9rem; color:var(--text-muted); margin-bottom:.5rem">
-                        💰 Gratuito
+                        <strong>Público:</strong> {% if svg.is_public %}Sim{% else %}Não{% endif %}
                       </div>
-                    {% endif %}
-                    {% if svg.description %}
-                      <p class="muted" style="margin:.5rem 0">{{ svg.description }}</p>
-                    {% endif %}
-                    {% if svg.tags %}
-                      <div style="margin-top:.5rem">
-                        <span style="padding:.25rem .5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:4px; font-size:.85rem">
-                          {{ svg.tags }}
-                        </span>
+                      {% if svg.description %}
+                        <p class="muted" style="margin:.5rem 0">{{ svg.description }}</p>
+                      {% endif %}
+                      {% if svg.tags %}
+                        <div style="margin-top:.5rem">
+                          <span style="padding:.25rem .5rem; background:var(--bg-dark); border:1px solid var(--border); border-radius:4px; font-size:.85rem">
+                            {{ svg.tags }}
+                          </span>
+                        </div>
+                      {% endif %}
+                      <div style="margin-top:.5rem; font-size:.85rem; color:var(--text-muted)">
+                        Criado em: {{ svg.uploaded_at|date:"d/m/Y H:i" }}
                       </div>
-                    {% endif %}
-                    <div style="margin-top:.5rem; font-size:.85rem; color:var(--text-muted)">
-                      Criado em: {{ svg.uploaded_at|date:"d/m/Y H:i" }}
+                    </div>
+                    <div style="display:flex; gap:.5rem; flex-wrap:wrap">
+                      <button class="btn btn-secondary btn-edit-svg" data-id="{{ svg.id }}">
+                        Editar
+                      </button>
+                      <button class="btn btn-secondary btn-copy-svg" data-id="{{ svg.id }}">
+                        Copiar
+                      </button>
+                      <button title="Excluir SVG" class="btn btn-danger btn-delete-svg" data-id="{{ svg.id }}" style="display:inline-flex; align-items:center; justify-content:center; padding:.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                          <path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M8 6v14a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M10 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                      </button>
                     </div>
                   </div>
-                  <div style="display:flex; gap:.5rem">
-                    <button class="btn btn-secondary btn-copy-svg" data-id="{{ svg.id }}">
-                      Copiar
-                    </button>
-                    <!-- Delete button -->
-                    <button title="Excluir SVG" class="btn btn-danger btn-delete-svg" data-id="{{ svg.id }}" style="display:inline-flex; align-items:center; justify-content:center; padding:.5rem;">
-                      <!-- simples ícone de lixeira em SVG -->
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                        <path d="M3 6h18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M8 6v14a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M10 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                    </button>
-                  </div>
+                </div>
+                
+                <!-- Edit mode (hidden by default) -->
+                <div class="edit-mode" style="display:none">
+                  <form class="edit-svg-form" data-svg-id="{{ svg.id }}">
+                    <div style="display:flex; flex-direction:column; gap:1rem">
+                      
+                      <div style="display:flex; flex-direction:column; gap:.5rem">
+                        <label style="font-weight:600; color:var(--text-light)">Título</label>
+                        <input 
+                          name="title_name" 
+                          type="text" 
+                          value="{{ svg.title_name }}"
+                          style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
+                        />
+                      </div>
+                      
+                      <div style="display:flex; flex-direction:column; gap:.5rem">
+                        <label style="font-weight:600; color:var(--text-light)">Descrição</label>
+                        <textarea 
+                          name="description" 
+                          rows="3"
+                          style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem; font-family:inherit; resize:vertical"
+                        >{{ svg.description }}</textarea>
+                      </div>
+                      
+                      <div style="display:flex; flex-direction:column; gap:.5rem">
+                        <label style="font-weight:600; color:var(--text-light)">Tags</label>
+                        <input 
+                          name="tags" 
+                          type="text" 
+                          value="{{ svg.tags }}"
+                          placeholder="separadas por vírgula"
+                          style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
+                        />
+                      </div>
+                      
+                      <div style="display:flex; flex-direction:column; gap:.5rem">
+                        <label style="font-weight:600; color:var(--text-light)">Thumbnail</label>
+                        {% if svg.thumbnail %}
+                          <div style="margin-bottom:.5rem">
+                            <img src="{{ svg.get_thumbnail_url }}" alt="Thumbnail atual" style="max-width:120px; max-height:120px; border-radius:4px; border:1px solid var(--border)">
+                          </div>
+                        {% endif %}
+                        <input 
+                          name="thumbnail" 
+                          type="file" 
+                          accept="image/*"
+                          style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
+                        />
+                        <small class="muted">Deixe em branco para manter a atual</small>
+                      </div>
+                      
+                      <div style="display:flex; flex-direction:column; gap:.5rem">
+                        <label style="font-weight:600; color:var(--text-light)">Preço (R$)</label>
+                        <input 
+                          name="price" 
+                          type="number" 
+                          step="0.01"
+                          min="0"
+                          value="{{ svg.price|unlocalize }}"
+                          style="padding:.75rem 1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-size:1rem"
+                        />
+                      </div>
+                      
+                      <div style="display:flex; flex-direction:column; gap:.5rem">
+                        <label style="font-weight:600; color:var(--text-light)">Conteúdo SVG</label>
+                        <textarea 
+                          name="svg_text" 
+                          rows="8"
+                          style="padding:1rem; background:var(--bg-card); color:var(--text-light); border:1px solid var(--border); border-radius:8px; font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; font-size:.9rem; resize:vertical"
+                        >{{ svg.content }}</textarea>
+                      </div>
+                      
+                      <div style="display:flex; align-items:center; gap:.5rem">
+                        <input type="checkbox" name="is_public" {% if svg.is_public %}checked{% endif %} style="width:18px; height:18px; cursor:pointer" />
+                        <span style="font-weight:500">Tornar público</span>
+                      </div>
+                      
+                      <div style="display:flex; gap:1rem; align-items:center; margin-top:1rem">
+                        <button type="submit" class="btn btn-primary">
+                          Salvar Alterações
+                        </button>
+                        <button type="button" class="btn btn-secondary btn-cancel-edit">
+                          Cancelar
+                        </button>
+                        <span class="edit-status muted"></span>
+                      </div>
+                    </div>
+                  </form>
                 </div>
               </div>
             {% endfor %}
@@ -227,8 +307,9 @@
       const btnLoadFile = document.getElementById('btn-load-file');
       const svgFileInput = document.getElementById('svg-file-input');
       const createUrl = "{% url 'core:admin_create_svg' %}";
+      const updateUrl = "{% url 'core:admin_update_svg' %}";
       const copyUrl = "{% url 'core:copy_svg' %}";
-  const deleteUrl = "{% url 'core:admin_delete_svg' %}";
+      const deleteUrl = "{% url 'core:admin_delete_svg' %}";
 
       function setStatus(msg, isError = false) {
         formStatus.textContent = msg;
@@ -481,6 +562,92 @@
           }
         });
       }
+
+      // Edit SVG functionality
+      document.addEventListener('click', (ev) => {
+        const btnEdit = ev.target.closest('.btn-edit-svg');
+        if (!btnEdit) return;
+        
+        const id = btnEdit.dataset.id;
+        if (!id) return;
+        
+        const item = document.querySelector(`.svg-item[data-svg-id="${id}"]`);
+        if (!item) return;
+        
+        const viewMode = item.querySelector('.view-mode');
+        const editMode = item.querySelector('.edit-mode');
+        
+        viewMode.style.display = 'none';
+        editMode.style.display = 'block';
+      });
+
+      // Cancel edit
+      document.addEventListener('click', (ev) => {
+        const btnCancel = ev.target.closest('.btn-cancel-edit');
+        if (!btnCancel) return;
+        
+        const item = btnCancel.closest('.svg-item');
+        if (!item) return;
+        
+        const viewMode = item.querySelector('.view-mode');
+        const editMode = item.querySelector('.edit-mode');
+        
+        viewMode.style.display = 'block';
+        editMode.style.display = 'none';
+      });
+
+      // Submit edit form
+      document.addEventListener('submit', async (ev) => {
+        const editForm = ev.target.closest('.edit-svg-form');
+        if (!editForm) return;
+        
+        ev.preventDefault();
+        
+        const id = editForm.dataset.svgId;
+        const formData = new FormData(editForm);
+        formData.append('id', id);
+        
+        const submitBtn = editForm.querySelector('button[type="submit"]');
+        const statusSpan = editForm.querySelector('.edit-status');
+        
+        submitBtn.disabled = true;
+        statusSpan.textContent = 'Salvando...';
+        statusSpan.style.color = '#7bffb0';
+        
+        try {
+          const response = await fetch(updateUrl, { 
+            method: 'POST', 
+            body: formData, 
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' } 
+          });
+          
+          async function parseJsonOrText(response) {
+            const ct = response.headers.get('content-type') || '';
+            if (ct.includes('application/json')) return await response.json();
+            return { __raw_text: await response.text() };
+          }
+          
+          const data = await parseJsonOrText(response);
+          
+          if (!response.ok) {
+            throw new Error((data && (data.error || data.__raw_text)) || 'Erro ao atualizar SVG');
+          }
+          
+          statusSpan.textContent = 'Salvo com sucesso!';
+          statusSpan.style.color = '#7bffb0';
+          
+          // Reload page after a brief delay to show updated SVG
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+          
+        } catch (err) {
+          statusSpan.textContent = 'Erro: ' + err.message;
+          statusSpan.style.color = '#ff7b7b';
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
     })();
   </script>
 {% endblock %}

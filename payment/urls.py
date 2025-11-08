@@ -32,4 +32,5 @@ urlpatterns = [
     # Stripe - 
     path('success/', SuccessView.as_view(), name='payment_success'),
     path('cancel/', CancelView.as_view(), name='payment_cancel'),
+    path('stripe/checkout/', stripe_checkout_subscription, name='stripe_checkout_subscription'),
 ]

@@ -591,6 +591,10 @@
     }
 
     async function selectGateway(gateway) {
+      const stripeBtn = document.getElementById('stripeMethod');
+      if (gateway === 'stripe') {
+        stripeBtn.disabled = true; // Desabilita o botão Stripe
+      }
       const status = document.getElementById('paymentStatus');
       status.style.display = 'block';
   status.className = 'payment-status loading';
@@ -664,23 +668,36 @@
             body: JSON.stringify({
               mode: 'subscription',
               price_id: priceId,
-              success_url: window.location.origin + languagePrefix + 'payment/success/',
-              cancel_url: window.location.origin + languagePrefix + 'pricing/'
+              success_url: window.location.origin + '/payment/success/',
+              cancel_url: window.location.origin + '/pricing/'
             })
           });
           
           const data = await response.json();
-          
-          if (response.ok && data.checkout_url) {
-            status.className = 'payment-status success';
-            status.innerHTML = '{% trans "✓ Redirecting to Stripe checkout..." %}';
-            setTimeout(() => {
-              window.location.href = data.checkout_url;
-            }, 500);
-            return;
-          } else {
-            throw new Error(data.error || '{% trans "Error creating checkout" %}');
+
+          if (response.ok) {
+            // Se o backend indicar que o usuário já possui assinatura ativa,
+            // fornecer link para o Stripe Billing Portal para atualizar/cancelar o plano
+            if (data.already_subscribed) {
+              status.className = 'payment-status error';
+              status.innerHTML = `
+                {% trans "✋ You already have an active subscription." %}<br><br>
+                <a href="${data.portal_url}" target="_blank" class="btn" style="margin-top:12px;">{% trans "Manage subscription" %}</a>
+              `;
+              return;
+            }
+
+            if (data.checkout_url) {
+              status.className = 'payment-status success';
+              status.innerHTML = '{% trans "✓ Redirecting to Stripe checkout..." %}';
+              setTimeout(() => {
+                window.location.href = data.checkout_url;
+              }, 500);
+              return;
+            }
           }
+
+          throw new Error(data.error || '{% trans "Error creating checkout" %}');
         }
         
         // Para outros gateways (AbacatePay, Mercado Pago), usar endpoint original
@@ -762,6 +779,10 @@
       } catch (error) {
         status.className = 'payment-status error';
         status.innerHTML = '{% trans "✗ Error" %}: ' + error.message;
+      } finally {
+        if (gateway === 'stripe') {
+          stripeBtn.disabled = false; // Reabilita o botão Stripe após resposta
+        }
       }
     }
 

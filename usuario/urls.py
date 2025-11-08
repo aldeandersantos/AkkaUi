@@ -14,6 +14,9 @@ urlpatterns = [
     path("vip/status/", vip_status, name="vip_status"),
     path("vip/status_all/", vip_status_all, name="vip_status_all"),
     path("vip/add/", vip_status_add, name="vip_status_add"),
+    
+    path('assinatura/', stripe_customer_portal, name='stripe_customer_portal'),
+
 
     # Pegar token
     path("api/token/", get_token, name="api_token"),

@@ -1,7 +1,8 @@
 import json
 import logging
-import stripe
 import requests
+import stripe
+from usuario.models import CustomUser
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
@@ -12,7 +13,7 @@ from ..models import Payment
 from django.db.models import Q
 from ..services.payment_service import PaymentService
 from ..services.stripe_service import stripe_signature_verification
-from ..services.webhook_service import processing_stripe_payment
+from ..services.webhook_service import *
 from usuario.views.views_vip import add_vip_to_user_by_hash
 from server.settings import MERCADOPAGO_ACCESS_TOKEN, STRIPE_WEBHOOK_CHECKOUT, ABACATE_WEBHOOK_SECRET
 
@@ -213,50 +214,49 @@ def mercadopago_webhook(request):
     })
 
 
+EVENT_HANDLER_MAP = {
+    # Cliente se inscreveu
+    'checkout.session.completed': handle_checkout_session_completed,
+    # Renovação paga
+    'invoice.paid': handle_invoice_paid,
+    # Renovação falhou
+    'invoice.payment_failed': handle_invoice_payment_failed,
+    # Cliente mudou o plano ou agendou cancelamento
+    'customer.subscription.updated': handle_subscription_updated,
+    # Assinatura efetivamente cancelada (acesso removido)
+    'customer.subscription.deleted': handle_subscription_deleted,
+}
+
+
 @csrf_exempt
 def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    endpoint_secret = "whsec_hMhgvapAQo3OQLWsic0kxPkh3LbEmaSw"
+
     try:
-        payload = request.body
-        data = json.loads(payload)
-    except json.JSONDecodeError:
-        logger.error("Webhook MercadoPago: JSON inválido")
-        return JsonResponse({"error": "invalid_json"}, status=400)
-    
-    sig_header = request.headers.get('Stripe-Signature')
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        print(f"WEBHOOK ERRO: Payload inválido. {e}")
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        print(f"WEBHOOK ERRO: Assinatura inválida. {e}")
+        return HttpResponse(status=400)
 
-    if not stripe_signature_verification(STRIPE_WEBHOOK_CHECKOUT, sig_header, payload):
-        logger.warning("Webhook Stripe: Assinatura inválida")
-        return JsonResponse({"error": "invalid_stripe_signature"}, status=403)
+    event_type = event['type']
+    event_data = event['data']
 
+    handler = EVENT_HANDLER_MAP.get(
+        event_type, 
+        handle_unmanaged_event
+    )
 
-    if not sig_header:
-        logger.error("Webhook Stripe: Header 'Stripe-Signature' ausente.")
-        return HttpResponseBadRequest("Missing Stripe-Signature header")
-    
-    
+    try:
+        handler(event_data)
+    except Exception as e:
+        print(f"ERRO NO HANDLER: Falha ao processar {event_type}: {e}")
 
-    event_type = data.get("type", None)
-    if event_type:
-        session = "checkout.session."
-        payment_status =  data.get("data", {}).get("object", {}).get("payment_status", None)
-
-        if event_type == f"{session}completed":
-            print(f"Processando evento {session}completed")
-            if payment_status == "paid":
-                print("Pagamento concluído com sucesso no Stripe.")
-                if not processing_stripe_payment(data):
-                    print("Falha ao processar o pagamento do Stripe.")
-
-        elif event_type == f"{session}async_payment_succeeded":
-            print(f"Processando evento {session}async_payment_succeeded")
-
-        elif event_type == f"{session}async_payment_failed":
-            print(f"Processando evento {session}async_payment_failed")
-
-        elif event_type == f"{session}expired":
-            print(f"Processando evento {session}expired")
-
-        else:
-            print(f"Evento Stripe não tratado: {event_type}")
-    
+    print("DEBUG: Finalizando processamento do webhook Stripe")
     return HttpResponse(status=200)

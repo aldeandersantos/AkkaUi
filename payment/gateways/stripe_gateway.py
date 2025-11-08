@@ -7,13 +7,15 @@ import stripe
 
 logger = logging.getLogger(__name__)
 
+from server.settings import STRIPE_SECRET_KEY
+stripe.api_key = STRIPE_SECRET_KEY
+
 
 class StripeGateway(PaymentGateway):
     """Gateway de pagamento para Stripe - suporta compras únicas e assinaturas"""
     
     def __init__(self):
         # Configurar chave da API do Stripe
-        stripe.api_key = settings.STRIPE_LIVE_SECRET_KEY if settings.STRIPE_LIVE_MODE else settings.STRIPE_TEST_SECRET_KEY
         logger.info("Stripe gateway initialized")
     
     def get_gateway_name(self) -> str:

@@ -5,7 +5,7 @@ from .models import SvgFile
 
 @admin.register(SvgFile)
 class SvgFileAdmin(admin.ModelAdmin):
-	list_display = ("id", "title_name", "is_paid", "price", "uploaded_at")
+	list_display = ("id", "title_name", "price", "uploaded_at")
 	search_fields = ("title_name",)
 	ordering = ("-uploaded_at",)
-	list_filter = ("is_paid", "is_public")
+	list_filter = ("is_public",)

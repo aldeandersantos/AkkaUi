@@ -232,11 +232,10 @@ EVENT_HANDLER_MAP = {
 def stripe_webhook(request):
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-    endpoint_secret = "whsec_hMhgvapAQo3OQLWsic0kxPkh3LbEmaSw"
 
     try:
         event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
+            payload, sig_header, STRIPE_WEBHOOK_CHECKOUT
         )
     except ValueError as e:
         print(f"WEBHOOK ERRO: Payload inválido. {e}")

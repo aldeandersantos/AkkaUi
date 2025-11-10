@@ -4,33 +4,41 @@
 {% block title %}{% trans "Pagamento recebido" %}{% endblock %}
 
 {% block content %}
-  <div class="card" style="max-width:800px;margin:40px auto;padding:20px;border:1px solid #eee;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.05)">
-    <h1>{% trans "Pagamento recebido" %}</h1>
-    <p>{% trans "Obrigado pela compra! Abaixo estão os detalhes que conseguimos obter." %}</p>
+  <div class="card" style="max-width:800px;margin:40px auto;padding:24px;border:1px solid #eee;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.06);">
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+      <div style="background:linear-gradient(135deg,#6ee7b7,#34d399);width:56px;height:56px;border-radius:999px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(52,211,153,.12)">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M20 6L9 17L4 12" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
 
-    <dl>
-      <dt>{% trans "ID da sessão" %}</dt>
-  <dd>{{ session_id|default:'(não fornecido)' }}</dd>
+      <div>
+        <h1 style="margin:0 0 6px 0;font-size:1.5rem">{% trans "Pedido recebido" %}</h1>
+        <p style="margin:0;color:var(--text-gray-600)">{% trans "Obrigado pela compra! Seu pagamento está sendo processado. Acesse sua biblioteca para visualizar os itens disponíveis." %}</p>
+      </div>
+    </div>
+
+    <dl style="margin-top:18px">
+      {# Removido: não exibir ID de sessão/pagamento em nenhum caso #}
 
       {% if stripe_available %}
-      <dt>{% trans "Valor" %}</dt>
-      <dd>{% if amount %}{{ amount }} {{ currency }}{% else %}--{% endif %}</dd>
+        <dt style="font-weight:600;margin-top:8px">{% trans "Valor" %}</dt>
+        <dd style="margin:0 0 8px 0">{% if amount %}{{ amount }} {{ currency }}{% else %}—{% endif %}</dd>
 
-      <dt>{% trans "Status" %}</dt>
-      <dd>{{ payment_status|default:'pending' }}</dd>
+        <dt style="font-weight:600;margin-top:8px">{% trans "Status do pagamento" %}</dt>
+        <dd style="margin:0 0 8px 0">{{ payment_status|default:_('pendente') }}</dd>
       {% endif %}
 
       {% if stripe_error %}
-      <dt>{% trans "Erro ao consultar Stripe" %}</dt>
-      <dd>{{ stripe_error }}</dd>
+        <dt style="font-weight:600;margin-top:8px">{% trans "Erro ao consultar Stripe" %}</dt>
+        <dd style="margin:0 0 8px 0;color:#b91c1c">{{ stripe_error }}</dd>
       {% endif %}
     </dl>
 
-    <p>
-      <a class="btn" href="{% url 'core:home' %}">{% trans "Voltar para a página principal" %}</a>
-    </p>
+    <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
+      <a class="btn" href="{% url 'core:minha_biblioteca' %}">{% trans "Ir para minha biblioteca" %}</a>
+      <a class="btn" href="{% url 'core:home' %}" style="background:transparent;border:1px solid #ddd;color:inherit">{% trans "Voltar para a página principal" %}</a>
+    </div>
 
-    <hr>
-    <small>{% trans "Observação: a confirmação final de pagamento pode ser recebida via webhook do Stripe. Se não tiver certeza, verifique sua área de downloads ou entre em contato com o suporte." %}</small>
-  </div>
+    <div style="margin-top:20px;color:var(--text-gray-500);font-size:0.875rem">
 {% endblock %}

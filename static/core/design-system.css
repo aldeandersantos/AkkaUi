@@ -59,7 +59,8 @@ html {
 body {
   background-color: var(--bg-black);
   color: var(--text-white);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* Garantir Inter como prioridade; o link para Google Fonts está em base.html */
+  font-family: 'Inter', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.6;
   margin: 0;
   padding: 0;

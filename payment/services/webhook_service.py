@@ -4,6 +4,10 @@ from .payment_service import PaymentService
 from usuario.models import CustomUser
 from datetime import datetime
 from typing import Optional
+from django.db.models import Q
+import logging
+import requests
+from server.settings import MERCADOPAGO_ACCESS_TOKEN
 
 
 def _ensure_datetime(value) -> Optional[datetime]:
@@ -191,3 +195,112 @@ def update_vip_status(customer_id, dt_expiracao: datetime) -> bool:
     usuario.save()
     print(f"SERVICE: VIP status updated for {usuario.username} until {usuario.vip_expiration}.")
     return True
+
+
+def process_mercadopago_event(data: dict):
+    """Processa payload de webhook do MercadoPago.
+
+    Retorna (status_code, response_dict) para uso direto na view.
+    Mantém comportamento compatível com a implementação anterior em views_webhook.py.
+    """
+    logger = logging.getLogger(__name__)
+    # Validar formato básico
+    action = (data.get('action') or '')
+    type_field = data.get('type') or ''
+    topic = data.get('topic') or ''
+
+    # Ignorar eventos que não sejam de pagamento
+    if action and not action.startswith('payment') and type_field != 'payment' and topic != 'payment':
+        logger.info("MercadoPago webhook (não-pagamento) recebido: action=%s topic=%s type=%s", action, topic, type_field)
+        return 200, {"status": "ignored_non_payment_event", "action": action or topic or type_field}
+
+    # Extrair payment_id de vários formatos possíveis
+    payment_id = None
+    if data.get('data') and isinstance(data.get('data'), dict):
+        payment_id = data.get('data', {}).get('id')
+
+    # Alguns webhooks usam 'resource' com URL
+    if not payment_id:
+        resource = data.get('resource')
+        if isinstance(resource, str) and '/payments/' in resource:
+            payment_id = resource.rstrip('/').split('/')[-1]
+
+    if not payment_id:
+        logger.error("Webhook MercadoPago: ID do pagamento ausente no payload")
+        return 400, {"error": "missing_payment_id"}
+
+    logger.info("Webhook MercadoPago recebido (service): payment_id=%s", payment_id)
+
+    mp_url = f"https://api.mercadopago.com/v1/payments/{payment_id}"
+    headers = {"Authorization": f"Bearer {MERCADOPAGO_ACCESS_TOKEN}"}
+    try:
+        resp = requests.get(mp_url, headers=headers, timeout=10)
+        mp_data = resp.json()
+    except Exception as e:
+        logger.exception("Erro ao obter dados MP: %s", e)
+        return 502, {"error": "mp_api_error"}
+
+    if resp.status_code != 200:
+        logger.error("MP API retornou %s: %s", resp.status_code, getattr(resp, 'text', ''))
+        return 404, {"error": "mp_not_found"}
+
+    metadata = mp_data.get('metadata') or {}
+    tx_id = metadata.get('transaction_id')
+
+    payment = Payment.objects.filter(
+        Q(gateway_payment_id=str(payment_id)) | Q(transaction_id=tx_id),
+        gateway='mercadopago'
+    ).first()
+
+    if not payment:
+        logger.warning("Pagamento não encontrado para mp_id=%s tx=%s", payment_id, tx_id)
+        return 404, {"error": "payment_not_found"}
+
+    # Comparar valores apenas logando discrepâncias
+    mp_amount = mp_data.get('transaction_amount')
+    try:
+        if mp_amount is not None and float(mp_amount) != float(payment.amount):
+            logger.warning("Valor divergente para payment %s: mp=%s db=%s", payment.transaction_id, mp_amount, payment.amount)
+    except Exception:
+        pass
+
+    # Salvar o id do pagamento do gateway (se vier) para facilitar identificação futura
+    mp_payment_id = mp_data.get('id') or mp_data.get('collection_id') or mp_data.get('payment_id')
+    try:
+        if mp_payment_id and (not payment.gateway_payment_id or str(payment.gateway_payment_id) != str(mp_payment_id)):
+            payment.gateway_payment_id = str(mp_payment_id)
+    except Exception:
+        logger.exception("Falha ao atribuir gateway_payment_id para payment %s", getattr(payment, 'transaction_id', 'unknown'))
+
+    # sempre atualiza gateway_response com os dados frescos
+    payment.gateway_response = mp_data
+    payment.save()
+
+    # Delegar lógica de verificação/atualização de status ao PaymentService quando possível
+    mp_status_raw = (mp_data.get('status') or '').lower()
+    try:
+        updated = PaymentService.check_payment_status(payment)
+        if updated.status != 'completed' and mp_status_raw in ('approved', 'accredited', 'paid'):
+            old_status = updated.status
+            updated.status = 'completed'
+            updated.save()
+            try:
+                PaymentService._finalize_payment(updated, old_status=old_status)
+            except Exception:
+                logger.exception("Erro ao finalizar pagamento após webhook MP (force finalize)")
+
+        return 200, {"status": "success", "mp_status": mp_status_raw, "payment_status": updated.status}
+    except Exception as e:
+        # Se o PaymentService falhar por algum motivo (rede, erro), aplicamos fallback local
+        logger.exception("PaymentService.check_payment_status falhou, aplicando fallback: %s", e)
+        internal_status = PaymentService.STATUS_MAP.get(mp_status_raw) or {'approved': 'completed', 'accredited': 'completed'}.get(mp_status_raw)
+        old_status = payment.status
+        if internal_status:
+            payment.status = internal_status
+            payment.save()
+        if payment.status == 'completed' and old_status != 'completed':
+            try:
+                PaymentService._finalize_payment(payment, old_status=old_status)
+            except Exception:
+                logger.exception("Erro ao finalizar pagamento após webhook MP (fallback)")
+        return 200, {"status": "success", "mp_status": mp_status_raw, "payment_status": payment.status}

@@ -317,7 +317,7 @@ class PaymentService:
                 else:
                     gateway_response = gateway.create_payment(
                         amount=float(total_amount),
-                        items=items,
+                        items=gateway_items,
                         currency=currency,
                         metadata={
                             'transaction_id': payment.transaction_id,

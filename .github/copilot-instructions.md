@@ -17,6 +17,10 @@
 - Prefira código autoexplicativo
 - Use docstrings concisas apenas para funções/classes públicas
 
+## Resposta às Perguntas
+- Responda de forma clara e objetiva
+- Evite textos muito longos e de longa leitura
+
 ## Estrutura
 - Organize código em camadas (domain, application, infrastructure)
 - Separe responsabilidades claramente

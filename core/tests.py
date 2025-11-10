@@ -157,7 +157,6 @@ class PurchaseModelTests(TestCase):
             content=svg_content,
             owner=self.user_normal,
             is_public=True,
-            is_paid=False,
             price=0
         )
         

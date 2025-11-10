@@ -29,6 +29,20 @@ class CustomUser(AbstractUser):
         verbose_name="Expiração VIP",
         help_text="Data de expiração do status VIP"
     )
+    stripe_customer_id = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        verbose_name="ID Cliente Stripe",
+        help_text="ID do cliente no Stripe para cobrança recorrente"
+    )
+    stripe_subscription_id = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True,
+        verbose_name="ID Assinatura Stripe",
+        help_text="ID da assinatura do Stripe"
+    )
     hash_id = models.CharField(max_length=64, blank=True, null=True, unique=True)
 
     def save(self, *args, **kwargs) -> None:

@@ -17,3 +17,5 @@ abacatepay==1.0.9
 mercadopago==2.3.0
 whitenoise==6.11.0
 gunicorn==23.0.0
+stripe==13.2.0
+psycopg2==2.9.11

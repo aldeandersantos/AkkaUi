@@ -97,6 +97,11 @@
               </p>
             </div>
           </div>
+            <div class="profile-actions">
+              <a href="{% url 'usuario:stripe_customer_portal' %}" class="btn btn-primary">
+                {% trans "Manage Subscription" %}
+              </a>
+            </div>
           {% endif %}
         </div>
 

@@ -4,7 +4,7 @@
       "type": "http",
       "url": "https://mcp.mercadopago.com/mcp",
       "headers": {
-        "Authorization": "BEARER TEST-1414908629296618-102720-cf3cdca2bac8609393c6d190951b57cc-116148206"
+        "Authorization": "BEARER APP_USR-7125638403728000-102823-359fd67d16ea2a0968d49180c1e9a5f1-2951208065"
       }
     }
   }

@@ -1,4 +1,8 @@
 import json
+import stripe
+from server.settings import STRIPE_SECRET_KEY
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from ..models import CustomUser
 from django.conf import settings
@@ -10,6 +14,8 @@ import logging
  
 from core.utils.date_utils import datefield_now, one_month_more, one_year_more
 from message.views import notify_discord
+
+stripe.api_key = STRIPE_SECRET_KEY
 
 
 
@@ -142,3 +148,25 @@ def vip_status_add(request):
         # Log internals but don't expose stacktraces to the client
         logging.exception("Erro ao adicionar VIP via vip_status_add")
         return JsonResponse({'status': 'error', 'message': 'Erro interno ao processar a requisição.'}, status=500)
+
+
+@login_required
+def stripe_customer_portal(request):
+    # O campo customer_id deve ser salvo no seu modelo de usuário após a criação no Stripe
+    user_email = request.user.email
+    user_name = request.user.username
+    user_obj = request.user
+    stripe_customers = stripe.Customer.list(email=user_email).data
+    if stripe_customers:
+        customer_id = stripe_customers[0].id
+    else:
+        stripe_customer = stripe.Customer.create(email=user_email, name=user_name)
+        customer_id = stripe_customer.id
+        user_obj.stripe_customer_id = customer_id
+        user_obj.save(update_fields=['stripe_customer_id'])
+
+    session = stripe.billing_portal.Session.create(
+        customer=customer_id,
+        return_url=request.build_absolute_uri('https://www.akkaui.shop/usuario/profile/')
+    )
+    return redirect(session.url)

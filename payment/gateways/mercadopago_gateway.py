@@ -53,14 +53,42 @@ class MercadoPagoGateway(PaymentGateway):
 
     def get_gateway_name(self) -> str:
         return "mercadopago"
-    def create_payment(self, amount: float, currency: str = "BRL", metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """Cria uma preferência (preference) no Mercado Pago ou simula uma resposta."""
-        metadata = metadata or {}
-        logger.debug("Creating MercadoPago payment - amount=%s currency=%s metadata=%s", amount, currency, metadata)
+    def create_payment(self, amount: float = 0.0, currency: str = "BRL", metadata: Optional[Dict[str, Any]] = None, items: Optional[List[Dict[str, Any]]] = None, email: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+        """Cria uma preferência (preference) no Mercado Pago ou simula uma resposta.
 
-        # Monta os items (preferência por metadata['items'] ou Payment.items quando disponível)
-        items: List[Dict[str, Any]] = []
-        if isinstance(metadata.get("items"), list) and metadata.get("items"):
+        Compatibilidade:
+        - Aceita `items` como argumento (usado por create_payment_with_items).
+        - Continua aceitando itens via `metadata['items']` ou construindo a partir do Payment model.
+        """
+        metadata = metadata or {}
+        logger.debug("Creating MercadoPago payment - amount=%s currency=%s metadata=%s items=%s", amount, currency, metadata, bool(items))
+
+        # Monta os items com precedência para o argumento `items`, depois metadata['items'],
+        # e por fim tenta montar a partir do Payment (transaction_id) ou usar um item único.
+        resolved_items: List[Dict[str, Any]] = []
+
+        # Se o chamador passou `items` diretamente (ex: create_payment_with_items), usa-o
+        if isinstance(items, list) and items:
+            for it in items:
+                unit_price = None
+                # suportar formatos variados (gateway_items ou processed_items)
+                if isinstance(it, dict):
+                    unit_price = it.get('unit_price') or it.get('price') or it.get('unitPrice')
+                try:
+                    unit_price = float(unit_price) if unit_price is not None else float(amount)
+                except Exception:
+                    unit_price = float(amount)
+
+                resolved_items.append({
+                    "id": it.get("id") if isinstance(it, dict) else str(it),
+                    "title": it.get("title") or it.get("name") or metadata.get("title", "Item"),
+                    "quantity": int(it.get("quantity", 1)) if isinstance(it, dict) else 1,
+                    "currency_id": it.get("currency_id", currency) if isinstance(it, dict) else currency,
+                    "unit_price": unit_price,
+                })
+
+        # Caso contrário, verificar metadata['items'] (compatibilidade retroativa)
+        elif isinstance(metadata.get("items"), list) and metadata.get("items"):
             for it in metadata.get("items"):
                 item = {
                     "id": it.get("id") or str(it.get("title", "item")),
@@ -73,7 +101,7 @@ class MercadoPagoGateway(PaymentGateway):
                     item["description"] = it.get("description")
                 if it.get("picture_url"):
                     item["picture_url"] = it.get("picture_url")
-                items.append(item)
+                resolved_items.append(item)
         else:
             txid = metadata.get("transaction_id")
             if txid:
@@ -82,7 +110,7 @@ class MercadoPagoGateway(PaymentGateway):
 
                     payment_obj = PaymentModel.objects.prefetch_related("items").get(transaction_id=txid)
                     for it in payment_obj.items.all():
-                        items.append({
+                        resolved_items.append({
                             "id": str(it.item_id) or str(it.id),
                             "title": it.item_name or metadata.get("title", "Item"),
                             "quantity": int(it.quantity),
@@ -92,8 +120,8 @@ class MercadoPagoGateway(PaymentGateway):
                 except Exception as e:
                     logger.debug("Could not build items from Payment model for transaction %s: %s", txid, e)
 
-            if not items:
-                items = [
+            if not resolved_items:
+                resolved_items = [
                     {
                         "id": metadata.get("transaction_id") or str(uuid.uuid4()),
                         "title": metadata.get("title", "Compra"),
@@ -103,19 +131,22 @@ class MercadoPagoGateway(PaymentGateway):
                     }
                 ]
 
+        # renomear para variável usada adiante
+        items = resolved_items
+
         # back_urls mínimos (podem ser sobrescritos via settings)
         # Usa a URL do site configurada em settings ou nas variáveis de ambiente.
         base_site_url = (
             getattr(settings, "BASE_URL", "")).rstrip("/")
 
         if not base_site_url:
-            base_site_url = "http://localhost:8000"
+            base_site_url = "http://akkaui.shop"
             logger.warning("BASE_URL não definido em settings/ambiente; usando fallback %s", base_site_url)
 
         back_urls_raw = {
-            "success": urljoin(base_site_url + "/", "api/mercadopago/success/"),
-            "pending": urljoin(base_site_url + "/", "api/mercadopago/pending/"),
-            "failure": urljoin(base_site_url + "/", "api/mercadopago/failure/"),
+            "success": urljoin(base_site_url + "/", "/success/"),
+            "pending": urljoin(base_site_url + "/", "/cancel/"),
+            "failure": urljoin(base_site_url + "/", "/cancel/"),
         }
 
         # Filtra back_urls vazias e só inclui auto_return quando success estiver definido
@@ -140,8 +171,17 @@ class MercadoPagoGateway(PaymentGateway):
         if back_urls:
             preference_data["back_urls"] = back_urls
 
-        preference_data["notification_url"] = urljoin(base_site_url + "/", "en/payment/webhook/abacatepay/")
-        preference_data["notification_url"] = "https://webhook.site/b3c34617-5642-4486-911b-80459f75b040"
+        # Definir URL de notificação (webhook)
+        # Prioriza configuração explícita em settings.MERCADOPAGO_NOTIFICATION_URL
+        # Caso não informada, aponta para a rota local padrão usada no projeto
+        notif_url = getattr(settings, "MERCADOPAGO_NOTIFICATION_URL", None)
+        if notif_url:
+            preference_data["notification_url"] = notif_url
+        else:
+            # rota padrão esperada: /payment/mercadopago/webhook/
+            preference_data["notification_url"] = urljoin(base_site_url + "/", "payment/webhook/mercadopago/")
+
+        logger.info("MercadoPago notification_url set to %s", preference_data.get("notification_url"))
         preference_data["external_reference"] = metadata.get("transaction_id", str(uuid.uuid4()))
         #preference_data["auto_return"] = "all"
 

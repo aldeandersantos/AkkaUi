@@ -6,9 +6,9 @@ from django.contrib.auth.decorators import login_required
 import json
 from django.core.exceptions import RequestDataTooBig
 from usuario.views.views_usuario import admin_required
-from .services import *
+from ..services import *
 
-from .models import SvgFile
+from ..models import SvgFile
 
 def home(request):
     """
@@ -388,7 +388,7 @@ def search_svg(request):
         svgfiles = svgfiles.order_by('-uploaded_at')
     
     # Serializar dados
-    from .serializers import SvgFileSerializer
+    from ..serializers import SvgFileSerializer
     serializer = SvgFileSerializer(svgfiles, many=True)
     
     return JsonResponse({

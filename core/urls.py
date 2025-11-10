@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import *
+from .views.views_svg import *
 # Importar views de pagamento para rotas públicas de sucesso/cancel
 from payment.views.views_payment import SuccessView, CancelView
 

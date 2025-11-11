@@ -58,7 +58,7 @@ class TestPaymentService:
         assert payment.user == user
         assert payment.gateway == 'abacatepay'
         assert payment.plan == 'pro_month'
-        assert payment.amount == Decimal('9.90')
+        assert float(payment.amount) == 9.90
         assert payment.currency == 'BRL'
     
     def test_create_payment_invalid_gateway(self, user):

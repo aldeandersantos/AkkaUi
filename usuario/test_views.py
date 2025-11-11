@@ -133,7 +133,7 @@ class TestGetTokenView:
         encoded = base64.b64encode(credentials.encode()).decode()
         
         response = client.post(
-            reverse('usuario:get_token'),
+            reverse('usuario:api_token'),
             HTTP_AUTHORIZATION=f'Basic {encoded}'
         )
         
@@ -143,7 +143,7 @@ class TestGetTokenView:
         assert data['token_type'] == 'signed'
     
     def test_get_token_missing_auth_header(self, client):
-        response = client.post(reverse('usuario:get_token'))
+        response = client.post(reverse('usuario:api_token'))
         assert response.status_code == 400
     
     def test_get_token_invalid_credentials(self, client, user):
@@ -151,7 +151,7 @@ class TestGetTokenView:
         encoded = base64.b64encode(credentials.encode()).decode()
         
         response = client.post(
-            reverse('usuario:get_token'),
+            reverse('usuario:api_token'),
             HTTP_AUTHORIZATION=f'Basic {encoded}'
         )
         
@@ -159,7 +159,7 @@ class TestGetTokenView:
     
     def test_get_token_malformed_basic_auth(self, client):
         response = client.post(
-            reverse('usuario:get_token'),
+            reverse('usuario:api_token'),
             HTTP_AUTHORIZATION='Basic invalid'
         )
         assert response.status_code == 400

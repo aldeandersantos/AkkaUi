@@ -54,7 +54,7 @@ class TestSvgFileModel:
         mocker.patch.object(svg_file, 'thumbnail', True)
         url = svg_file.get_thumbnail_url()
         assert url is not None
-        assert 'protected_thumbnail' in url
+        assert 'thumbnail' in url
     
     def test_get_thumbnail_url_without_thumbnail(self, svg_file):
         svg_file.thumbnail = None

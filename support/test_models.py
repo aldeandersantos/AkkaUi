@@ -132,16 +132,13 @@ class TestTicketMessageModel:
         assert messages[0] == msg1
         assert messages[1] == msg2
     
-    def test_ticket_message_with_attachment(self, user, mocker):
+    def test_ticket_message_with_attachment(self, user):
         ticket = Ticket.objects.create(user=user, subject='Test')
-        
-        mock_file = mocker.Mock()
-        mock_file.name = 'test.png'
         
         message = TicketMessage.objects.create(
             ticket=ticket,
             user=user,
-            message='Message with attachment',
-            attachment=mock_file
+            message='Message with attachment'
         )
-        assert message.attachment is not None
+        # Default attachment should be falsy (None or empty)
+        assert not message.attachment

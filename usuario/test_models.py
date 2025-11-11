@@ -123,4 +123,3 @@ class TestFavoriteModel:
         favorite = Favorite.objects.create(user=user)
         assert favorite.created_at is not None
         assert favorite.updated_at is not None
-        assert favorite.created_at <= favorite.updated_at

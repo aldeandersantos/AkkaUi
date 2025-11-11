@@ -9,8 +9,13 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
 
 <style>
   /* Hover overlay e escurecimento da thumb */
-  .card { position: relative; overflow: hidden; width: 100%; max-width: 500px; }
-  .card-image { position: relative; }
+  /* Tornar o card um flex column para fixar a área da imagem e alinhar o conteúdo inferior */
+  .card { display: flex; flex-direction: column; position: relative; overflow: hidden; width: 100%; max-width: 500px; }
+  /* Padroniza a área de preview usando aspect-ratio para evitar alterar a altura total do card
+    de forma inesperada. O navegador calcula a altura com base na largura disponível, mantendo
+    proporção. Ajuste aspect-ratio ou max-height se necessário. */
+  /* Usar proporção 1/1 (quadrado) para deixar a área de preview mais alta e uniforme */
+  .card-image { position: relative; aspect-ratio: 1/1; max-height: 300px; }
   .card-image img { display:block; width:100%; height:100%; object-fit:cover; transition: filter .18s ease; position: relative; z-index: 0; }
   .card:hover .card-image img, .card-image:hover img { filter: brightness(0.45); }
   /* posiciona o overlay no centro-baixo da thumb */
@@ -128,12 +133,12 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   </div>
 
   {# Conteúdo do card #}
-  <div class="card-content" style="padding: 0.4rem 0 0.25rem;">
+  <div class="card-content" style="padding: 0; margin: 0;">
   <div class="card-badges">
       {# Badge de comprado ou acesso VIP (mantido no topo, alinhado à direita) #}
       {% if vip_access %}
         <span style="display:inline-flex; align-items:center; gap:0.4rem;">
-          <img src="{% static 'core/images/Vip.png' %}" alt="VIP" style="height:16px; width:auto; display:inline-block;" />
+            <img src="{% static 'core/images/Vip.png' %}" alt="VIP" style="height:20px; width:auto; display:inline-block; margin-top:6px;" />
         </span>
       {% elif item.purchased_by_user or purchased %}
         <span class="badge badge-primary" style="font-size: 0.75rem; padding: 0.125rem 0.5rem; background-color: #4CAF50; border-color: #4CAF50;">
@@ -142,9 +147,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       {% endif %}
     </div>
     
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; gap:0.5rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; gap:0.5rem; transform: translateY(6px);">
       {# Título descido para aqui (substitui o 'by AkkaUi') #}
-  <h3 style="color: var(--text-white); font-size: 0.95rem; line-height:1.05; font-weight: 600; margin: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.title_name|default:item.filename }}">
+  <h3 style="color: var(--text-white); font-size: 1.05rem; line-height:0.95; padding-bottom: 0; font-weight: 600; margin: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.title_name|default:item.filename }}">
         {{ item.title_name|default:item.filename|default:"SVG sem nome" }}
       </h3>
       
@@ -153,7 +158,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         {% if item.price > 0 %}
           <span style="color: var(--text-white); font-weight: 600; font-size: 0.875rem;">R$ {{ item.price|floatformat:2 }}</span>
         {% else %}
-          <span class="badge badge-primary" style="font-size: 0.75rem;">Free</span>
+          <span class="badge badge-primary" style="font-size: 0.7rem;">Free</span>
         {% endif %}
       {% else %}
         {# Quando há badge (comprado/VIP) não mostramos o preço para evitar sobreposição #}

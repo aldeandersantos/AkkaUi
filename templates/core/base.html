@@ -12,6 +12,19 @@
     <link rel="stylesheet" href="{% static 'core/wiki.css' %}">
     <link rel="stylesheet" href="{% static 'core/ui-enhancements.css' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'Favicon.ico' %}">
+    <!-- Override: remover efeito de "levantar" em hover dos cards -->
+    <style>
+      /* Desabilitar efeito de "levantar" em hover para elementos tipo card. */
+      /* Ajuste os seletores caso seu projeto use classes diferentes para cards. */
+      .card, .card:hover, .card:focus,
+      .product-card, .product-card:hover,
+      .item-card, .item-card:hover,
+      .svg-card, .svg-card:hover {
+        transform: none !important;
+        transition: none !important;
+        box-shadow: none !important;
+      }
+    </style>
     
     <!-- HTMX para interações dinâmicas sem JavaScript complexo -->
     <script src="https://unpkg.com/htmx.org@1.9.10" 
@@ -101,11 +114,21 @@
             
             {% if user.is_authenticated %}
               <a href="{% url 'core:cart' %}" class="icon-button" style="position: relative; text-decoration: none;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="9" cy="21" r="1"></circle>
-                  <circle cx="20" cy="21" r="1"></circle>
-                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-                </svg>
+                <!-- Usar PNGs em vez de SVG: padrão carrinho_preto, hover troca para Carrinho.png (observação: arquivo com C maiúsculo existe em core/static/core/images) -->
+                <img id="cart-icon" src="{% static 'core/images/carrinho_preto.png' %}" alt="{% trans 'Cart' %}" style="width:20px;height:20px;display:block;" 
+                     onmouseover="this.src='{% static 'core/images/Carrinho.png' %}'" 
+                     onmouseout="this.src='{% static 'core/images/carrinho_preto.png' %}'" />
+                <script>
+                  // Pré-carregar versão colorida para evitar flicker
+                  (function(){
+                    try {
+                      var img = new Image();
+                      img.src = '{% static "core/images/Carrinho.png" %}';
+                    } catch(e) {
+                      // noop
+                    }
+                  })();
+                </script>
               </a>
             {% endif %}
             

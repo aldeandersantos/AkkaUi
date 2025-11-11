@@ -9,10 +9,10 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
 
 <style>
   /* Hover overlay e escurecimento da thumb */
-  .card { position: relative; overflow: hidden; }
+  .card { position: relative; overflow: hidden; width: 100%; max-width: 500px; }
   .card-image { position: relative; }
-  .card-image img { display:block; width:100%; height:100%; object-fit:cover; transition: filter .18s ease, transform .18s ease; position: relative; z-index: 0; }
-  .card:hover .card-image img, .card-image:hover img { filter: brightness(0.45); transform: scale(1.02); }
+  .card-image img { display:block; width:100%; height:100%; object-fit:cover; transition: filter .18s ease; position: relative; z-index: 0; }
+  .card:hover .card-image img, .card-image:hover img { filter: brightness(0.45); }
   /* posiciona o overlay no centro-baixo da thumb */
   .card-overlay { position: absolute; inset: 0; display:flex; align-items:flex-end; justify-content:center; gap:0.85rem; opacity:0; pointer-events:none; transition: opacity .18s ease, transform .18s ease; transform: translateY(10px); z-index: 5; padding-bottom: 0.6rem; }
   .card:hover .card-overlay, .card-image:hover .card-overlay { opacity:1; pointer-events:auto; transform: translateY(0); }
@@ -20,6 +20,18 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   .overlay-btn:hover { transform: scale(1.08); background: rgba(255,255,255,0.12); }
   .overlay-actions { display:flex; gap:1.2rem; align-items:center; justify-content:center; }
   .favorite-top-right { position: absolute; top: 0.75rem; right: 0.75rem; }
+  /* Override específico: neutraliza qualquer transform/scale vindo de folhas de estilo globais
+    (fix rápido para evitar "zoom" estático quando outras regras aplicam transform: scale)
+    Usamos !important para garantir precedência sem alterar os arquivos globais agora. */
+  .card { transform: none !important; }
+  .card-image img { transform: none !important; }
+  .card:hover { transform: none !important; }
+  .card:hover .card-image img { transform: none !important; }
+  /* Garantir que .card-content seja referência para badges posicionados */
+  .card-content { position: relative; }
+  /* Badges (VIP / comprado) posicionadas sem afetar o fluxo do conteúdo
+    assim o título não se move quando o badge aparece */
+  .card-badges { position: absolute; top: 0.35rem; right: 0.6rem; display:flex; align-items:center; gap:0.4rem; }
   /* Esconder os botões de ação inferiores (vamos expor versões compactas no overlay) */
   .card-content .card-actions-bottom { display: none; }
 </style>
@@ -42,15 +54,13 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         >
           <span class="favorite-icon" style="display:inline-flex; width:1.375rem; height:1.375rem; align-items:center; justify-content:center;">
             {% if show_favorite %}
-              <!-- Favoritado (true) -->
+              <!-- Favoritado (true) - coração roxo -->
               <svg width="30" height="30" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
                 <path d="M14.44 0C12.63 0 11.01 0.88 10 2.23C8.99 0.88 7.37 0 5.56 0C2.49 0 0 2.5 0 5.59C0 6.78 0.19 7.88 0.52 8.9C2.1 13.9 6.97 16.89 9.38 17.71C9.72 17.83 10.28 17.83 10.62 17.71C13.03 16.89 17.9 13.9 19.48 8.9C19.81 7.88 20 6.78 20 5.59C20 2.5 17.51 0 14.44 0Z" fill="#7460F3"/>
               </svg>
             {% else %}
-              <!-- Não favoritado (false) -->
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                <path d="M16.44 3.1C14.63 3.1 13.01 3.98 12 5.33C10.99 3.98 9.37 3.1 7.56 3.1C4.49 3.1 2 5.6 2 8.69C2 9.88 2.19 10.98 2.52 12C4.1 17 8.97 19.99 11.38 20.81C11.72 20.93 12.28 20.93 12.62 20.81C15.03 19.99 19.9 17 21.48 12C21.81 10.98 22 9.88 22 8.69C22 5.6 19.51 3.1 16.44 3.1Z" fill="#1E1E1E"/>
-              </svg>
+              <!-- Não favoritado (false) - PNG preto (se existir). Se não existir, será mostrado fallback SVG preto pelo JS. -->
+              <img src="{% static "core/images/heart_preto.png" %}" alt="Favoritar" style="height:18px; width:auto; display:block;" />
             {% endif %}
           </span>
         </button>
@@ -118,8 +128,8 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   </div>
 
   {# Conteúdo do card #}
-  <div class="card-content">
-    <div style="display: flex; justify-content: flex-end; align-items: start; margin-bottom: 0.5rem;">
+  <div class="card-content" style="padding: 0.4rem 0 0.25rem;">
+  <div class="card-badges">
       {# Badge de comprado ou acesso VIP (mantido no topo, alinhado à direita) #}
       {% if vip_access %}
         <span style="display:inline-flex; align-items:center; gap:0.4rem;">
@@ -132,17 +142,22 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       {% endif %}
     </div>
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; gap:0.75rem;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; gap:0.5rem;">
       {# Título descido para aqui (substitui o 'by AkkaUi') #}
-      <h3 style="color: var(--text-white); font-size: 1rem; font-weight: 600; margin: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.title_name|default:item.filename }}">
+  <h3 style="color: var(--text-white); font-size: 0.95rem; line-height:1.05; font-weight: 600; margin: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.title_name|default:item.filename }}">
         {{ item.title_name|default:item.filename|default:"SVG sem nome" }}
       </h3>
       
-      {# Price or Free badge (mantido à direita) #}
-      {% if item.price > 0 %}
-        <span style="color: var(--text-white); font-weight: 600; font-size: 0.875rem;">R$ {{ item.price|floatformat:2 }}</span>
+      {# Price ou Free: só mostrar quando NÃO houver badge de comprado/VIP (evita sobreposição) #}
+  {% if not item.purchased_by_user and not purchased and not vip_access %}
+        {% if item.price > 0 %}
+          <span style="color: var(--text-white); font-weight: 600; font-size: 0.875rem;">R$ {{ item.price|floatformat:2 }}</span>
+        {% else %}
+          <span class="badge badge-primary" style="font-size: 0.75rem;">Free</span>
+        {% endif %}
       {% else %}
-        <span class="badge badge-primary" style="font-size: 0.75rem;">Free</span>
+        {# Quando há badge (comprado/VIP) não mostramos o preço para evitar sobreposição #}
+        <span aria-hidden="true"></span>
       {% endif %}
     </div>
     

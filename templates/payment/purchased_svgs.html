@@ -1,18 +1,20 @@
 {% extends 'core/base.html' %}
+{% load static %}
+{% load i18n %}
 
-{% block title %}Meus SVGs — AkkaUi{% endblock %}
+{% block title %}{% trans "Meus SVGs" %} — AkkaUi{% endblock %}
 
 {% block content %}
 <div style="width: 100%; background: var(--bg-dark);">
   <header class="library-header">
     <h1 style="font-size: 56px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-      Meus SVGs
+      {% trans "Meus SVGs" %}
     </h1>
     <p class="lead" style="font-size: 20px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">
       {% if is_vip %}
-        Seus SVGs comprados e acesso VIP
+        {% trans "Seus SVGs comprados e acesso VIP" %}
       {% else %}
-        Seus SVGs comprados
+        {% trans "Seus SVGs comprados" %}
       {% endif %}
     </p>
   </header>
@@ -25,7 +27,7 @@
           🌟 {{ vip_message }}
         </h2>
         <p style="font-size: 16px; color: rgba(255, 255, 255, 0.9); margin: 0;">
-          Como usuário VIP, você pode copiar qualquer SVG do nosso catálogo sem precisar comprá-los individualmente.
+          {% trans "Como usuário VIP, você pode copiar qualquer SVG do nosso catálogo sem precisar comprá-los individualmente." %}
         </p>
       </div>
     {% endif %}
@@ -33,19 +35,19 @@
     {% if svgfiles %}
       <h3 style="margin-bottom: 16px; font-size: 28px;">
         {% if is_vip %}
-          Todos os SVGs disponíveis ({{ svgfiles|length }})
+          {% blocktrans count counter=svgfiles|length %}Todos os SVGs disponíveis ({{ counter }}){% endblocktrans %}
         {% else %}
-          SVGs comprados ({{ svgfiles|length }})
+          {% blocktrans count counter=svgfiles|length %}SVGs comprados ({{ counter }}){% endblocktrans %}
         {% endif %}
       </h3>
       
       {% if svgfiles|length == 0 %}
         <div style="text-align: center; padding: 60px 20px;">
           <p class="muted" style="font-size: 18px; margin-bottom: 20px;">
-            Você ainda não comprou nenhum SVG.
+            {% trans "Você ainda não comprou nenhum SVG." %}
           </p>
           <a href="{% url 'core:explore' %}" class="btn btn-primary" style="font-size: 16px; padding: 12px 24px;">
-            Explorar SVGs
+            {% trans "Explorar SVGs" %}
           </a>
         </div>
       {% else %}
@@ -58,10 +60,10 @@
     {% else %}
       <div style="text-align: center; padding: 60px 20px;">
         <p class="muted" style="font-size: 18px; margin-bottom: 20px;">
-          Você ainda não comprou nenhum SVG.
+          {% trans "Você ainda não comprou nenhum SVG." %}
         </p>
         <a href="{% url 'core:explore' %}" class="btn btn-primary" style="font-size: 16px; padding: 12px 24px;">
-          Explorar SVGs
+          {% trans "Explorar SVGs" %}
         </a>
       </div>
     {% endif %}

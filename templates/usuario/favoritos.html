@@ -1,7 +1,8 @@
 {% extends 'core/base.html' %}
-{% load i18n static %}
+{% load static %}
+{% load i18n %}
 
-{% block title %}Favoritos — AkkaUi{% endblock %}
+{% block title %}{% trans "Favoritos" %} — AkkaUi{% endblock %}
 
 {% block content %}
 <div style="width: 100%; background: var(--bg-dark); display: flex; justify-content: center; padding: 40px 0;">
@@ -9,17 +10,17 @@
     <div style="width: 100%; max-width: 1200px;">
       <header class="library-header">
         <h1 style="font-size: 48px; margin-bottom: 20px;">
-          Meus Favoritos
+          {% trans "Meus Favoritos" %}
         </h1>
         <p class="lead" style="font-size: 18px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">
-          Seus SVGs favoritos salvos para acesso rápido
+          {% trans "Seus SVGs favoritos salvos para acesso rápido" %}
         </p>
       </header>
 
       <section class="library-section">
         <div style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center;">
           <h2 style="font-size: 24px; margin: 0;">
-            Total: <span style="color: var(--primary);">{{ total_favorites }}</span> {% if total_favorites == 1 %}favorito{% else %}favoritos{% endif %}
+            {% trans "Total:" %} <span style="color: var(--primary);">{{ total_favorites }}</span> {% if total_favorites == 1 %}{% trans "favorito" %}{% else %}{% trans "favoritos" %}{% endif %}
           </h2>
         </div>
 
@@ -43,18 +44,18 @@
   <div style="width:100%; max-width:720px; color:white; display:flex; flex-direction:column; align-items:center; text-align:center; padding: 24px 16px 48px; box-sizing:border-box;">
       <!-- Title + small heart -->
       <div style="display:inline-flex; align-items:center; gap:12px;" aria-hidden="true">
-        <h1 class="fav-empty-title" style="font-size:48px; margin:0; font-family:'Inter', Inter, Arial, sans-serif; font-weight:800; line-height:1; letter-spacing:-0.02em;">Favorites</h1>
-        <img src="{% static 'core/images/favorites-small.png' %}" width="35" height="35" alt="Favorites" style="display:inline-block; vertical-align:middle;" onerror="this.style.display='none'" />
+        <h1 class="fav-empty-title" style="font-size:48px; margin:0; font-family:'Inter', Inter, Arial, sans-serif; font-weight:800; line-height:1; letter-spacing:-0.02em;">{% trans "Favoritos" %}</h1>
+        <img src="{% static 'core/images/favorites-small.png' %}" width="35" height="35" alt="{% trans 'Favoritos' %}" style="display:inline-block; vertical-align:middle;" onerror="this.style.display='none'" />
       </div>
 
       <!-- Lead paragraph (improved spacing and line-height) -->
       <p class="fav-empty-lead" style="font-size:18px; color: white; max-width:560px; margin:18px 0 28px; font-family:'Inter', Inter, Arial, sans-serif; font-weight:400; line-height:1.6;">
-        Mark the components you like as favorites to access later when you are designing or when you need inspiration.
+        {% trans "Marque os componentes que você gosta como favoritos para acessar depois quando estiver desenhando ou quando precisar de inspiração." %}
       </p>
 
       <!-- Components CTA (clicável — leva à página de explorar) -->
-      <a href="{% url 'core:explore' %}" class="fav-components-link" style="margin: 8px 0 28px; display:inline-block; text-decoration:none;" aria-label="Explorar componentes" role="link">
-        <svg class="fav-components-svg" width="232" height="48" viewBox="0 0 232 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" role="img" aria-label="Explorar">
+      <a href="{% url 'core:explore' %}" class="fav-components-link" style="margin: 8px 0 28px; display:inline-block; text-decoration:none;" aria-label="{% trans 'Explorar componentes' %}" role="link">
+        <svg class="fav-components-svg" width="232" height="48" viewBox="0 0 232 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" role="img" aria-label="{% trans 'Explorar' %}">
           <defs>
             <linearGradient id="akka_explore_grad" x1="0" x2="1" y1="0" y2="1">
               <stop offset="0" stop-color="#9b7bff"/>
@@ -62,18 +63,18 @@
             </linearGradient>
           </defs>
           <rect x="2" y="1.5" width="228" height="43" rx="21.5" fill="url(#akka_explore_grad)" />
-          <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="16">Explorar</text>
+          <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#ffffff" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="16">{% trans "Explorar" %}</text>
         </svg>
       </a>
 
       <!-- Large empty-state icon (centered) -->
       <div style="width:102px; height:102px; margin: 8px auto 18px;">
-        <img src="{% static 'core/images/favorites-empty.png' %}" width="102" height="102" alt="No favorites" style="display:block; margin:0 auto;" onerror="this.style.display='none'" />
+        <img src="{% static 'core/images/favorites-empty.png' %}" width="102" height="102" alt="{% trans 'Sem favoritos' %}" style="display:block; margin:0 auto;" onerror="this.style.display='none'" />
       </div>
 
       <!-- Secondary explanatory text -->
       <p style="font-size:18px; color: white; max-width:560px; margin:0; font-family:'Inter', Inter, Arial, sans-serif; font-weight:400; line-height:1.6;">
-        You do not have any favorites yet, here are some<br/>of our most recent components...
+        {% trans "Você ainda não tem favoritos, aqui estão alguns dos nossos componentes mais recentes..." %}
       </p>
   {% endif %}
 </div>

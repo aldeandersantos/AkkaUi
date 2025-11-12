@@ -6,41 +6,41 @@
 {% block content %}
   <article class="page">
     <header class="page-header">
-      <h1>🛒 {% trans "Shopping Cart" %}</h1>
-      <p class="lead">{% trans "Review your items before checkout" %}</p>
+      <div class="container" style="text-align: center;">
+        <h1 style="display:flex; align-items:center; gap:.6rem; margin:0; justify-content:center;">🛒 {% trans "Shopping Cart" %}</h1>
+        <p class="lead" style="margin-top:.5rem;">{% trans "Review your items before checkout" %}</p>
+      </div>
     </header>
 
     <div class="page-body">
-      <div id="cart-container" style="max-width: 900px; margin: 0 auto;">
-        <!-- Cart items will be rendered here by JavaScript -->
-        <div id="cart-items"></div>
-        
+      <div class="container" id="cart-container" style="max-width:1000px; margin: 1.25rem auto 3rem; text-align: center;">
+        <!-- Lista de itens do carrinho (renderizada por JS) -->
+        <div id="cart-items" aria-live="polite" style="display: inline-block; text-align: left; width: 100%; max-width: 600px;"></div>
+
+        <!-- Estado vazio -->
         <div id="cart-empty" style="display: none; text-align: center; padding: 3rem 1rem;">
-          <p class="muted" style="font-size: 1.2rem; margin-bottom: 1.5rem;">
-            {% trans "Your cart is empty" %}
-          </p>
-          <a href="{% url 'core:explore' %}" class="btn btn-primary">
-            {% trans "Browse SVGs" %}
-          </a>
+          <p class="muted" style="font-size: 1.15rem; margin-bottom: 1rem;">{% trans "Your cart is empty" %}</p>
+          <a href="{% url 'core:explore' %}" class="btn btn-primary">{% trans "Browse SVGs" %}</a>
         </div>
 
-        <div id="cart-summary" style="display: none; margin-top: 2rem; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3 style="margin: 0;">{% trans "Order Summary" %}</h3>
-            <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent);">
-              R$ <span id="cart-total">0.00</span>
+        <!-- Sumário do pedido -->
+        <aside id="cart-summary" style="display: none; margin: 1.75rem auto 0; padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; max-width: 600px; text-align: left;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:1rem;">
+            <div>
+              <h3 style="margin:0;">{% trans "Order Summary" %}</h3>
+              <p class="muted" style="margin: .25rem 0 0; font-size:0.95rem;">{% trans "Includes all licenses and fees" %}</p>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:1.4rem; font-weight:700; color:var(--accent);">R$ <span id="cart-total">0.00</span></div>
+              <div class="muted" style="font-size:0.85rem;">{% trans "Total" %}</div>
             </div>
           </div>
-          
-          <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-            <button onclick="clearCart()" class="btn btn-outline" style="flex: 1;">
-              {% trans "Clear Cart" %}
-            </button>
-            <button onclick="checkout()" class="btn btn-primary" style="flex: 2;">
-              {% trans "Proceed to Checkout" %} →
-            </button>
+
+          <div style="display:flex; gap:1rem; margin-top:1rem;">
+            <button onclick="clearCart()" class="btn btn-outline" style="flex:1;">{% trans "Clear Cart" %}</button>
+            <button onclick="checkout()" class="btn btn-primary" style="flex:2;">{% trans "Proceed to Checkout" %} →</button>
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   </article>
@@ -50,7 +50,8 @@
     function getCart() {
       try {
         return JSON.parse(localStorage.getItem('akka_cart') || '[]');
-      } catch {
+      } catch (e) {
+        console.error('Erro ao ler carrinho:', e);
         return [];
       }
     }
@@ -58,16 +59,19 @@
     function saveCart(cart) {
       localStorage.setItem('akka_cart', JSON.stringify(cart));
       renderCart();
+      // atualiza badge global se existir
+      if (typeof updateCartBadge === 'function') updateCartBadge();
     }
 
     function removeFromCart(id) {
       const cart = getCart();
-      const newCart = cart.filter(item => item.id !== id);
+      const newCart = cart.filter(item => String(item.id) !== String(id));
       saveCart(newCart);
+      if (typeof showNotification === 'function') showNotification('{% trans "Item removed from cart" %}', 'success');
     }
 
     function updateQuantity(id, change) {
-      // Quantidade fixa para licenças digitais (1 por produto). Informar usuário.
+      // Licenças digitais: quantidade fixa = 1
       if (typeof showNotification === 'function') {
         showNotification('{% trans "Quantidade fixa em 1 para licenças" %}', 'info');
       } else {
@@ -79,6 +83,7 @@
       if (confirm('{% trans "Are you sure you want to clear your cart?" %}')) {
         localStorage.removeItem('akka_cart');
         renderCart();
+        if (typeof updateCartBadge === 'function') updateCartBadge();
       }
     }
 
@@ -93,10 +98,13 @@
       const summaryDiv = document.getElementById('cart-summary');
       const totalSpan = document.getElementById('cart-total');
 
-      if (cart.length === 0) {
+      if (!container || !emptyDiv || !summaryDiv || !totalSpan) return;
+
+      if (!cart || cart.length === 0) {
         container.innerHTML = '';
         emptyDiv.style.display = 'block';
         summaryDiv.style.display = 'none';
+        totalSpan.textContent = '0.00';
         return;
       }
 
@@ -104,47 +112,37 @@
       summaryDiv.style.display = 'block';
 
       let total = 0;
-      container.innerHTML = cart.map(item => {
-        // mantemos quantity = 1 (licença única)
-        const itemTotal = item.price;
+      const itemsHtml = cart.map(item => {
+        const itemTotal = Number(item.price) || 0;
         total += itemTotal;
-        
+
         return `
-          <div class="cart-item" style="display: flex; gap: 1.5rem; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 1rem; align-items: center;">
-            <div style="flex: 1;">
-              <h3 style="margin: 0 0 0.5rem; color: var(--text-light);">${escapeHtml(item.name)}</h3>
-              <p class="muted" style="margin: 0; font-size: 0.9rem;">{% trans "Price" %}: R$ ${item.price.toFixed(2)}</p>
+          <div class="cart-item" style="display:flex; gap:1rem; padding:1rem; background:var(--bg-card); border:1px solid var(--border); border-radius:10px; margin-bottom:1rem; align-items:center;">
+            <div style="flex:1; min-width:0;">
+              <h3 style="margin:0 0 .35rem; color:var(--text-light); font-size:1rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(item.name)}</h3>
+              <div class="muted" style="font-size:0.9rem;">{% trans "Price" %}: R$ ${Number(item.price).toFixed(2)}</div>
             </div>
-            
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-            </div>
-            
-            <div style="text-align: right; min-width: 100px;">
-              <div style="font-size: 1.2rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem;">
-                R$ ${itemTotal.toFixed(2)}
+            <div style="text-align:right; min-width:120px;">
+              <div style="font-size:1.05rem; font-weight:700; color:var(--accent); margin-bottom:.25rem;">R$ ${itemTotal.toFixed(2)}</div>
+              <div style="display:flex; gap:.5rem; justify-content:flex-end;">
+                <button onclick="removeFromCart('${item.id}')" class="btn btn-danger" style="padding:.4rem .8rem; font-size:.85rem;">{% trans "Remove" %}</button>
               </div>
-              <button 
-                onclick="removeFromCart(${item.id})" 
-                class="btn btn-danger"
-                style="padding: 0.5rem 1rem; font-size: 0.85rem;"
-              >
-                {% trans "Remove" %}
-              </button>
             </div>
           </div>
         `;
-      }).join('');
+      }).join('\n');
 
+      container.innerHTML = itemsHtml;
       totalSpan.textContent = total.toFixed(2);
     }
 
     function escapeHtml(text) {
       const div = document.createElement('div');
-      div.textContent = text;
+      div.textContent = text == null ? '' : String(text);
       return div.innerHTML;
     }
 
-    // Initialize on load
+    // Inicializa ao carregar
     document.addEventListener('DOMContentLoaded', renderCart);
   </script>
 {% endblock %}

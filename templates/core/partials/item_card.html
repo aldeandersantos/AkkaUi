@@ -9,27 +9,88 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
 
 <style>
   /* Hover overlay e escurecimento da thumb */
-  .card { position: relative; overflow: hidden; }
-  .card-image { position: relative; }
-  .card-image img { display:block; width:100%; height:100%; object-fit:cover; transition: filter .18s ease, transform .18s ease; position: relative; z-index: 0; }
-  .card:hover .card-image img, .card-image:hover img { filter: brightness(0.45); transform: scale(1.02); }
+  /* Tornar o card um flex column para fixar a área da imagem e alinhar o conteúdo inferior */
+  .card { display: flex; flex-direction: column; position: relative; overflow: hidden; width: 100%; max-width: 500px; }
+  /* Padroniza a área de preview usando aspect-ratio para evitar alterar a altura total do card
+    de forma inesperada. O navegador calcula a altura com base na largura disponível, mantendo
+    proporção. Ajuste aspect-ratio ou max-height se necessário. */
+  /* Usar proporção 1/1 (quadrado) para deixar a área de preview mais alta e uniforme */
+  .card-image { position: relative; aspect-ratio: 1/1; max-height: 300px; }
+  /* Aplicar estilo APENAS à imagem direta de preview (thumbnail).
+    Usando o child selector (>) evitamos afetar imagens internas do overlay. */
+  .card-image > img { display:block; width:100%; height:100%; object-fit:cover; transition: filter .18s ease; position: relative; z-index: 0; }
+  .card:hover .card-image > img, .card-image:hover > img { filter: brightness(0.45); }
+  /* Remove qualquer borda/efeito roxo aplicado globalmente ao passar o mouse
+     sobre o card. Mantemos foco visível para teclado apenas se já houver
+     regras específicas de acessibilidade (evitamos mexer em :focus-visible). */
+  .card:hover, .card-image:hover, .card:focus, .card:focus-within {
+    box-shadow: none !important;
+    outline: none !important;
+    border: none !important;
+    border-color: transparent !important;
+  }
   /* posiciona o overlay no centro-baixo da thumb */
   .card-overlay { position: absolute; inset: 0; display:flex; align-items:flex-end; justify-content:center; gap:0.85rem; opacity:0; pointer-events:none; transition: opacity .18s ease, transform .18s ease; transform: translateY(10px); z-index: 5; padding-bottom: 0.6rem; }
   .card:hover .card-overlay, .card-image:hover .card-overlay { opacity:1; pointer-events:auto; transform: translateY(0); }
   .overlay-btn { background: rgba(255,255,255,0.06); border: none; width: 2.86rem; height: 2.86rem; border-radius: 50%; display:flex; align-items:center; justify-content:center; color:var(--text-white); backdrop-filter: blur(6px); transition: transform .12s ease, background .12s ease; }
   .overlay-btn:hover { transform: scale(1.08); background: rgba(255,255,255,0.12); }
+  /* Quando a thumb é escurecida (hover do card), tornar o fundo do botão branco
+     para garantir contraste e legibilidade dos ícones. Também removemos o
+     backdrop-filter para evitar artefatos visuais sobre backgrounds escuros. */
+  .card:hover .overlay-btn, .card-image:hover .overlay-btn {
+    background: #ffffff;
+    color: var(--text-black, #111);
+    backdrop-filter: none;
+  }
+  .card:hover .overlay-btn:hover, .card-image:hover .overlay-btn:hover {
+    background: #f3f3f3;
+  }
+  /* Garantir que ícones (img/svg) dentro do botão não recebam filtros
+    e permaneçam com sua cor/traço original. Também aumentar levemente
+    o tamanho dos ícones e forçar max-width/max-height para sobrescrever
+    estilos inline do HTML. */
+  .overlay-btn img, .overlay-btn svg {
+   filter: none !important;
+   width: 1.6rem !important;
+   height: 1.6rem !important;
+   max-width: none !important;
+   max-height: none !important;
+  }
+  /* Ajuste específico para ícone de favorito (span.favorite-icon) que havia
+    largura/altura inline; garantimos o novo tamanho aqui. */
+  .favorite-icon {
+   width: 1.6rem !important;
+   height: 1.6rem !important;
+   display: inline-flex !important;
+   align-items: center !important;
+   justify-content: center !important;
+  }
   .overlay-actions { display:flex; gap:1.2rem; align-items:center; justify-content:center; }
   .favorite-top-right { position: absolute; top: 0.75rem; right: 0.75rem; }
+  /* Override específico: neutraliza qualquer transform/scale vindo de folhas de estilo globais
+    (fix rápido para evitar "zoom" estático quando outras regras aplicam transform: scale)
+    Usamos !important para garantir precedência sem alterar os arquivos globais agora. */
+  .card { transform: none !important; }
+  .card-image > img { transform: none !important; }
+  .card:hover { transform: none !important; }
+  .card:hover .card-image img { transform: none !important; }
+  /* Garantir que .card-content seja referência para badges posicionados */
+  .card-content { position: relative; }
+  /* Badges (VIP / comprado)
+    Agora posicionadas inline (static) para ficarem alinhadas à mesma altura
+    do título e do preço. Mantemos display:flex e align-items:center para
+    alinhamento vertical consistente. */
+  .card-badges { position: static; display:flex; align-items:center; gap:0.4rem; margin-left:0.35rem; }
   /* Esconder os botões de ação inferiores (vamos expor versões compactas no overlay) */
   .card-content .card-actions-bottom { display: none; }
 </style>
 
 <div class="card" id="svg-card-{{ item.pk }}" x-data="{ showModal: false, imgError: false, svgHtml: '', svgLoading: false }">
-  {# Botão de Favorito: será exibido dentro do overlay ao passar o mouse sobre a thumb #}
+  <!-- Botão de Favorito: será exibido dentro do overlay ao passar o mouse sobre a thumb -->
   
-  {# Preview do SVG #}
+  <!-- Preview do SVG -->
   <div class="card-image">
-    {# Overlay de ações que aparece ao passar o mouse #}
+  <!-- Overlay de ações que aparece ao passar o mouse -->
     <div class="card-overlay" aria-hidden="true">
       <div class="overlay-actions">
         {% if user.is_authenticated %}
@@ -42,21 +103,19 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         >
           <span class="favorite-icon" style="display:inline-flex; width:1.375rem; height:1.375rem; align-items:center; justify-content:center;">
             {% if show_favorite %}
-              <!-- Favoritado (true) -->
+              <!-- Favoritado (true) - coração roxo -->
               <svg width="30" height="30" viewBox="0 0 20 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
                 <path d="M14.44 0C12.63 0 11.01 0.88 10 2.23C8.99 0.88 7.37 0 5.56 0C2.49 0 0 2.5 0 5.59C0 6.78 0.19 7.88 0.52 8.9C2.1 13.9 6.97 16.89 9.38 17.71C9.72 17.83 10.28 17.83 10.62 17.71C13.03 16.89 17.9 13.9 19.48 8.9C19.81 7.88 20 6.78 20 5.59C20 2.5 17.51 0 14.44 0Z" fill="#7460F3"/>
               </svg>
             {% else %}
-              <!-- Não favoritado (false) -->
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                <path d="M16.44 3.1C14.63 3.1 13.01 3.98 12 5.33C10.99 3.98 9.37 3.1 7.56 3.1C4.49 3.1 2 5.6 2 8.69C2 9.88 2.19 10.98 2.52 12C4.1 17 8.97 19.99 11.38 20.81C11.72 20.93 12.28 20.93 12.62 20.81C15.03 19.99 19.9 17 21.48 12C21.81 10.98 22 9.88 22 8.69C22 5.6 19.51 3.1 16.44 3.1Z" fill="#1E1E1E"/>
-              </svg>
+              <!-- Não favoritado (false) - PNG preto (se existir). Se não existir, será mostrado fallback SVG preto pelo JS. -->
+              <img src="{% static "core/images/heart_preto.png" %}" alt="Favoritar" style="height:18px; width:auto; display:block;" />
             {% endif %}
           </span>
         </button>
         {% endif %}
 
-        {# Botão Visualizar - mantém o comportamento Alpine.js de abrir modal #}
+  <!-- Botão Visualizar - mantém o comportamento Alpine.js de abrir modal -->
         <button
           class="overlay-btn"
           type="button"
@@ -69,9 +128,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
             <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.4" fill="none" />
           </svg>
         </button>
-        {# Ações compactas que aproveitam a lógica já existente nos botões inferiores (#IDs declarados abaixo) #}
-        {% if item.purchased_by_user or purchased or vip_access %}
-        <button class="overlay-btn btn btn-primary" type="button" aria-label="Copiar SVG" onclick="document.getElementById('copy-btn-{{ item.pk }}') && document.getElementById('copy-btn-{{ item.pk }}').click()" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
+  <!-- Ações compactas que aproveitam a lógica já existente nos botões inferiores (IDs declarados abaixo) -->
+  {% if item.purchased_by_user or purchased or vip_access %}
+    <button class="overlay-btn btn btn-primary" type="button" aria-label="Copiar SVG" onclick="copySvg({{ item.pk }}, this)" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
           <img src="{% static 'core/images/Biblioteca_preto.png' %}" alt="Copiar" style="height:16px; width:auto; display:inline-block;" />
         </button>
         {% elif item.price > 0 %}
@@ -79,14 +138,14 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
           <img src="{% static 'core/images/carrinho_preto.png' %}" alt="Cart" style="width:20px;height:20px;display:block;" />
         </button>
         {% else %}
-        <button class="overlay-btn btn btn-primary" type="button" aria-label="Copiar SVG" onclick="document.getElementById('copy-btn-{{ item.pk }}') && document.getElementById('copy-btn-{{ item.pk }}').click()" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
+  <button class="overlay-btn btn btn-primary" type="button" aria-label="Copiar SVG" onclick="copySvg({{ item.pk }}, this)" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
           <img src="{% static 'core/images/Biblioteca_preto.png' %}" alt="Copiar" style="height:16px; width:auto; display:inline-block;" />
         </button>
         {% endif %}
       </div>
     </div>
     {% if item.thumbnail %}
-      {# Opção 1: Thumbnail existe - usar URL protegida via guardian #}
+  <!-- Opção 1: Thumbnail existe - usar URL protegida via guardian -->
       <img 
         src="{{ item.get_thumbnail_url }}" 
         alt="Preview de {{ item.title_name|default:item.filename }}"
@@ -98,87 +157,89 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         Sem prévia<br>disponível
       </div>
     {% elif item.content %}
-      {# Opção 2: Sem thumbnail mas tem content - preview inline via data-URI #}
-      <img 
-        src="data:image/svg+xml;base64,{{ item.get_sanitized_content|base64_encode }}"
-        alt="Preview de {{ item.title_name|default:item.filename }}"
-        loading="{% if card_index < 4 %}eager{% else %}lazy{% endif %}"
-        x-show="!imgError"
-        @error="imgError = true"
-      >
-      <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-gray-500); font-size: 0.875rem; text-align: center;" x-show="imgError">
-        Erro ao carregar<br>prévia
+      <!-- não exibimos o conteúdo SVG inline quando não há thumbnail; mostrar apenas placeholder -->
+      <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-gray-500); font-size: 0.875rem; text-align: center;">
+        <span>Sem prévia disponível</span>
       </div>
     {% else %}
-      {# Opção 3: Sem thumbnail e sem content - placeholder #}
+  <!-- Opção 3: Sem thumbnail e sem content - placeholder -->
       <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-gray-500); font-size: 0.875rem; text-align: center;">
         Sem prévia<br>disponível
       </div>
     {% endif %}
   </div>
 
-  {# Conteúdo do card #}
-  <div class="card-content">
-    <div style="display: flex; justify-content: flex-end; align-items: start; margin-bottom: 0.5rem;">
-      {# Badge de comprado ou acesso VIP (mantido no topo, alinhado à direita) #}
-      {% if vip_access %}
-        <span style="display:inline-flex; align-items:center; gap:0.4rem;">
-          <img src="{% static 'core/images/Vip.png' %}" alt="VIP" style="height:16px; width:auto; display:inline-block;" />
-        </span>
-      {% elif item.purchased_by_user or purchased %}
-        <span class="badge badge-primary" style="font-size: 0.75rem; padding: 0.125rem 0.5rem; background-color: #4CAF50; border-color: #4CAF50;">
-          ✓
-        </span>
-      {% endif %}
-    </div>
-    
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; gap:0.75rem;">
-      {# Título descido para aqui (substitui o 'by AkkaUi') #}
-      <h3 style="color: var(--text-white); font-size: 1rem; font-weight: 600; margin: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.title_name|default:item.filename }}">
-        {{ item.title_name|default:item.filename|default:"SVG sem nome" }}
-      </h3>
-      
-      {# Price or Free badge (mantido à direita) #}
-      {% if item.price > 0 %}
-        <span style="color: var(--text-white); font-weight: 600; font-size: 0.875rem;">R$ {{ item.price|floatformat:2 }}</span>
+  <!-- Conteúdo do card -->
+  <div class="card-content" style="padding: 0; margin: 0;">
+  <!-- Header: título à esquerda; badges (VIP / comprado) + preço/Free alinhados à direita -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; gap:0.5rem; transform: translateY(6px);">
+    <!-- Título (expande) -->
+    <h3 style="color: var(--text-white); font-size: 1.05rem; line-height:0.95; padding-bottom: 0; font-weight: 600; margin: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.title_name|default:item.filename }}">
+      {{ item.title_name|default:item.filename|default:"SVG sem nome" }}
+    </h3>
+
+    <!-- Right-side: badges + price, alinhados verticalmente ao centro -->
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+      <div class="card-badges">
+        {% if vip_access %}
+          <span style="display:inline-flex; align-items:center; gap:0.4rem;">
+            <img src="{% static 'core/images/Vip.png' %}" alt="VIP" style="height:20px; width:auto; display:inline-block; margin-top:6px;" />
+          </span>
+        {% elif item.purchased_by_user or purchased %}
+          <span class="badge badge-primary" style="font-size: 0.75rem; padding: 0.125rem 0.5rem; background-color: #4CAF50; border-color: #4CAF50;">
+            ✓
+          </span>
+        {% endif %}
+      </div>
+
+      <!-- Price ou Free: só mostrar quando NÃO houver badge de comprado/VIP (evita sobreposição) -->
+      {% if not item.purchased_by_user and not purchased and not vip_access %}
+        {% if item.price > 0 %}
+          <span style="color: var(--text-white); font-weight: 600; font-size: 0.875rem;">R$ {{ item.price|floatformat:2 }}</span>
+        {% else %}
+          <span class="badge badge-primary" style="font-size: 0.7rem;">Free</span>
+        {% endif %}
       {% else %}
-        <span class="badge badge-primary" style="font-size: 0.75rem;">Free</span>
-      {% endif %}
-    </div>
-    
-    {# Ações inferiores removidas (agora expostas no overlay) #}
-    <!-- Botões ocultos com IDs usados pelo overlay para disparar a lógica existente -->
-    <div style="display:none;" aria-hidden="true">
-      {% if item.purchased_by_user or purchased or vip_access %}
-        <button id="copy-btn-{{ item.pk }}" class="btn btn-primary" type="button" aria-label="Copiar (oculto)"
-          onclick="(function(btn){ const originalHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '...'; function copyToClipboard(text){ if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } return new Promise((resolve,reject)=>{ const textarea=document.createElement('textarea'); textarea.value = text; textarea.style.position='fixed'; textarea.style.left='-999999px'; textarea.style.top='-999999px'; document.body.appendChild(textarea); textarea.focus(); textarea.select(); try{ const successful = document.execCommand('copy'); document.body.removeChild(textarea); if(successful) resolve(); else reject(new Error('execCommand falhou')); }catch(e){ document.body.removeChild(textarea); reject(e); } }); }
-            fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', { method: 'GET', headers: { 'Accept': 'application/json' } })
-              .then(function(response){ if(!response.ok) throw new Error('Erro HTTP: '+response.status); return response.json(); })
-              .then(function(data){ if(data.svg_text) return copyToClipboard(data.svg_text); throw new Error('SVG não encontrado'); })
-              .then(function(){ btn.innerHTML = '✓'; if(typeof showNotification==='function') showNotification('SVG copiado com sucesso!', 'success'); setTimeout(function(){ btn.disabled=false; btn.innerHTML = originalHTML; }, 2000); })
-              .catch(function(error){ console.error('Erro ao copiar:', error); if(typeof showNotification==='function') showNotification('Erro ao copiar SVG: ' + error.message, 'error'); else alert('Erro ao copiar SVG: ' + error.message); btn.disabled=false; btn.innerHTML = originalHTML; }); })(this)">
-          hidden
-        </button>
-      {% endif %}
-      {% if item.price > 0 %}
-        <button id="addcart-btn-{{ item.pk }}" onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price|unlocalize }})" class="btn btn-primary" type="button" aria-label="Adicionar ao carrinho (oculto)">hidden</button>
-      {% endif %}
-      {% if not item.price or item.price <= 0 %}
-        {# Para itens gratuitos, também expor copy-btn caso não exista acima #}
-        <button id="copy-btn-{{ item.pk }}" class="btn btn-primary" type="button" aria-label="Copiar (oculto)"
-          onclick="(function(btn){ const originalHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '...'; function copyToClipboard(text){ if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } return new Promise((resolve,reject)=>{ const textarea=document.createElement('textarea'); textarea.value = text; textarea.style.position='fixed'; textarea.style.left='-999999px'; textarea.style.top='-999999px'; document.body.appendChild(textarea); textarea.focus(); textarea.select(); try{ const successful = document.execCommand('copy'); document.body.removeChild(textarea); if(successful) resolve(); else reject(new Error('execCommand falhou')); }catch(e){ document.body.removeChild(textarea); reject(e); } }); }
-            fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', { method: 'GET', headers: { 'Accept': 'application/json' } })
-              .then(function(response){ if(!response.ok) throw new Error('Erro HTTP: '+response.status); return response.json(); })
-              .then(function(data){ if(data.svg_text) return copyToClipboard(data.svg_text); throw new Error('SVG não encontrado'); })
-              .then(function(){ btn.innerHTML = '✓'; if(typeof showNotification==='function') showNotification('SVG copiado com sucesso!', 'success'); setTimeout(function(){ btn.disabled=false; btn.innerHTML = originalHTML; }, 2000); })
-              .catch(function(error){ console.error('Erro ao copiar:', error); if(typeof showNotification==='function') showNotification('Erro ao copiar SVG: ' + error.message, 'error'); else alert('Erro ao copiar SVG: ' + error.message); btn.disabled=false; btn.innerHTML = originalHTML; }); })(this)">
-          hidden
-        </button>
+        <!-- Quando há badge (comprado/VIP) não mostramos o preço para evitar sobreposição -->
+        <span aria-hidden="true"></span>
       {% endif %}
     </div>
   </div>
+    
+  <!-- Ações inferiores removidas (agora expostas no overlay) -->
+    <!-- Botões ocultos com IDs usados pelo overlay para disparar a lógica existente -->
+   <!-- Botões ocultos utilizados pelo overlay. Sempre renderizamos os botones
+     (em display:none) para que o overlay possa disparar ações via ID mesmo
+     quando não há thumbnail — a autorização final continua sendo feita
+     pelo endpoint backend. Usamos if/elif/else para evitar duplicação de IDs. -->
+   <div style="display:none;" aria-hidden="true">
+    {% if item.purchased_by_user or purchased or vip_access %}
+        <button id="copy-btn-{{ item.pk }}" class="btn btn-primary" type="button" aria-label="Copiar (oculto)"
+          onclick="(function(btn){ const originalHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '...'; function copyToClipboard(text){ if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } return new Promise((resolve,reject)=>{ const textarea=document.createElement('textarea'); textarea.value = text; textarea.style.position='fixed'; textarea.style.left='-999999px'; textarea.style.top='-999999px'; document.body.appendChild(textarea); textarea.focus(); textarea.select(); try{ const successful = document.execCommand('copy'); document.body.removeChild(textarea); if(successful) resolve(); else reject(new Error('execCommand falhou')); }catch(e){ document.body.removeChild(textarea); reject(e); } }); }
+            fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', { method: 'GET', headers: { 'Accept': 'application/json' } })
+              .then(function(response){ if(!response.ok) throw new Error('Erro HTTP: '+response.status); return response.json(); })
+              .then(function(data){ if(data.svg_text) return copyToClipboard(data.svg_text); throw new Error('SVG não encontrado'); })
+              .then(function(){ btn.innerHTML = '✓'; if(typeof showNotification==='function') showNotification('SVG copiado com sucesso!', 'success'); setTimeout(function(){ btn.disabled=false; btn.innerHTML = originalHTML; }, 2000); })
+              .catch(function(error){ console.error('Erro ao copiar:', error); if(typeof showNotification==='function') showNotification('Erro ao copiar SVG: ' + error.message, 'error'); else alert('Erro ao copiar SVG: ' + error.message); btn.disabled=false; btn.innerHTML = originalHTML; }); })(this)">
+          hidden
+        </button>
+    {% elif item.price > 0 %}
+        <button id="addcart-btn-{{ item.pk }}" onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price|unlocalize }})" class="btn btn-primary" type="button" aria-label="Adicionar ao carrinho (oculto)">hidden</button>
+    {% else %}
+        <button id="copy-btn-{{ item.pk }}" class="btn btn-primary" type="button" aria-label="Copiar (oculto)"
+          onclick="(function(btn){ const originalHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '...'; function copyToClipboard(text){ if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } return new Promise((resolve,reject)=>{ const textarea=document.createElement('textarea'); textarea.value = text; textarea.style.position='fixed'; textarea.style.left='-999999px'; textarea.style.top='-999999px'; document.body.appendChild(textarea); textarea.focus(); textarea.select(); try{ const successful = document.execCommand('copy'); document.body.removeChild(textarea); if(successful) resolve(); else reject(new Error('execCommand falhou')); }catch(e){ document.body.removeChild(textarea); reject(e); } }); }
+            fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', { method: 'GET', headers: { 'Accept': 'application/json' } })
+              .then(function(response){ if(!response.ok) throw new Error('Erro HTTP: '+response.status); return response.json(); })
+              .then(function(data){ if(data.svg_text) return copyToClipboard(data.svg_text); throw new Error('SVG não encontrado'); })
+              .then(function(){ btn.innerHTML = '✓'; if(typeof showNotification==='function') showNotification('SVG copiado com sucesso!', 'success'); setTimeout(function(){ btn.disabled=false; btn.innerHTML = originalHTML; }, 2000); })
+              .catch(function(error){ console.error('Erro ao copiar:', error); if(typeof showNotification==='function') showNotification('Erro ao copiar SVG: ' + error.message, 'error'); else alert('Erro ao copiar SVG: ' + error.message); btn.disabled=false; btn.innerHTML = originalHTML; }); })(this)">
+          hidden
+        </button>
+    {% endif %}
+    </div>
+  </div>
 
-  {# Modal de Preview - Alpine.js #}
+  <!-- Modal de Preview - Alpine.js -->
   <template x-teleport="body">
     <div 
       x-show="showModal" 
@@ -217,12 +278,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
               <div class="modal-preview" data-copy-url="{% url 'core:copy_svg' %}?id={{ item.pk }}">
                 {% if item.thumbnail %}
                   <img src="{{ item.get_thumbnail_url }}" alt="Preview de {{ item.title_name|default:item.filename }}" style="width:100%; height:auto; max-height:70vh; object-fit:contain; display:block;" />
-                {% elif item.content %}
-                  <div x-show="svgLoading" class="text-muted">Carregando...</div>
-                  <div x-html="svgHtml" x-show="!svgLoading" style="max-width:100%; max-height:70vh; overflow:auto;"></div>
-                  <div x-effect='if (showModal && !svgHtml && !svgLoading) { svgLoading = true; var url = $el.closest("[data-copy-url]") ? $el.closest("[data-copy-url]").dataset.copyUrl : null; if (!url) { svgHtml = "<p class=\"text-muted\">URL não disponível</p>"; svgLoading = false; } else { fetch(url, { method: "GET", headers: { "Accept": "application/json" } }).then(r => { if (!r.ok) throw r; return r.json() }).then(data => { svgHtml = data.svg_text || "<p class=\"text-muted\">Conteúdo SVG não disponível</p>"; svgLoading = false }).catch(e => { svgHtml = "<p class=\"text-muted\">Erro ao carregar SVG</p>"; svgLoading = false }) } }'></div>
                 {% else %}
-                  <p class="text-muted">Sem prévia disponível</p>
+                  <!-- Não expor o SVG quando não há thumbnail. Mostrar mensagem neutra. -->
+                  <p class="text-muted">Prévia indisponível</p>
                 {% endif %}
               </div>
             </div>
@@ -235,8 +293,12 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
                 {% elif item.price > 0 %}
                   <button type="button" class="btn btn-primary" onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price|unlocalize }} )">Adicionar ao carrinho</button>
                 {% else %}
+                  {% if item.thumbnail %}
                   <button type="button" class="btn btn-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">Copiar</button>
                   <button type="button" class="btn btn-secondary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const svg = data.svg_text||''; const a=document.createElement('a'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); a.download = '{{ item.filename|default:item.title_name|default:"svg" }}.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }).then(()=>{ btn.disabled=false; }).catch(e=>{ console.error(e); alert('Erro ao baixar SVG'); btn.disabled=false; }); })(this)">Download</button>
+                  {% else %}
+                    <span class="text-muted">Prévia indisponível</span>
+                  {% endif %}
                 {% endif %}
               </div>
 
@@ -252,3 +314,48 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
     </div>
   </template>
 </div>
+
+<script>
+  // Função utilitária para copiar SVG via endpoint e lidar com UI/erros.
+  // Chamado diretamente pelos botões overlay: copySvg(pk, btn)
+  function copySvg(pk, btn) {
+    try {
+      if (btn) { btn.disabled = true; }
+      var url = '{% url "core:copy_svg" %}?id=' + encodeURIComponent(pk);
+      fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (data) {
+          var svg = data && data.svg_text ? data.svg_text : '';
+          if (!svg) throw new Error('SVG não retornado');
+          // Tentar usar Clipboard API quando disponível
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(svg).then(function () { return 'ok'; });
+          }
+          // Fallback com textarea + execCommand
+          return new Promise(function (resolve, reject) {
+            var ta = document.createElement('textarea');
+            ta.value = svg;
+            ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '-9999px';
+            document.body.appendChild(ta);
+            ta.focus(); ta.select();
+            try {
+              var ok = document.execCommand('copy');
+              document.body.removeChild(ta);
+              if (ok) resolve('ok'); else reject(new Error('execCommand falhou'));
+            } catch (e) { document.body.removeChild(ta); reject(e); }
+          });
+        })
+        .then(function () {
+          if (typeof showNotification === 'function') showNotification('SVG copiado com sucesso!', 'success');
+        })
+        .catch(function (err) {
+          console.error('Erro ao copiar SVG', err);
+          if (typeof showNotification === 'function') showNotification('Erro ao copiar SVG: ' + (err && err.message ? err.message : ''), 'error');
+        })
+        .finally(function () { if (btn) btn.disabled = false; });
+    } catch (e) {
+      console.error(e);
+      if (btn) btn.disabled = false;
+    }
+  }
+</script>

@@ -1,75 +1,91 @@
 {% extends 'core/base.html' %}
-{% load i18n %}
+{% load i18n static %}
 
-{% block title %}Minha Biblioteca — AkkaUi{% endblock %}
+{% block title %}{% trans "Minha Biblioteca" %} — AkkaUi{% endblock %}
 
 {% block content %}
-<div style="width: 100%; background: var(--bg-dark);">
-  <header class="library-header">
-    <h1 style="font-size: 48px; margin-bottom: 20px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-      📚 Minha Biblioteca
-    </h1>
-    <p class="lead" style="font-size: 18px; color: var(--text-muted); max-width: 800px; margin: 0 auto;">
-      Seus SVGs comprados e acessos VIP em um só lugar
-    </p>
-  </header>
-
-  <section class="library-section">
-    
-    {% if is_vip %}
-      <div style="background: linear-gradient(135deg, #FFD700, #FFA500); padding: 20px; border-radius: 12px; margin-bottom: 40px; text-align: center;">
-        <h2 style="margin: 0; font-size: 24px; color: #000;">👑 Você é VIP!</h2>
-        <p style="margin: 8px 0 0 0; color: #000;">Você tem acesso ilimitado a todos os SVGs pagos da plataforma.</p>
-      </div>
-    {% endif %}
-
-    {% if owned_svgs %}
-      <h2 style="font-size: 32px; margin-bottom: 24px; margin-top: 40px;">✅ SVGs Comprados</h2>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">
-        SVGs que você adquiriu e possui permanentemente.
+<div style="width: 100%; background: var(--bg-dark); display: flex; justify-content: center; padding: 40px 0;">
+  <div style="width:100%; max-width:1200px;">
+    <header class="library-header" style="text-align: left; margin-bottom: 8px;">
+      <h1 style="font-size: 48px; margin-bottom: 8px; background: linear-gradient(135deg, var(--primary), #9b8af5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+        📚 {% trans "Minha Biblioteca" %}
+      </h1>
+      <p class="lead" style="font-size: 16px; color: var(--text-muted); max-width: 800px; margin: 0;">
+        {% trans "Seus SVGs comprados e acessos VIP em um só lugar." %}
       </p>
-      <div class="container-cards">
-        {% for svg in owned_svgs %}
-          {% include 'core/partials/item_card.html' with item=svg purchased=True %}
-        {% endfor %}
-      </div>
-    {% endif %}
+    </header>
 
-    {% if vip_svgs %}
-      <h2 style="font-size: 32px; margin-bottom: 24px; margin-top: 60px;">👑 Acesso VIP</h2>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">
-        SVGs pagos aos quais você tem acesso por ser VIP.
-      </p>
-      <div class="container-cards">
-        {% for svg in vip_svgs %}
-          {% include 'core/partials/item_card.html' with item=svg vip_access=True %}
-        {% endfor %}
-      </div>
-    {% endif %}
+    <section class="library-section">
+      {% if is_vip %}
+        <div style="background: linear-gradient(135deg, var(--primary), #9b8af5); padding: 18px; border-radius: 12px; margin-bottom: 32px; text-align: center;">
+          <h2 style="margin: 0; font-size: 20px; color: #000;">{% trans "Você é VIP!" %}</h2>
+          <p style="margin: 6px 0 0 0; color: #000;">{% trans "Você tem acesso ilimitado a todos os SVGs pagos da plataforma." %}</p>
+        </div>
+      {% endif %}
 
-    {% if free_svgs %}
-      <h2 style="font-size: 32px; margin-bottom: 24px; margin-top: 60px;">🆓 SVGs Gratuitos</h2>
-      <p style="color: var(--text-muted); margin-bottom: 20px;">
-        SVGs gratuitos disponíveis para todos os usuários.
-      </p>
-      <div class="container-cards">
-        {% for svg in free_svgs %}
-          {% include 'core/partials/item_card.html' with item=svg %}
-        {% endfor %}
-      </div>
-    {% endif %}
+      {% if owned_svgs %}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 8px;">
+          <div>
+            <h2 style="font-size:28px; margin:0;">✅ {% trans "SVGs Comprados" %}</h2>
+            <p style="color:var(--text-muted); margin:6px 0 18px 0;">{% blocktrans %}SVGs que você adquiriu e possui permanentemente.{% endblocktrans %}</p>
+          </div>
+          <div style="color:var(--text-muted);">{{ owned_svgs|length }} {% trans "itens" %}</div>
+        </div>
+        <div class="container-cards">
+          {% for svg in owned_svgs %}
+            {% include 'core/partials/item_card.html' with item=svg purchased=True %}
+          {% endfor %}
+        </div>
+      {% endif %}
 
-    {% if not owned_svgs and not vip_svgs and not free_svgs %}
-      <div style="text-align: center; padding: 80px 20px; color: var(--text-muted);">
-        <p style="font-size: 64px; margin-bottom: 20px;">📚</p>
-        <h3 style="font-size: 24px; margin-bottom: 12px;">Sua biblioteca está vazia</h3>
-        <p style="margin-bottom: 30px;">Explore nosso catálogo e comece a construir sua coleção de SVGs!</p>
-        <a href="{% url 'core:explore' %}" class="btn btn-primary" style="font-size: 16px; padding: 12px 32px;">
-          🔍 Explorar SVGs
-        </a>
-      </div>
-    {% endif %}
+      {% if vip_svgs %}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 36px;">
+          <div>
+            <h2 style="font-size:28px; margin:0;">{% trans "Acesso VIP" %}</h2>
+            <p style="color:var(--text-muted); margin:6px 0 18px 0;">{% trans "SVGs pagos aos quais você tem acesso por ser VIP." %}</p>
+          </div>
+          <div style="color:var(--text-muted);">{{ vip_svgs|length }} {% trans "itens" %}</div>
+        </div>
+        <div class="container-cards">
+          {% for svg in vip_svgs %}
+            {% include 'core/partials/item_card.html' with item=svg vip_access=True %}
+          {% endfor %}
+        </div>
+      {% endif %}
 
-  </section>
+      {% if free_svgs %}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top: 36px;">
+          <div>
+            <h2 style="font-size:28px; margin:0;">{% trans "SVGs Gratuitos" %}</h2>
+            <p style="color:var(--text-muted); margin:6px 0 18px 0;">{% trans "SVGs gratuitos disponíveis para todos os usuários." %}</p>
+          </div>
+          <div style="color:var(--text-muted);">{{ free_svgs|length }} {% trans "itens" %}</div>
+        </div>
+        <div class="container-cards">
+          {% for svg in free_svgs %}
+            {% include 'core/partials/item_card.html' with item=svg %}
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if not owned_svgs and not vip_svgs and not free_svgs %}
+        <div style="width:100%; max-width:720px; color:white; display:flex; flex-direction:column; align-items:center; text-align:center; padding: 40px 16px 56px; box-sizing:border-box; margin-top: 24px;">
+          <div style="display:inline-flex; align-items:center; gap:12px; margin-bottom:12px;" aria-hidden="true">
+            <h1 style="font-size:40px; margin:0; font-family:'Inter', Inter, Arial, sans-serif; font-weight:800; line-height:1;">📚</h1>
+            <h2 style="font-size:28px; margin:0;">{% trans "Sua biblioteca está vazia" %}</h2>
+          </div>
+
+          <p style="font-size:16px; color: white; max-width:560px; margin:12px 0 20px;">{% trans "Explore nosso catálogo e comece a construir sua coleção de SVGs!" %}</p>
+
+          <a href="{% url 'core:explore' %}" class="btn btn-primary" style="font-size:16px; padding:12px 28px; margin-top:8px;">🔍 {% trans "Explorar SVGs" %}</a>
+
+          <div style="width:102px; height:102px; margin: 18px auto 0; opacity:0.95;">
+            <img src="{% static 'core/images/favorites-empty.png' %}" width="102" height="102" alt="{% trans 'Biblioteca vazia' %}" style="display:block; margin:0 auto;" onerror="this.style.display='none'" />
+          </div>
+        </div>
+      {% endif %}
+
+    </section>
+  </div>
 </div>
 {% endblock %}

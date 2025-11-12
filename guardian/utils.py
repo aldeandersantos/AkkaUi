@@ -32,5 +32,8 @@ def build_internal_media_url(file_path: str) -> str:
     # Verifica se o caminho normalizado não tenta escapar
     if normalized_path.startswith('..'):
         raise ValueError("Caminho de arquivo inválido: tentativa de directory traversal")
-    
+
+    # Garantir que usamos barras '/' na URL interna (Nginx espera paths estilo URL)
+    normalized_path = normalized_path.replace(os.sep, '/')
+
     return f"{internal_url}{normalized_path}"

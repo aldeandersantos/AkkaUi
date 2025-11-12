@@ -10,7 +10,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
 <style>
   /* Hover overlay e escurecimento da thumb */
   /* Tornar o card um flex column para fixar a área da imagem e alinhar o conteúdo inferior */
-  .card { display: flex; flex-direction: column; position: relative; overflow: hidden; width: 100%; max-width: 500px; }
+  .card { display: flex; flex-direction: column; position: relative; overflow: hidden; width: 100%; }
   /* Padroniza a área de preview usando aspect-ratio para evitar alterar a altura total do card
     de forma inesperada. O navegador calcula a altura com base na largura disponível, mantendo
     proporção. Ajuste aspect-ratio ou max-height se necessário. */
@@ -84,6 +84,26 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   .card-badges { position: static; display:flex; align-items:center; gap:0.4rem; margin-left:0.35rem; }
   /* Esconder os botões de ação inferiores (vamos expor versões compactas no overlay) */
   .card-content .card-actions-bottom { display: none; }
+  
+  /* Mobile responsiveness fixes */
+  @media (max-width: 640px) {
+    .card-overlay { gap: 0.5rem; padding-bottom: 0.4rem; }
+    .overlay-btn { width: 2.4rem; height: 2.4rem; }
+    .overlay-btn img, .overlay-btn svg { width: 1.4rem !important; height: 1.4rem !important; }
+    .overlay-actions { gap: 0.8rem; }
+    
+    /* Card header mobile adjustments */
+    .card-header { gap: 0.25rem !important; }
+    .card-title { font-size: 0.95rem !important; }
+    .card-price { font-size: 0.8rem !important; }
+    .card-meta { gap: 0.25rem !important; }
+  }
+  
+  @media (max-width: 400px) {
+    /* Extra small mobile devices */
+    .card-title { font-size: 0.875rem !important; max-width: 60%; }
+    .card-price { font-size: 0.75rem !important; }
+  }
 </style>
 
 <div class="card" id="svg-card-{{ item.pk }}" x-data="{ showModal: false, imgError: false, svgHtml: '', svgLoading: false }" x-init="(function(){ var scrollY = 0; var touchHandler = function(e){ e.preventDefault(); }; $watch('showModal', function(open){ try{ if(open){ scrollY = window.scrollY || window.pageYOffset || 0; document.body.style.position = 'fixed'; document.body.style.top = '-' + scrollY + 'px'; document.body.style.left = '0'; document.body.style.right = '0'; document.body.style.width = '100%'; document.documentElement.style.overflow = 'hidden'; document.addEventListener('touchmove', touchHandler, { passive: false }); } else { document.body.style.position = ''; document.body.style.top = ''; document.body.style.left = ''; document.body.style.right = ''; document.body.style.width = ''; document.documentElement.style.overflow = ''; document.removeEventListener('touchmove', touchHandler); window.scrollTo(0, scrollY); } }catch(e){} }); })()">
@@ -179,14 +199,14 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   <!-- Conteúdo do card -->
   <div class="card-content" style="padding: 0; margin: 0;">
   <!-- Header: título à esquerda; badges (VIP / comprado) + preço/Free alinhados à direita -->
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; gap:0.5rem; transform: translateY(6px);">
+  <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; gap:0.5rem; transform: translateY(6px); flex-wrap: nowrap;">
     <!-- Título (expande) -->
-    <h3 style="color: var(--text-white); font-size: 1.05rem; line-height:0.95; padding-bottom: 0; font-weight: 600; margin: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.title_name|default:item.filename }}">
+    <h3 class="card-title" style="color: var(--text-white); font-size: 1.05rem; line-height:0.95; padding-bottom: 0; font-weight: 600; margin: 0; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.title_name|default:item.filename }}">
       {{ item.title_name|default:item.filename|default:"SVG sem nome" }}
     </h3>
 
     <!-- Right-side: badges + price, alinhados verticalmente ao centro -->
-    <div style="display:flex; align-items:center; gap:0.5rem;">
+    <div class="card-meta" style="display:flex; align-items:center; gap:0.5rem; flex-shrink: 0;">
       <div class="card-badges">
         {% if vip_access %}
           <span style="display:inline-flex; align-items:center; gap:0.4rem;">
@@ -202,7 +222,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
       <!-- Price ou Free: só mostrar quando NÃO houver badge de comprado/VIP (evita sobreposição) -->
       {% if not item.purchased_by_user and not purchased and not vip_access %}
         {% if item.price > 0 %}
-          <span style="color: var(--text-white); font-weight: 600; font-size: 0.875rem;">R$ {{ item.price|floatformat:2 }}</span>
+          <span class="card-price" style="color: var(--text-white); font-weight: 600; font-size: 0.875rem; white-space: nowrap;">R$ {{ item.price|floatformat:2 }}</span>
         {% else %}
           <span class="badge badge-primary" style="font-size: 0.7rem;">Free</span>
         {% endif %}

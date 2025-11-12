@@ -18,7 +18,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   .card-image { position: relative; aspect-ratio: 1/1; max-height: 300px; }
   /* Aplicar estilo APENAS à imagem direta de preview (thumbnail).
     Usando o child selector (>) evitamos afetar imagens internas do overlay. */
-  .card-image > img { display:block; width:100%; height:100%; object-fit:cover; transition: filter .18s ease; position: relative; z-index: 0; }
+  .card-image > img { display:block; width:100%; height:100%; object-fit:cover; transition: filter .18s ease; position: relative; z-index: 0; cursor: pointer; }
   .card:hover .card-image > img, .card-image:hover > img { filter: brightness(0.45); }
   /* Remove qualquer borda/efeito roxo aplicado globalmente ao passar o mouse
      sobre o card. Mantemos foco visível para teclado apenas se já houver
@@ -33,7 +33,8 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   .card-overlay { position: absolute; inset: 0; display:flex; align-items:flex-end; justify-content:center; gap:0.85rem; opacity:0; pointer-events:none; transition: opacity .18s ease, transform .18s ease; transform: translateY(10px); z-index: 5; padding-bottom: 0.6rem; }
   .card:hover .card-overlay, .card-image:hover .card-overlay { opacity:1; pointer-events:auto; transform: translateY(0); }
   .overlay-btn { background: rgba(255,255,255,0.06); border: none; width: 2.86rem; height: 2.86rem; border-radius: 50%; display:flex; align-items:center; justify-content:center; color:var(--text-white); backdrop-filter: blur(6px); transition: transform .12s ease, background .12s ease; }
-  .overlay-btn:hover { transform: scale(1.08); background: rgba(255,255,255,0.12); }
+  /* Remover escala no hover para evitar efeito de "aproximação" leve. Mantemos apenas alteração de background para contraste. */
+  .overlay-btn:hover { transform: none; background: rgba(255,255,255,0.12); }
   /* Quando a thumb é escurecida (hover do card), tornar o fundo do botão branco
      para garantir contraste e legibilidade dos ícones. Também removemos o
      backdrop-filter para evitar artefatos visuais sobre backgrounds escuros. */
@@ -85,13 +86,13 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   .card-content .card-actions-bottom { display: none; }
 </style>
 
-<div class="card" id="svg-card-{{ item.pk }}" x-data="{ showModal: false, imgError: false, svgHtml: '', svgLoading: false }">
+<div class="card" id="svg-card-{{ item.pk }}" x-data="{ showModal: false, imgError: false, svgHtml: '', svgLoading: false }" x-init="(function(){ var scrollY = 0; var touchHandler = function(e){ e.preventDefault(); }; $watch('showModal', function(open){ try{ if(open){ scrollY = window.scrollY || window.pageYOffset || 0; document.body.style.position = 'fixed'; document.body.style.top = '-' + scrollY + 'px'; document.body.style.left = '0'; document.body.style.right = '0'; document.body.style.width = '100%'; document.documentElement.style.overflow = 'hidden'; document.addEventListener('touchmove', touchHandler, { passive: false }); } else { document.body.style.position = ''; document.body.style.top = ''; document.body.style.left = ''; document.body.style.right = ''; document.body.style.width = ''; document.documentElement.style.overflow = ''; document.removeEventListener('touchmove', touchHandler); window.scrollTo(0, scrollY); } }catch(e){} }); })()">
   <!-- Botão de Favorito: será exibido dentro do overlay ao passar o mouse sobre a thumb -->
   
   <!-- Preview do SVG -->
-  <div class="card-image">
+  <div class="card-image" role="button" tabindex="0" @click="if($event.target.closest('.overlay-actions')) return; showModal = true" @keydown.enter.prevent="showModal = true" @keydown.space.prevent="showModal = true">
   <!-- Overlay de ações que aparece ao passar o mouse -->
-    <div class="card-overlay" aria-hidden="true">
+  <div class="card-overlay" aria-hidden="true">
       <div class="overlay-actions">
         {% if user.is_authenticated %}
         <button
@@ -152,6 +153,11 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         loading="{% if card_index < 4 %}eager{% else %}lazy{% endif %}"
         x-show="!imgError"
         @error="imgError = true"
+        role="button"
+        tabindex="0"
+        @click="showModal = true"
+        @keydown.enter.prevent="showModal = true"
+        @keydown.space.prevent="showModal = true"
       >
       <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-gray-500); font-size: 0.875rem; text-align: center;" x-show="imgError">
         Sem prévia<br>disponível
@@ -241,22 +247,22 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
 
   <!-- Modal de Preview - Alpine.js com UI/UX Aprimorada -->
   <template x-teleport="body">
-    <div 
-      x-show="showModal" 
-      x-cloak
-      class="modal-backdrop-enhanced"
-      @click.self="showModal = false"
-      @keydown.escape.window="showModal = false"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-title-{{ item.pk }}"
-      x-transition:enter="transition ease-out duration-300"
-      x-transition:enter-start="opacity-0"
-      x-transition:enter-end="opacity-100"
-      x-transition:leave="transition ease-in duration-200"
-      x-transition:leave-start="opacity-100"
-      x-transition:leave-end="opacity-0"
-    >
+    <template x-if="showModal">
+      <div 
+        x-cloak
+        class="modal-backdrop-enhanced"
+        @click.self="showModal = false"
+        @keydown.escape.window="showModal = false"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title-{{ item.pk }}"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+      >
       <div 
         class="modal-enhanced"
         x-transition:enter="transition ease-out duration-300"
@@ -291,7 +297,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
             <div class="modal-preview-section">
               <div class="modal-preview-enhanced" data-copy-url="{% url 'core:copy_svg' %}?id={{ item.pk }}">
                 {% if item.thumbnail %}
-                  <img src="{{ item.get_thumbnail_url }}" alt="Preview de {{ item.title_name|default:item.filename }}" class="modal-preview-image" />
+                  <img src="{{ item.get_thumbnail_url }}" alt="Preview de {{ item.title_name|default:item.filename }}" class="modal-preview-image" style="width:500px; height:500px; max-width:100%; max-height:100%; object-fit:contain; display:block;" />
                 {% else %}
                   <div class="modal-preview-placeholder">
                     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -396,7 +402,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
           </div>
         </div>
       </div>
-    </div>
+    </template>
   </template>
 </div>
 

@@ -135,7 +135,6 @@ main.container {
 
 .sidebar-btn-primary:hover {
   background: #8674f5;
-  transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(116, 96, 243, 0.3);
 }
 
@@ -148,7 +147,6 @@ main.container {
 .sidebar-btn-secondary:hover {
   border-color: #e74c3c;
   color: #e74c3c;
-  transform: translateY(-1px);
 }
 
 /* Explore Content Area */
@@ -266,7 +264,9 @@ main.container {
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  /* Removido o deslocamento vertical no hover para evitar "subir" o card.
+     Mantemos apenas a sombra e a borda para o efeito visual sem mover o elemento. */
+  transform: none;
   box-shadow: 0 12px 24px rgba(116, 96, 243, 0.15);
   border-color: var(--accent);
 }
@@ -352,7 +352,6 @@ main.container {
 }
 
 .btn:hover {
-  transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -461,12 +460,8 @@ main.container {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.15);
   color: var(--text-white, #ffffff);
-  transform: scale(1.05);
 }
 
-.modal-close-enhanced:active {
-  transform: scale(0.95);
-}
 
 .modal-body-enhanced {
   padding: 0;
@@ -583,14 +578,13 @@ main.container {
 
 .btn-modal-primary:hover {
   background: linear-gradient(135deg, #8674f5 0%, #7460F3 100%);
-  transform: translateY(-2px);
   box-shadow: 
     0 8px 20px rgba(116, 96, 243, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .btn-modal-primary:active {
-  transform: translateY(0);
+  /* active state: no translate */
 }
 
 .btn-modal-primary:disabled {
@@ -620,12 +614,11 @@ main.container {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.15);
   color: var(--text-white, #ffffff);
-  transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .btn-modal-secondary:active {
-  transform: translateY(0);
+  /* active state: no translate */
 }
 
 .btn-modal-secondary:disabled {

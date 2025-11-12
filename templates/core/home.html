@@ -7,13 +7,13 @@
   <!-- Hero Section - Matching futuro_frontend DarkHero -->
   <section class="hero-dark">
     <div class="container">
-      <h1 style="font-size: 3.5rem; line-height: 1.1; margin-bottom: 1.5rem;">
+      <h1 style="font-size: 3.5rem; line-height: 1.1; margin-bottom: 1.5rem;" data-aos="fade-up">
         {% trans "Ready-to-Use SVG Designs for" %}
         <br>
         <span style="color: var(--text-gray-400);">{% trans "a Faster Workflow" %}</span>
       </h1>
       
-      <div class="search-wrapper">
+      <div class="search-wrapper" data-aos="fade-up" data-aos-delay="100">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"></circle>
           <path d="m21 21-4.35-4.35"></path>
@@ -24,7 +24,7 @@
                onclick="window.location.href='{% url 'core:explore' %}'">
       </div>
       
-      <div class="tags">
+      <div class="tags" data-aos="fade-up" data-aos-delay="180">
         <span class="badge badge-secondary">Ecommerce</span>
         <span class="badge badge-secondary">Website</span>
         <span class="badge badge-secondary">Saas</span>
@@ -47,7 +47,9 @@
       {% if svgfiles %}
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" style="gap: 1.5rem; margin-bottom: 2rem;">
           {% for item in svgfiles %}
-            {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
+            <div data-aos="fade-up">
+              {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
+            </div>
           {% endfor %}
         </div>
         

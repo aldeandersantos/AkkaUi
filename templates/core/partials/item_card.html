@@ -16,8 +16,10 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
     proporção. Ajuste aspect-ratio ou max-height se necessário. */
   /* Usar proporção 1/1 (quadrado) para deixar a área de preview mais alta e uniforme */
   .card-image { position: relative; aspect-ratio: 1/1; max-height: 300px; }
-  .card-image img { display:block; width:100%; height:100%; object-fit:cover; transition: filter .18s ease; position: relative; z-index: 0; }
-  .card:hover .card-image img, .card-image:hover img { filter: brightness(0.45); }
+  /* Aplicar estilo APENAS à imagem direta de preview (thumbnail).
+    Usando o child selector (>) evitamos afetar imagens internas do overlay. */
+  .card-image > img { display:block; width:100%; height:100%; object-fit:cover; transition: filter .18s ease; position: relative; z-index: 0; }
+  .card:hover .card-image > img, .card-image:hover > img { filter: brightness(0.45); }
   /* Remove qualquer borda/efeito roxo aplicado globalmente ao passar o mouse
      sobre o card. Mantemos foco visível para teclado apenas se já houver
      regras específicas de acessibilidade (evitamos mexer em :focus-visible). */
@@ -32,13 +34,44 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   .card:hover .card-overlay, .card-image:hover .card-overlay { opacity:1; pointer-events:auto; transform: translateY(0); }
   .overlay-btn { background: rgba(255,255,255,0.06); border: none; width: 2.86rem; height: 2.86rem; border-radius: 50%; display:flex; align-items:center; justify-content:center; color:var(--text-white); backdrop-filter: blur(6px); transition: transform .12s ease, background .12s ease; }
   .overlay-btn:hover { transform: scale(1.08); background: rgba(255,255,255,0.12); }
+  /* Quando a thumb é escurecida (hover do card), tornar o fundo do botão branco
+     para garantir contraste e legibilidade dos ícones. Também removemos o
+     backdrop-filter para evitar artefatos visuais sobre backgrounds escuros. */
+  .card:hover .overlay-btn, .card-image:hover .overlay-btn {
+    background: #ffffff;
+    color: var(--text-black, #111);
+    backdrop-filter: none;
+  }
+  .card:hover .overlay-btn:hover, .card-image:hover .overlay-btn:hover {
+    background: #f3f3f3;
+  }
+  /* Garantir que ícones (img/svg) dentro do botão não recebam filtros
+    e permaneçam com sua cor/traço original. Também aumentar levemente
+    o tamanho dos ícones e forçar max-width/max-height para sobrescrever
+    estilos inline do HTML. */
+  .overlay-btn img, .overlay-btn svg {
+   filter: none !important;
+   width: 1.6rem !important;
+   height: 1.6rem !important;
+   max-width: none !important;
+   max-height: none !important;
+  }
+  /* Ajuste específico para ícone de favorito (span.favorite-icon) que havia
+    largura/altura inline; garantimos o novo tamanho aqui. */
+  .favorite-icon {
+   width: 1.6rem !important;
+   height: 1.6rem !important;
+   display: inline-flex !important;
+   align-items: center !important;
+   justify-content: center !important;
+  }
   .overlay-actions { display:flex; gap:1.2rem; align-items:center; justify-content:center; }
   .favorite-top-right { position: absolute; top: 0.75rem; right: 0.75rem; }
   /* Override específico: neutraliza qualquer transform/scale vindo de folhas de estilo globais
     (fix rápido para evitar "zoom" estático quando outras regras aplicam transform: scale)
     Usamos !important para garantir precedência sem alterar os arquivos globais agora. */
   .card { transform: none !important; }
-  .card-image img { transform: none !important; }
+  .card-image > img { transform: none !important; }
   .card:hover { transform: none !important; }
   .card:hover .card-image img { transform: none !important; }
   /* Garantir que .card-content seja referência para badges posicionados */

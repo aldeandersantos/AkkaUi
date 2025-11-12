@@ -162,7 +162,7 @@
                           onmouseover="if('{{ lang_code }}' !== '{{ LANGUAGE_CODE }}') { this.style.background='#27272a'; this.style.color='#ffffff'; }"
                           onmouseout="if('{{ lang_code }}' !== '{{ LANGUAGE_CODE }}') { this.style.background='transparent'; this.style.color='#d4d4d8'; }">
                     <span style="flex: 1 !important;">{{ lang_name }}</span>
-                    {% if lang_code == LANGUAGE_CODE %}<span style="color: #a3e635 !important; font-size: 1.125rem !important;">✓</span>{% endif %}
+                    {% if lang_code == LANGUAGE_CODE %}<span style="color: --primary !important; font-size: 1.125rem !important;">✓</span>{% endif %}
                   </button>
                   {% endfor %}
                 </form>
@@ -269,11 +269,12 @@
       <div class="container">
         <div class="footer-grid" style="grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;">
           <div>
-            <a href="{% url 'core:home' %}" class="brand" style="margin-bottom: 1.5rem; display: inline-flex;">
-              <span class="brand-icon">A</span>
-              <span>AkkaUi</span>
-            </a>
-            <p style="color: var(--text-gray-400); font-size: 0.875rem; line-height: 1.5; margin-top: 1rem;">{% trans "Your complete catalog of modern and responsive UI design resources." %}</p>
+            <div style="display: flex; justify-content: center; align-items: center;">
+              <a href="{% url 'core:home' %}" class="brand">
+              <img src="{% static 'core/images/LogoAkka.png' %}" alt="AkkaUi Logo" style="height: 2.5rem; width: auto; display: block;" />
+              </a>
+            </div>
+            {% comment %} <p style="color: var(--text-gray-400); font-size: 0.875rem; line-height: 1.5; margin-top: 1rem;">{% trans "Your complete catalog of modern and responsive UI design resources." %}</p> {% endcomment %}
           </div>
           
           <div>
@@ -286,27 +287,25 @@
           </div>
           
           <div>
-            <h4>{% trans "Resources" %}</h4>
-            <ul>
-              <li><a href="#">{% trans "Documentation" %}</a></li>
-              <li><a href="#">{% trans "Tutorials" %}</a></li>
-              <li><a href="#">{% trans "Blog" %}</a></li>
-            </ul>
-          </div>
-          
-          <div>
             <h4>{% trans "Company" %}</h4>
             <ul>
-              <li><a href="#">{% trans "About" %}</a></li>
-              <li><a href="#">{% trans "Contact" %}</a></li>
-              <li><a href="#">{% trans "Terms" %}</a></li>
-              {% if user.is_authenticated %}
-                <li><a href="{% url 'support:ticket_list' %}" style="color: var(--accent); font-weight: 600;">💬 {% trans "Support" %}</a></li>
-              {% endif %}
+              {% comment %} <li><a href="#">{% trans "About" %}</a></li> {% endcomment %}
+                <li>
+                {% if user.is_authenticated %}
+                <a href="{% url 'support:ticket_list' %}">
+                  {% trans "Contact" %}
+                </a>
+                {% else %}
+                <a href="{% url 'usuario:signin' %}?next={% url 'support:ticket_list' %}">
+                  {% trans "Contact" %}
+                </a>
+                {% endif %}
+                </li>
+                <li><a href="#">{% trans "Terms" %}</a></li>
             </ul>
           </div>
           
-          <div>
+          {% comment %} <div>
             <h4>{% trans "Community" %}</h4>
             <p style="color: var(--text-gray-400); font-size: 0.875rem; margin-bottom: 1rem;">{% trans "Follow us" %}</p>
             <div class="social-links">
@@ -333,7 +332,7 @@
                 </svg>
               </a>
             </div>
-          </div>
+          </div> {% endcomment %}
         </div>
         
         <div class="brand-large">
@@ -564,6 +563,9 @@
       `;
       document.head.appendChild(style);
     </script>
+
+    <!-- AOS (Animate On Scroll) - carregado via CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css" />
     
     <!-- Shopping Cart Script -->
     <script>
@@ -843,6 +845,20 @@
         }
       })();
     </script>
+      <!-- AOS JS e inicialização (mantemos 'once' true para performance) -->
+      <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+      <script>
+        document.addEventListener('DOMContentLoaded', function() {
+          if (window.AOS) {
+            AOS.init({
+              duration: 700,
+              easing: 'ease-out-cubic',
+              once: true,
+              offset: 120
+            });
+          }
+        });
+      </script>
     
     {% block extra_js %}{% endblock %}
   </body>

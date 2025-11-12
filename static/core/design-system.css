@@ -153,7 +153,6 @@ h4 {
 
 .btn-primary:hover {
   background-color: var(--primary-hover);
-  transform: translateY(-1px);
 }
 
 .btn-secondary {
@@ -187,8 +186,8 @@ h4 {
 }
 
 .card:hover {
+  /* Remover deslocamento vertical no hover para evitar "subida" do card */
   border-color: var(--border-gray-700);
-  transform: translateY(-2px);
 }
 
 .card-image {
@@ -204,9 +203,7 @@ h4 {
   transition: transform 0.3s ease;
 }
 
-.card:hover .card-image img {
-  transform: scale(1.05);
-}
+/* (zoom da imagem no hover removido) */
 
 .card-content {
   padding: 1rem;

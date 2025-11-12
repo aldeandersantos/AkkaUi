@@ -53,6 +53,8 @@ if RENDER_EXTERNAL_HOSTNAME:
 # Adicione hosts locais, se DEBUG for True
 if DEBUG:
     ALLOWED_HOSTS += ['127.0.0.1', 'localhost', 'www.akkaui.shop']
+else:
+    ALLOWED_HOSTS = ['www.akkaui.shop']
 
 CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
 SITE_ID = 1

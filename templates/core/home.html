@@ -4,6 +4,26 @@
 {% block title %}{% trans "Home" %} — AkkaUi{% endblock %}
 
 {% block content %}
+  <style>
+    /* Fade hint for lists: gentle gradient at the bottom to suggest more content
+       without changing layout or adding scrollbars. Kept isolated to this
+       template to avoid global side-effects. */
+    .fade-wrap { position: relative; }
+    .fade-wrap::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 4.5rem; /* height of the gradient */
+      pointer-events: none; /* allow clicks through to the See more button */
+      background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 60%, rgba(0,0,0,0.85) 100%);
+      /* Use mix-blend when needed, prefer dark fade for the current theme */
+    }
+    /* Ensure the grid has a little padding-bottom so items don't get visually
+       cut by the gradient; doesn't affect document flow or cause scrollbars */
+    .fade-pad { padding-bottom: 2.5rem; }
+  </style>
   <!-- Hero Section - Matching futuro_frontend DarkHero -->
   <section class="hero-dark">
     <div class="container">
@@ -42,18 +62,20 @@
   <!-- Latest Components Section - Matching DesignGrid -->
   <section class="section" style="padding: 4rem 0;">
     <div class="container">
-      <h2 style="color: var(--text-white); margin-bottom: 2rem; text-align: center; font-size: 2rem; font-weight: 700;">{% trans "Latest Components" %}</h2>
+  <h2 data-aos="fade-up" data-aos-delay="60" style="color: var(--text-white); margin-bottom: 2rem; text-align: center; font-size: 2rem; font-weight: 700;">{% trans "Latest Components" %}</h2>
       
       {% if svgfiles %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4" style="gap: 1.5rem; margin-bottom: 2rem;">
-          {% for item in svgfiles %}
-            <div data-aos="fade-up">
-              {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
-            </div>
-          {% endfor %}
+  <div class="fade-wrap" data-aos="fade-up" data-aos-delay="100">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 fade-pad" style="gap: 1.5rem; margin-bottom: 2rem;">
+            {% for item in svgfiles %}
+              <div data-aos="fade-up">
+                {% include 'core/partials/item_card.html' with item=item vip_access=item.vip_access %}
+              </div>
+            {% endfor %}
+          </div>
         </div>
         
-        <div class="text-center">
+        <div class="text-center" data-aos="fade-up" data-aos-delay="140">
           <a href="{% url 'core:explore' %}" style="display: inline-flex; align-items: center; justify-content: center; padding: 0.75rem 2rem; background-color: var(--primary); color: var(--bg-black); border-radius: var(--radius-full); font-weight: 500; text-decoration: none; transition: var(--transition);" onmouseover="this.style.backgroundColor='var(--primary-hover)'" onmouseout="this.style.backgroundColor='var(--primary)'">
             {% trans "See more" %}
           </a>

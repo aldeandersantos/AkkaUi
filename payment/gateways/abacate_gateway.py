@@ -44,13 +44,31 @@ class AbacatePayGateway(PaymentGateway):
             return_url = f"{BASE_URL}/cancel/"
             coupons = coupons or []
             # Monta lista de produtos convertendo preço para centavos
+            # Aceita diferentes formatos de keys vindas dos serviços (unit_price, unitPrice, price)
             products_payload = []
             for prod in items:
-                price_cents = int((Decimal(str(prod["price"])) * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+                # Tentar várias chaves possíveis para o preço
+                price_raw = None
+                for key in ("price", "unit_price", "unitPrice", "amount"):
+                    if key in prod:
+                        price_raw = prod.get(key)
+                        break
+
+                if price_raw is None:
+                    logger.error(f"Produto recebido sem campo de preço válido: {prod}")
+                    raise ValueError(f"Produto sem preço: {prod}")
+
+                # Normaliza nome do produto (pode vir como 'name' ou 'title')
+                name = prod.get("name") or prod.get("title") or str(prod.get("id"))
+                quantity = int(prod.get("quantity", 1) or 1)
+
+                # Converte para centavos com Decimal para evitar erros de arredondamento
+                price_cents = int((Decimal(str(price_raw)) * Decimal("100")).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+
                 products_payload.append({
-                    "externalId": f"prod-{prod["id"]}",
-                    "name": prod["name"],
-                    "quantity": prod.get("quantity", 1),
+                    "externalId": f"prod-{prod.get('id')}",
+                    "name": name,
+                    "quantity": quantity,
                     "price": price_cents
                 })
             payload = {

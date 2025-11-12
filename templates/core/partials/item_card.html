@@ -244,6 +244,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
     <div 
       x-show="showModal" 
       x-cloak
+      style="display: none;"
       class="modal-backdrop-enhanced"
       @click.self="showModal = false"
       @keydown.escape.window="showModal = false"

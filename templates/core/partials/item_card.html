@@ -239,160 +239,74 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
     </div>
   </div>
 
-  <!-- Modal de Preview - Alpine.js com UI/UX Aprimorada -->
+  <!-- Modal de Preview - Alpine.js -->
   <template x-teleport="body">
     <div 
       x-show="showModal" 
       x-cloak
-      class="modal-backdrop-enhanced"
+      class="modal-backdrop"
       @click.self="showModal = false"
       @keydown.escape.window="showModal = false"
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title-{{ item.pk }}"
       style="display: none;"
-      x-transition:enter="transition ease-out duration-300"
+      x-transition:enter="transition ease-out duration-200"
       x-transition:enter-start="opacity-0"
       x-transition:enter-end="opacity-100"
-      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave="transition ease-in duration-150"
       x-transition:leave-start="opacity-100"
       x-transition:leave-end="opacity-0"
     >
-      <div 
-        class="modal-enhanced"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 scale-95"
-        x-transition:enter-end="opacity-100 scale-100"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95"
-      >
-        <div class="modal-header-enhanced">
-          <div class="modal-title-group">
-            <h3 id="modal-title-{{ item.pk }}" class="modal-title-enhanced">
-              {{ item.title_name|default:item.filename|default:"Preview SVG" }}
-            </h3>
-            <p class="modal-subtitle">by AkkaUi</p>
-          </div>
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="modal-title-{{ item.pk }}">
+            {{ item.title_name|default:item.filename|default:"Preview SVG" }}
+          </h3>
           <button 
             @click="showModal = false" 
-            class="modal-close-enhanced"
+            class="modal-close"
             type="button"
             aria-label="Fechar modal"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+            ×
           </button>
         </div>
-        
-        <div class="modal-body-enhanced">
-          <div class="modal-grid-enhanced">
-            <!-- Preview Area -->
-            <div class="modal-preview-section">
-              <div class="modal-preview-enhanced" data-copy-url="{% url 'core:copy_svg' %}?id={{ item.pk }}">
+        <div class="modal-body">
+          <div class="modal-grid" style="display:flex; gap:1rem; align-items:flex-start;">
+            <div class="modal-preview-wrap" style="flex:1; min-width:0;">
+              <div class="modal-preview" data-copy-url="{% url 'core:copy_svg' %}?id={{ item.pk }}">
                 {% if item.thumbnail %}
-                  <img src="{{ item.get_thumbnail_url }}" alt="Preview de {{ item.title_name|default:item.filename }}" class="modal-preview-image" />
+                  <img src="{{ item.get_thumbnail_url }}" alt="Preview de {{ item.title_name|default:item.filename }}" style="width:100%; height:auto; max-height:70vh; object-fit:contain; display:block;" />
                 {% else %}
-                  <div class="modal-preview-placeholder">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
-                      <path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <p>Prévia indisponível</p>
-                  </div>
+                  <!-- Não expor o SVG quando não há thumbnail. Mostrar mensagem neutra. -->
+                  <p class="text-muted">Prévia indisponível</p>
                 {% endif %}
               </div>
             </div>
 
-            <!-- Metadata and Actions Sidebar -->
-            <div class="modal-sidebar-enhanced">
-              <!-- Action Buttons -->
-              <div class="modal-actions-enhanced">
+            <div class="modal-meta" style="width:320px; max-width:40%; display:flex; flex-direction:column; gap:0.75rem;">
+              <div style="display:flex; gap:0.5rem;">
                 {% if item.purchased_by_user or purchased or vip_access %}
-                  <button type="button" class="btn-modal-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal-enhanced'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Copiar SVG
-                  </button>
-                  <button type="button" class="btn-modal-secondary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal-enhanced'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const svg = data.svg_text||''; const a=document.createElement('a'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); a.download = '{{ item.filename|default:item.title_name|default:"svg" }}.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }).then(()=>{ btn.disabled=false; }).catch(e=>{ console.error(e); alert('Erro ao baixar SVG'); btn.disabled=false; }); })(this)">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Download
-                  </button>
+                  <button type="button" class="btn btn-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">Copiar</button>
+                  <button type="button" class="btn btn-secondary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const svg = data.svg_text||''; const a=document.createElement('a'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); a.download = '{{ item.filename|default:item.title_name|default:"svg" }}.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }).then(()=>{ btn.disabled=false; }).catch(e=>{ console.error(e); alert('Erro ao baixar SVG'); btn.disabled=false; }); })(this)">Download</button>
                 {% elif item.price > 0 %}
-                  <button type="button" class="btn-modal-primary" onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price|unlocalize }} )">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="9" cy="21" r="1" fill="currentColor"/>
-                      <circle cx="20" cy="21" r="1" fill="currentColor"/>
-                      <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Adicionar ao Carrinho
-                  </button>
-                  <div class="modal-price">R$ {{ item.price|floatformat:2 }}</div>
+                  <button type="button" class="btn btn-primary" onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price|unlocalize }} )">Adicionar ao carrinho</button>
                 {% else %}
                   {% if item.thumbnail %}
-                  <button type="button" class="btn-modal-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal-enhanced'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Copiar SVG
-                  </button>
-                  <button type="button" class="btn-modal-secondary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal-enhanced'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const svg = data.svg_text||''; const a=document.createElement('a'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); a.download = '{{ item.filename|default:item.title_name|default:"svg" }}.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }).then(()=>{ btn.disabled=false; }).catch(e=>{ console.error(e); alert('Erro ao baixar SVG'); btn.disabled=false; }); })(this)">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Download
-                  </button>
-                  <div class="modal-badge-free">Grátis</div>
+                  <button type="button" class="btn btn-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">Copiar</button>
+                  <button type="button" class="btn btn-secondary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const svg = data.svg_text||''; const a=document.createElement('a'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); a.download = '{{ item.filename|default:item.title_name|default:"svg" }}.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }).then(()=>{ btn.disabled=false; }).catch(e=>{ console.error(e); alert('Erro ao baixar SVG'); btn.disabled=false; }); })(this)">Download</button>
                   {% else %}
-                    <div class="modal-no-preview">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                      <p>Prévia indisponível</p>
-                    </div>
+                    <span class="text-muted">Prévia indisponível</span>
                   {% endif %}
                 {% endif %}
               </div>
 
-              <!-- Divider -->
-              <div class="modal-divider"></div>
-
-              <!-- Metadata -->
-              <div class="modal-metadata">
-                {% if item.description %}
-                  <div class="modal-info-group">
-                    <h4 class="modal-info-label">Descrição</h4>
-                    <p class="modal-info-text">{{ item.description }}</p>
-                  </div>
-                {% endif %}
-                
-                {% if vip_access %}
-                  <div class="modal-info-group">
-                    <div class="modal-badge-vip">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="currentColor"/>
-                      </svg>
-                      Acesso VIP
-                    </div>
-                  </div>
-                {% elif item.purchased_by_user or purchased %}
-                  <div class="modal-info-group">
-                    <div class="modal-badge-purchased">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                      Já Comprado
-                    </div>
-                  </div>
-                {% endif %}
-              </div>
+              <div style="font-weight:600;">{{ item.title_name|default:item.filename|default:"SVG sem nome" }}</div>
+              <div style="color:var(--text-gray-400); font-size:0.95rem;">by AkkaUi</div>
+              {% if item.description %}
+                <div style="margin-top:0.5rem; color: var(--text-gray-400);">{{ item.description }}</div>
+              {% endif %}
             </div>
           </div>
         </div>

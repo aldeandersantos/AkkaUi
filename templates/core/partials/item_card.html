@@ -18,6 +18,15 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   .card-image { position: relative; aspect-ratio: 1/1; max-height: 300px; }
   .card-image img { display:block; width:100%; height:100%; object-fit:cover; transition: filter .18s ease; position: relative; z-index: 0; }
   .card:hover .card-image img, .card-image:hover img { filter: brightness(0.45); }
+  /* Remove qualquer borda/efeito roxo aplicado globalmente ao passar o mouse
+     sobre o card. Mantemos foco visível para teclado apenas se já houver
+     regras específicas de acessibilidade (evitamos mexer em :focus-visible). */
+  .card:hover, .card-image:hover, .card:focus, .card:focus-within {
+    box-shadow: none !important;
+    outline: none !important;
+    border: none !important;
+    border-color: transparent !important;
+  }
   /* posiciona o overlay no centro-baixo da thumb */
   .card-overlay { position: absolute; inset: 0; display:flex; align-items:flex-end; justify-content:center; gap:0.85rem; opacity:0; pointer-events:none; transition: opacity .18s ease, transform .18s ease; transform: translateY(10px); z-index: 5; padding-bottom: 0.6rem; }
   .card:hover .card-overlay, .card-image:hover .card-overlay { opacity:1; pointer-events:auto; transform: translateY(0); }
@@ -34,19 +43,21 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
   .card:hover .card-image img { transform: none !important; }
   /* Garantir que .card-content seja referência para badges posicionados */
   .card-content { position: relative; }
-  /* Badges (VIP / comprado) posicionadas sem afetar o fluxo do conteúdo
-    assim o título não se move quando o badge aparece */
-  .card-badges { position: absolute; top: 0.35rem; right: 0.6rem; display:flex; align-items:center; gap:0.4rem; }
+  /* Badges (VIP / comprado)
+    Agora posicionadas inline (static) para ficarem alinhadas à mesma altura
+    do título e do preço. Mantemos display:flex e align-items:center para
+    alinhamento vertical consistente. */
+  .card-badges { position: static; display:flex; align-items:center; gap:0.4rem; margin-left:0.35rem; }
   /* Esconder os botões de ação inferiores (vamos expor versões compactas no overlay) */
   .card-content .card-actions-bottom { display: none; }
 </style>
 
 <div class="card" id="svg-card-{{ item.pk }}" x-data="{ showModal: false, imgError: false, svgHtml: '', svgLoading: false }">
-  {# Botão de Favorito: será exibido dentro do overlay ao passar o mouse sobre a thumb #}
+  <!-- Botão de Favorito: será exibido dentro do overlay ao passar o mouse sobre a thumb -->
   
-  {# Preview do SVG #}
+  <!-- Preview do SVG -->
   <div class="card-image">
-    {# Overlay de ações que aparece ao passar o mouse #}
+  <!-- Overlay de ações que aparece ao passar o mouse -->
     <div class="card-overlay" aria-hidden="true">
       <div class="overlay-actions">
         {% if user.is_authenticated %}
@@ -71,7 +82,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         </button>
         {% endif %}
 
-        {# Botão Visualizar - mantém o comportamento Alpine.js de abrir modal #}
+  <!-- Botão Visualizar - mantém o comportamento Alpine.js de abrir modal -->
         <button
           class="overlay-btn"
           type="button"
@@ -84,9 +95,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
             <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.4" fill="none" />
           </svg>
         </button>
-        {# Ações compactas que aproveitam a lógica já existente nos botões inferiores (#IDs declarados abaixo) #}
-        {% if item.purchased_by_user or purchased or vip_access %}
-        <button class="overlay-btn btn btn-primary" type="button" aria-label="Copiar SVG" onclick="document.getElementById('copy-btn-{{ item.pk }}') && document.getElementById('copy-btn-{{ item.pk }}').click()" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
+  <!-- Ações compactas que aproveitam a lógica já existente nos botões inferiores (IDs declarados abaixo) -->
+  {% if item.purchased_by_user or purchased or vip_access %}
+    <button class="overlay-btn btn btn-primary" type="button" aria-label="Copiar SVG" onclick="copySvg({{ item.pk }}, this)" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
           <img src="{% static 'core/images/Biblioteca_preto.png' %}" alt="Copiar" style="height:16px; width:auto; display:inline-block;" />
         </button>
         {% elif item.price > 0 %}
@@ -94,14 +105,14 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
           <img src="{% static 'core/images/carrinho_preto.png' %}" alt="Cart" style="width:20px;height:20px;display:block;" />
         </button>
         {% else %}
-        <button class="overlay-btn btn btn-primary" type="button" aria-label="Copiar SVG" onclick="document.getElementById('copy-btn-{{ item.pk }}') && document.getElementById('copy-btn-{{ item.pk }}').click()" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
+  <button class="overlay-btn btn btn-primary" type="button" aria-label="Copiar SVG" onclick="copySvg({{ item.pk }}, this)" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
           <img src="{% static 'core/images/Biblioteca_preto.png' %}" alt="Copiar" style="height:16px; width:auto; display:inline-block;" />
         </button>
         {% endif %}
       </div>
     </div>
     {% if item.thumbnail %}
-      {# Opção 1: Thumbnail existe - usar URL protegida via guardian #}
+  <!-- Opção 1: Thumbnail existe - usar URL protegida via guardian -->
       <img 
         src="{{ item.get_thumbnail_url }}" 
         alt="Preview de {{ item.title_name|default:item.filename }}"
@@ -113,63 +124,63 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         Sem prévia<br>disponível
       </div>
     {% elif item.content %}
-      {# Opção 2: Sem thumbnail mas tem content - preview inline via data-URI #}
-      <img 
-        src="data:image/svg+xml;base64,{{ item.get_sanitized_content|base64_encode }}"
-        alt="Preview de {{ item.title_name|default:item.filename }}"
-        loading="{% if card_index < 4 %}eager{% else %}lazy{% endif %}"
-        x-show="!imgError"
-        @error="imgError = true"
-      >
-      <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-gray-500); font-size: 0.875rem; text-align: center;" x-show="imgError">
-        Erro ao carregar<br>prévia
+      <!-- não exibimos o conteúdo SVG inline quando não há thumbnail; mostrar apenas placeholder -->
+      <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-gray-500); font-size: 0.875rem; text-align: center;">
+        <span>Sem prévia disponível</span>
       </div>
     {% else %}
-      {# Opção 3: Sem thumbnail e sem content - placeholder #}
+  <!-- Opção 3: Sem thumbnail e sem content - placeholder -->
       <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--text-gray-500); font-size: 0.875rem; text-align: center;">
         Sem prévia<br>disponível
       </div>
     {% endif %}
   </div>
 
-  {# Conteúdo do card #}
+  <!-- Conteúdo do card -->
   <div class="card-content" style="padding: 0; margin: 0;">
-  <div class="card-badges">
-      {# Badge de comprado ou acesso VIP (mantido no topo, alinhado à direita) #}
-      {% if vip_access %}
-        <span style="display:inline-flex; align-items:center; gap:0.4rem;">
-            <img src="{% static 'core/images/Vip.png' %}" alt="VIP" style="height:20px; width:auto; display:inline-block; margin-top:6px;" />
-        </span>
-      {% elif item.purchased_by_user or purchased %}
-        <span class="badge badge-primary" style="font-size: 0.75rem; padding: 0.125rem 0.5rem; background-color: #4CAF50; border-color: #4CAF50;">
-          ✓
-        </span>
-      {% endif %}
-    </div>
-    
+  <!-- Header: título à esquerda; badges (VIP / comprado) + preço/Free alinhados à direita -->
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; gap:0.5rem; transform: translateY(6px);">
-      {# Título descido para aqui (substitui o 'by AkkaUi') #}
-  <h3 style="color: var(--text-white); font-size: 1.05rem; line-height:0.95; padding-bottom: 0; font-weight: 600; margin: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.title_name|default:item.filename }}">
-        {{ item.title_name|default:item.filename|default:"SVG sem nome" }}
-      </h3>
-      
-      {# Price ou Free: só mostrar quando NÃO houver badge de comprado/VIP (evita sobreposição) #}
-  {% if not item.purchased_by_user and not purchased and not vip_access %}
+    <!-- Título (expande) -->
+    <h3 style="color: var(--text-white); font-size: 1.05rem; line-height:0.95; padding-bottom: 0; font-weight: 600; margin: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.title_name|default:item.filename }}">
+      {{ item.title_name|default:item.filename|default:"SVG sem nome" }}
+    </h3>
+
+    <!-- Right-side: badges + price, alinhados verticalmente ao centro -->
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+      <div class="card-badges">
+        {% if vip_access %}
+          <span style="display:inline-flex; align-items:center; gap:0.4rem;">
+            <img src="{% static 'core/images/Vip.png' %}" alt="VIP" style="height:20px; width:auto; display:inline-block; margin-top:6px;" />
+          </span>
+        {% elif item.purchased_by_user or purchased %}
+          <span class="badge badge-primary" style="font-size: 0.75rem; padding: 0.125rem 0.5rem; background-color: #4CAF50; border-color: #4CAF50;">
+            ✓
+          </span>
+        {% endif %}
+      </div>
+
+      <!-- Price ou Free: só mostrar quando NÃO houver badge de comprado/VIP (evita sobreposição) -->
+      {% if not item.purchased_by_user and not purchased and not vip_access %}
         {% if item.price > 0 %}
           <span style="color: var(--text-white); font-weight: 600; font-size: 0.875rem;">R$ {{ item.price|floatformat:2 }}</span>
         {% else %}
           <span class="badge badge-primary" style="font-size: 0.7rem;">Free</span>
         {% endif %}
       {% else %}
-        {# Quando há badge (comprado/VIP) não mostramos o preço para evitar sobreposição #}
+        <!-- Quando há badge (comprado/VIP) não mostramos o preço para evitar sobreposição -->
         <span aria-hidden="true"></span>
       {% endif %}
     </div>
+  </div>
     
-    {# Ações inferiores removidas (agora expostas no overlay) #}
+  <!-- Ações inferiores removidas (agora expostas no overlay) -->
     <!-- Botões ocultos com IDs usados pelo overlay para disparar a lógica existente -->
-    <div style="display:none;" aria-hidden="true">
-      {% if item.purchased_by_user or purchased or vip_access %}
+   <!-- Botões ocultos utilizados pelo overlay. Sempre renderizamos os botones
+     (em display:none) para que o overlay possa disparar ações via ID mesmo
+     quando não há thumbnail — a autorização final continua sendo feita
+     pelo endpoint backend. Usamos if/elif/else para evitar duplicação de IDs. -->
+   <div style="display:none;" aria-hidden="true">
+    {% if item.purchased_by_user or purchased or vip_access %}
         <button id="copy-btn-{{ item.pk }}" class="btn btn-primary" type="button" aria-label="Copiar (oculto)"
           onclick="(function(btn){ const originalHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '...'; function copyToClipboard(text){ if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } return new Promise((resolve,reject)=>{ const textarea=document.createElement('textarea'); textarea.value = text; textarea.style.position='fixed'; textarea.style.left='-999999px'; textarea.style.top='-999999px'; document.body.appendChild(textarea); textarea.focus(); textarea.select(); try{ const successful = document.execCommand('copy'); document.body.removeChild(textarea); if(successful) resolve(); else reject(new Error('execCommand falhou')); }catch(e){ document.body.removeChild(textarea); reject(e); } }); }
             fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', { method: 'GET', headers: { 'Accept': 'application/json' } })
@@ -179,12 +190,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
               .catch(function(error){ console.error('Erro ao copiar:', error); if(typeof showNotification==='function') showNotification('Erro ao copiar SVG: ' + error.message, 'error'); else alert('Erro ao copiar SVG: ' + error.message); btn.disabled=false; btn.innerHTML = originalHTML; }); })(this)">
           hidden
         </button>
-      {% endif %}
-      {% if item.price > 0 %}
+    {% elif item.price > 0 %}
         <button id="addcart-btn-{{ item.pk }}" onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price|unlocalize }})" class="btn btn-primary" type="button" aria-label="Adicionar ao carrinho (oculto)">hidden</button>
-      {% endif %}
-      {% if not item.price or item.price <= 0 %}
-        {# Para itens gratuitos, também expor copy-btn caso não exista acima #}
+    {% else %}
         <button id="copy-btn-{{ item.pk }}" class="btn btn-primary" type="button" aria-label="Copiar (oculto)"
           onclick="(function(btn){ const originalHTML = btn.innerHTML; btn.disabled = true; btn.innerHTML = '...'; function copyToClipboard(text){ if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } return new Promise((resolve,reject)=>{ const textarea=document.createElement('textarea'); textarea.value = text; textarea.style.position='fixed'; textarea.style.left='-999999px'; textarea.style.top='-999999px'; document.body.appendChild(textarea); textarea.focus(); textarea.select(); try{ const successful = document.execCommand('copy'); document.body.removeChild(textarea); if(successful) resolve(); else reject(new Error('execCommand falhou')); }catch(e){ document.body.removeChild(textarea); reject(e); } }); }
             fetch('{% url 'core:copy_svg' %}?id={{ item.pk }}', { method: 'GET', headers: { 'Accept': 'application/json' } })
@@ -194,11 +202,11 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
               .catch(function(error){ console.error('Erro ao copiar:', error); if(typeof showNotification==='function') showNotification('Erro ao copiar SVG: ' + error.message, 'error'); else alert('Erro ao copiar SVG: ' + error.message); btn.disabled=false; btn.innerHTML = originalHTML; }); })(this)">
           hidden
         </button>
-      {% endif %}
+    {% endif %}
     </div>
   </div>
 
-  {# Modal de Preview - Alpine.js #}
+  <!-- Modal de Preview - Alpine.js -->
   <template x-teleport="body">
     <div 
       x-show="showModal" 
@@ -237,12 +245,9 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
               <div class="modal-preview" data-copy-url="{% url 'core:copy_svg' %}?id={{ item.pk }}">
                 {% if item.thumbnail %}
                   <img src="{{ item.get_thumbnail_url }}" alt="Preview de {{ item.title_name|default:item.filename }}" style="width:100%; height:auto; max-height:70vh; object-fit:contain; display:block;" />
-                {% elif item.content %}
-                  <div x-show="svgLoading" class="text-muted">Carregando...</div>
-                  <div x-html="svgHtml" x-show="!svgLoading" style="max-width:100%; max-height:70vh; overflow:auto;"></div>
-                  <div x-effect='if (showModal && !svgHtml && !svgLoading) { svgLoading = true; var url = $el.closest("[data-copy-url]") ? $el.closest("[data-copy-url]").dataset.copyUrl : null; if (!url) { svgHtml = "<p class=\"text-muted\">URL não disponível</p>"; svgLoading = false; } else { fetch(url, { method: "GET", headers: { "Accept": "application/json" } }).then(r => { if (!r.ok) throw r; return r.json() }).then(data => { svgHtml = data.svg_text || "<p class=\"text-muted\">Conteúdo SVG não disponível</p>"; svgLoading = false }).catch(e => { svgHtml = "<p class=\"text-muted\">Erro ao carregar SVG</p>"; svgLoading = false }) } }'></div>
                 {% else %}
-                  <p class="text-muted">Sem prévia disponível</p>
+                  <!-- Não expor o SVG quando não há thumbnail. Mostrar mensagem neutra. -->
+                  <p class="text-muted">Prévia indisponível</p>
                 {% endif %}
               </div>
             </div>
@@ -255,8 +260,12 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
                 {% elif item.price > 0 %}
                   <button type="button" class="btn btn-primary" onclick="addToCart({{ item.pk }}, '{{ item.title_name|escapejs }}', {{ item.price|unlocalize }} )">Adicionar ao carrinho</button>
                 {% else %}
+                  {% if item.thumbnail %}
                   <button type="button" class="btn btn-primary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const text = data.svg_text||''; if(navigator.clipboard && navigator.clipboard.writeText){ return navigator.clipboard.writeText(text); } const ta=document.createElement('textarea'); ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }).then(()=>{ if(typeof showNotification==='function') showNotification('SVG copiado!', 'success'); btn.disabled=false; }).catch(e=>{ console.error(e); if(typeof showNotification==='function') showNotification('Erro ao copiar', 'error'); else alert('Erro ao copiar SVG'); btn.disabled=false; }); })(this)">Copiar</button>
                   <button type="button" class="btn btn-secondary" onclick="(function(btn){ btn.disabled=true; const modal = btn.closest('.modal'); const url = modal.querySelector('[data-copy-url]') ? modal.querySelector('[data-copy-url]').dataset.copyUrl : null; if(!url){ alert('URL não disponível'); btn.disabled=false; return; } fetch(url,{ method:'GET', headers:{ 'Accept':'application/json' } }).then(r=>{ if(!r.ok) throw r; return r.json(); }).then(data=>{ const svg = data.svg_text||''; const a=document.createElement('a'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); a.download = '{{ item.filename|default:item.title_name|default:"svg" }}.svg'; document.body.appendChild(a); a.click(); document.body.removeChild(a); }).then(()=>{ btn.disabled=false; }).catch(e=>{ console.error(e); alert('Erro ao baixar SVG'); btn.disabled=false; }); })(this)">Download</button>
+                  {% else %}
+                    <span class="text-muted">Prévia indisponível</span>
+                  {% endif %}
                 {% endif %}
               </div>
 
@@ -272,3 +281,48 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
     </div>
   </template>
 </div>
+
+<script>
+  // Função utilitária para copiar SVG via endpoint e lidar com UI/erros.
+  // Chamado diretamente pelos botões overlay: copySvg(pk, btn)
+  function copySvg(pk, btn) {
+    try {
+      if (btn) { btn.disabled = true; }
+      var url = '{% url "core:copy_svg" %}?id=' + encodeURIComponent(pk);
+      fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } })
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (data) {
+          var svg = data && data.svg_text ? data.svg_text : '';
+          if (!svg) throw new Error('SVG não retornado');
+          // Tentar usar Clipboard API quando disponível
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            return navigator.clipboard.writeText(svg).then(function () { return 'ok'; });
+          }
+          // Fallback com textarea + execCommand
+          return new Promise(function (resolve, reject) {
+            var ta = document.createElement('textarea');
+            ta.value = svg;
+            ta.style.position = 'fixed'; ta.style.left = '-9999px'; ta.style.top = '-9999px';
+            document.body.appendChild(ta);
+            ta.focus(); ta.select();
+            try {
+              var ok = document.execCommand('copy');
+              document.body.removeChild(ta);
+              if (ok) resolve('ok'); else reject(new Error('execCommand falhou'));
+            } catch (e) { document.body.removeChild(ta); reject(e); }
+          });
+        })
+        .then(function () {
+          if (typeof showNotification === 'function') showNotification('SVG copiado com sucesso!', 'success');
+        })
+        .catch(function (err) {
+          console.error('Erro ao copiar SVG', err);
+          if (typeof showNotification === 'function') showNotification('Erro ao copiar SVG: ' + (err && err.message ? err.message : ''), 'error');
+        })
+        .finally(function () { if (btn) btn.disabled = false; });
+    } catch (e) {
+      console.error(e);
+      if (btn) btn.disabled = false;
+    }
+  }
+</script>

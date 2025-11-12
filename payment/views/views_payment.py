@@ -52,9 +52,14 @@ def create_payment(request):
                 email=data.get("email")
             )
         else:
+            # Modo legado: plano único
+            plan = data.get("plan")
+            if not plan:
+                return JsonResponse({"error": "missing_plan"}, status=400)
             payment = PaymentService.create_payment(
                 user=request.user,
                 gateway_name=gateway,
+                plan=plan,
                 currency=data.get("currency", "BRL")
             )
         

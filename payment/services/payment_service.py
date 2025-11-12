@@ -231,35 +231,56 @@ class PaymentService:
         for item_data in items:
             item_type = item_data.get('type')
             item_id = item_data.get('id')
-            # ignorar quantidade enviada pelo cliente para SVGs
-            incoming_quantity = item_data.get('quantity', 1)
             quantity = item_data.get('quantity', 1)
 
-            # Item SVG
-            try:
-                svg = SvgFile.objects.get(id=item_id)
-                if svg.price <= 0:
-                    raise ValueError(f"SVG {item_id} não está disponível para venda")
+            if item_type == 'plan':
+                # Item é um plano de assinatura
+                try:
+                    price = cls.get_plan_price(item_id)
+                    # Para planos, usamos um hash do nome como ID numérico
+                    # já que o modelo PaymentItem.item_id é IntegerField
+                    plan_id_hash = abs(hash(item_id)) % (10 ** 8)
+                    
+                    processed_items.append({
+                        'type': 'plan',
+                        'id': plan_id_hash,
+                        'name': item_id.replace('_', ' ').title(),
+                        'quantity': 1,  # Planos sempre quantity 1
+                        'unit_price': Decimal(str(price)),
+                        'metadata': {'plan_name': item_id}
+                    })
+                    total_amount += Decimal(str(price))
+                except ValueError as e:
+                    raise ValueError(f"Plano {item_id} não encontrado: {e}")
+            
+            elif item_type == 'svg':
+                # Item SVG
+                try:
+                    svg = SvgFile.objects.get(id=item_id)
+                    if svg.price <= 0:
+                        raise ValueError(f"SVG {item_id} não está disponível para venda")
 
-                # Deduplicar: pular se já processamos este SVG
-                if svg.id in seen_svg_ids:
-                    continue
-                seen_svg_ids.add(svg.id)
+                    # Deduplicar: pular se já processamos este SVG
+                    if svg.id in seen_svg_ids:
+                        continue
+                    seen_svg_ids.add(svg.id)
 
-                # Enforce licença única: quantity = 1
-                enforced_quantity = 1
+                    # Enforce licença única: quantity = 1
+                    enforced_quantity = 1
 
-                processed_items.append({
-                    'type': 'svg',
-                    'id': svg.id,
-                    'name': svg.title_name or f"SVG {svg.id}",
-                    'quantity': enforced_quantity,
-                    'unit_price': svg.price,
-                    'metadata': {'svg_id': svg.id, 'hash_value': svg.hash_value}
-                })
-                total_amount += svg.price * enforced_quantity
-            except SvgFile.DoesNotExist:
-                raise ValueError(f"SVG {item_id} não encontrado")
+                    processed_items.append({
+                        'type': 'svg',
+                        'id': svg.id,
+                        'name': svg.title_name or f"SVG {svg.id}",
+                        'quantity': enforced_quantity,
+                        'unit_price': svg.price,
+                        'metadata': {'svg_id': svg.id, 'hash_value': svg.hash_value}
+                    })
+                    total_amount += svg.price * enforced_quantity
+                except SvgFile.DoesNotExist:
+                    raise ValueError(f"SVG {item_id} não encontrado")
+            else:
+                raise ValueError(f"Tipo de item desconhecido: {item_type}")
         
         # Criar pagamento e itens em uma transação
         with transaction.atomic():

@@ -13,11 +13,12 @@ def validate_file_path(value):
     if not value:
         raise ValidationError("O caminho do arquivo não pode estar vazio.")
     
-    # Normaliza o caminho
-    normalized = os.path.normpath(value)
+    # Normaliza o caminho usando pathlib para garantir consistência cross-platform
+    # e sempre retornar paths com forward slashes
+    normalized = str(Path(value).as_posix())
     
     # Verifica se é um caminho absoluto (verificação rápida antes de resolve)
-    if os.path.isabs(normalized):
+    if os.path.isabs(value):
         raise ValidationError("O caminho do arquivo deve ser relativo ao MEDIA_ROOT.")
     
     # Validação principal: verifica se o caminho resolvido está dentro do MEDIA_ROOT

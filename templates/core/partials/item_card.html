@@ -98,6 +98,7 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         <button
           class="favorite-btn overlay-btn"
           data-svg-id="{{ item.pk }}"
+          @click.stop
           onclick="toggleFavorite({{ item.pk }}, this)"
           aria-label="Favoritar SVG {{ item.title_name|default:item.filename }}"
           type="button"
@@ -131,15 +132,15 @@ Segurança: usa item.get_sanitized_content que remove <script> e event handlers
         </button>
   <!-- Ações compactas que aproveitam a lógica já existente nos botões inferiores (IDs declarados abaixo) -->
   {% if item.purchased_by_user or purchased or vip_access %}
-    <button class="overlay-btn btn btn-primary" type="button" aria-label="Copiar SVG" onclick="copySvg({{ item.pk }}, this)" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
+        <button class="overlay-btn btn btn-primary" type="button" @click.stop aria-label="Copiar SVG" onclick="copySvg({{ item.pk }}, this)" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
           <img src="{% static 'core/images/Biblioteca_preto.png' %}" alt="Copiar" style="height:16px; width:auto; display:inline-block;" />
         </button>
         {% elif item.price > 0 %}
-        <button class="overlay-btn btn btn-primary" type="button" aria-label="Adicionar ao carrinho" onclick="document.getElementById('addcart-btn-{{ item.pk }}') && document.getElementById('addcart-btn-{{ item.pk }}').click()" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Carrinho.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/carrinho_preto.png' %}'; })(this)">
+          <button class="overlay-btn btn btn-primary" type="button" @click.stop aria-label="Adicionar ao carrinho" onclick="document.getElementById('addcart-btn-{{ item.pk }}') && document.getElementById('addcart-btn-{{ item.pk }}').click()" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Carrinho.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/carrinho_preto.png' %}'; })(this)">
           <img src="{% static 'core/images/carrinho_preto.png' %}" alt="Cart" style="width:20px;height:20px;display:block;" />
         </button>
         {% else %}
-  <button class="overlay-btn btn btn-primary" type="button" aria-label="Copiar SVG" onclick="copySvg({{ item.pk }}, this)" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
+          <button class="overlay-btn btn btn-primary" type="button" @click.stop aria-label="Copiar SVG" onclick="copySvg({{ item.pk }}, this)" onmouseover="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca.png' %}'; })(this)" onmouseout="(function(btn){ var i = btn.querySelector('img'); if(i) i.src='{% static 'core/images/Biblioteca_preto.png' %}'; })(this)">
           <img src="{% static 'core/images/Biblioteca_preto.png' %}" alt="Copiar" style="height:16px; width:auto; display:inline-block;" />
         </button>
         {% endif %}
